@@ -9,7 +9,7 @@ updates:
       time: "10:00"
       timezone: "America/Toronto"
     open-pull-requests-limit: 5
-    target-branch: "develop"
+    target-branch: "main"
     groups:
       nuget-deps:
         patterns:
@@ -27,7 +27,7 @@ updates:
       day: "monday"
       time: "10:00"
       timezone: "America/Toronto"
-    target-branch: "develop"
+    target-branch: "main"
     groups:
       actions-deps:
         patterns:
