@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// How a dependency required by a proposed update relates to what's currently installed.
@@ -76,3 +76,4 @@ public sealed class UpdateDependencyDelta
         get { return Added.Count > 0 || Removed.Count > 0; }
     }
 }
+

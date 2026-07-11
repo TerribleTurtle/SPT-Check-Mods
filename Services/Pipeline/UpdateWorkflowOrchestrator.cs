@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
-using CheckMods.Models.Pipeline;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Models.Pipeline;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services.Pipeline;
+namespace CheckModsExtended.Services.Pipeline;
 
 /// <summary>
 /// Orchestrates the execution of the update workflow pipeline.
@@ -57,3 +57,4 @@ public sealed class UpdateWorkflowOrchestrator : IUpdateWorkflowOrchestrator
         return await RunPipelineAsync(args, cancellationToken);
     }
 }
+

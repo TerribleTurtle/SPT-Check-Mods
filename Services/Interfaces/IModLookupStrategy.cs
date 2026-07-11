@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using SemanticVersioning;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Strategy for looking up mods in the Forge API using GUIDs and fuzzy name matching.
@@ -22,3 +22,4 @@ public interface IModLookupStrategy
         CancellationToken cancellationToken = default
     );
 }
+

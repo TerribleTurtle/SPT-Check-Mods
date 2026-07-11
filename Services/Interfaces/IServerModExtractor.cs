@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Extracts SPT Server Mod metadata from package.json.
@@ -20,3 +20,4 @@ public interface IServerModExtractor
         CancellationToken cancellationToken = default
     );
 }
+

@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// UI Renderer for displaying misplaced mod warnings and cross-installed directories.
@@ -13,3 +13,4 @@ public interface IMisplacedModUiRenderer
     /// <param name="report">The misplaced mod report.</param>
     void MisplacedMods(MisplacedModReport report);
 }
+

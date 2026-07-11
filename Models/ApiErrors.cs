@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Represents a successful absence of data - the resource was not found but no error occurred.
@@ -37,3 +37,4 @@ public readonly record struct ApiError(string Message, int? StatusCode = null, E
 /// <param name="VersionString">The raw string that failed to parse.</param>
 /// <param name="Context">Context about where this version string came from (e.g., ModName, property).</param>
 public readonly record struct InvalidSemVer(string? VersionString, string Context);
+

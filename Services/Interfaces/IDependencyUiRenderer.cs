@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// UI Renderer for displaying mod dependency analysis results.
@@ -14,3 +14,4 @@ public interface IDependencyUiRenderer
     /// <param name="result">The analysis results.</param>
     void DependencyResults(DependencyAnalysisResult result);
 }
+

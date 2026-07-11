@@ -145,3 +145,8 @@ appsettings.*.json
 
 # Test Results
 TestResults/
+
+# Temp files and chaff
+*.ps1
+history.txt
+fika_test.json

@@ -1,4 +1,4 @@
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 /// <summary>
 /// Configuration options for the mod scanner service.
@@ -12,3 +12,4 @@ public sealed class ModScannerOptions
     /// </summary>
     public long MaxDllSizeBytes { get; set; } = 100 * 1024 * 1024;
 }
+

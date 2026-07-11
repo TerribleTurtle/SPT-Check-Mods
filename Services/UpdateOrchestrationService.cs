@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <inheritdoc />
 [Injectable(InjectionType.Transient)]
@@ -39,12 +39,12 @@ public sealed class UpdateOrchestrationService(
     }
 
     /// <inheritdoc />
-    public async Task CheckForCheckModsUpdateAsync(Version sptVersion, CancellationToken cancellationToken = default)
+    public async Task CheckForCheckModsExtendedUpdateAsync(Version sptVersion, CancellationToken cancellationToken = default)
     {
         reporter.Heading("Checking for Check Mods updates...");
 
         var result = await updateCheckService.CheckAsync(sptVersion, cancellationToken);
-        reporter.CheckModsUpdate(result, sptVersion);
+        reporter.CheckModsExtendedUpdate(result, sptVersion);
     }
 
     /// <inheritdoc />
@@ -67,3 +67,4 @@ public sealed class UpdateOrchestrationService(
         return updatedMods;
     }
 }
+

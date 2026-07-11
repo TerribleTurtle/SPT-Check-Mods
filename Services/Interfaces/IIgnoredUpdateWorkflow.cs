@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Drives the end-of-run interaction: offers to manage ignored updates, runs the multi-select prompt, persists the
@@ -13,3 +13,4 @@ public interface IIgnoredUpdateWorkflow
     /// </summary>
     Task RunAsync(IReadOnlyList<Mod>? mods, CancellationToken cancellationToken = default);
 }
+

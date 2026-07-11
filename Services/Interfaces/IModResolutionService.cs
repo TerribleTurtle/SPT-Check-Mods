@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using SemanticVersioning;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Handles resolving missing API source code URLs by searching the Forge API
@@ -31,3 +31,4 @@ public interface IModResolutionService
         CancellationToken cancellationToken = default
     );
 }
+

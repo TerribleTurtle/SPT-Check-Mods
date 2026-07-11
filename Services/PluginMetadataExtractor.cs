@@ -7,15 +7,15 @@ using System.Linq;
 using Mono.Cecil;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 [Injectable(InjectionType.Transient)]
 public sealed class PluginMetadataExtractor(
@@ -522,4 +522,5 @@ public sealed class PluginMetadataExtractor(
         return SemVer.TryParse(version, "PluginMetadataExtractor").IsT0;
     }
 }
+
 

@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Reads and writes the local ignored-updates list and answers whether a given mod's update is currently ignored.
@@ -21,3 +21,4 @@ public interface IIgnoredUpdateStore
     /// </summary>
     Task<int> MergeWithoutOverwriteAsync(IReadOnlyList<IgnoredUpdate> incoming, CancellationToken cancellationToken = default);
 }
+

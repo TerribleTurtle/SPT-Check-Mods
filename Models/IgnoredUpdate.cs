@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Where an <see cref="IgnoredUpdate"/> entry came from.
@@ -75,3 +75,4 @@ public sealed record IgnoredUpdatesFile(
     /// <summary>The schema version this build reads and writes.</summary>
     public const int CurrentSchemaVersion = 1;
 }
+

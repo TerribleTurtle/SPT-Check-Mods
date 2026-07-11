@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// UI Renderer for displaying early pipeline warnings such as reconciliation and unverified mods.
@@ -26,3 +26,4 @@ public interface IReconciliationUiRenderer
     /// <param name="mods">List of unmatched mods.</param>
     void UnverifiedMods(List<Mod> mods);
 }
+

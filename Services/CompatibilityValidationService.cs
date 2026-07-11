@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using SemanticVersioning;
 using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <inheritdoc />
 [Injectable(InjectionType.Transient)]
@@ -98,3 +98,4 @@ public sealed class CompatibilityValidationService(IModCheckReporter reporter) :
         return false;
     }
 }
+

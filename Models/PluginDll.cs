@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// A BepInPlugin DLL plus the assembly-reference data used to group related DLLs.
@@ -15,3 +15,4 @@ public sealed record PluginDll(
     string? AssemblyName,
     IReadOnlySet<string> ReferencedAssemblyNames
 );
+

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Response from the Forge API mod search endpoint.
@@ -70,3 +70,4 @@ public sealed record SourceCodeLink(
     [property: JsonPropertyName("url")] string Url,
     [property: JsonPropertyName("label")] string? Label
 );
+

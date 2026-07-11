@@ -1,7 +1,7 @@
-using CheckMods.Configuration;
+using CheckModsExtended.Configuration;
 using Spectre.Console;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <summary>
 /// Shared formatting utility for rendering UI components.
@@ -54,3 +54,4 @@ public static class UiFormattingUtility
         return !string.IsNullOrWhiteSpace(url) && !url.Contains('[') && !url.Contains(']');
     }
 }
+

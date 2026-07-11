@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// The central entity representing a mod throughout the entire processing lifecycle.
@@ -58,3 +58,4 @@ public sealed record Mod
 
     #endregion
 }
+

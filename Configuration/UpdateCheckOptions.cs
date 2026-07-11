@@ -1,4 +1,4 @@
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 /// <summary>
 /// Configuration options for the Check Mods self-update check.
@@ -10,3 +10,4 @@ public sealed class UpdateCheckOptions
     /// </summary>
     public int ForgeModId { get; set; } = 2471;
 }
+

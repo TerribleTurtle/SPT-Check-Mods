@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <summary>
 /// Renders standard text output, headings, and prompts for the CLI.
@@ -61,7 +61,7 @@ public interface ITextRenderer
     void SptUpdateAvailable(SptVersionResult latest);
 
     /// <summary>Displays the outcome of the Check Mods self-update check.</summary>
-    void CheckModsUpdate(CheckModsUpdateResult result, SemanticVersioning.Version sptVersion);
+    void CheckModsExtendedUpdate(CheckModsExtendedUpdateResult result, SemanticVersioning.Version sptVersion);
 
     /// <summary>Reports that no mods were found, with the expected install locations.</summary>
     void NoModsFound();
@@ -93,3 +93,4 @@ public interface ITextRenderer
     /// <summary>Writes the application footer with version and log file info.</summary>
     void ApplicationFooter(string version, string hash, string logFilePath);
 }
+

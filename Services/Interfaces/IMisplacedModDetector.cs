@@ -1,7 +1,7 @@
 using System.Threading;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Extracts cross-installation detection heuristics.
@@ -13,3 +13,4 @@ public interface IMisplacedModDetector
     /// </summary>
     Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default);
 }
+

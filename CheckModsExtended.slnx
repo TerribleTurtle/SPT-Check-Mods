@@ -1,0 +1,6 @@
+<Solution>
+    <Folder Name="/Tests/">
+        <Project Path="Tests/CheckModsExtended.Tests/CheckModsExtended.Tests.csproj" />
+    </Folder>
+    <Project Path="CheckModsExtended.csproj" />
+</Solution>

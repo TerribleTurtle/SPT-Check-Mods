@@ -1,4 +1,4 @@
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 /// <summary>
 /// Configuration options for the Forge API service.
@@ -10,3 +10,4 @@ public sealed class ForgeApiOptions
     /// </summary>
     public string BaseUrl { get; set; } = "https://forge.sp-tarkov.com/api/v0/";
 }
+

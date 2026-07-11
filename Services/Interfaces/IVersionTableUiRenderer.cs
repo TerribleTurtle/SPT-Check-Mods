@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// UI Renderer for displaying version tables and compatibility results.
@@ -21,3 +21,4 @@ public interface IVersionTableUiRenderer
     /// <param name="sptVersion">The installed SPT version.</param>
     void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion);
 }
+

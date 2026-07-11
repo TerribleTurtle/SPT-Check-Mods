@@ -1,7 +1,7 @@
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
@@ -12,7 +12,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Service responsible for matching local mods with their Forge API counterparts.
@@ -196,3 +196,4 @@ public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILo
         AnsiConsole.WriteLine();
     }
 }
+

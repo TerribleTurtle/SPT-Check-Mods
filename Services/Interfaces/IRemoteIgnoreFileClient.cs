@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Fetches the optional author-maintained remote base ignore list over HTTP.
@@ -15,3 +15,4 @@ public interface IRemoteIgnoreFileClient
     /// </summary>
     Task<IReadOnlyList<IgnoredUpdate>?> FetchAsync(CancellationToken cancellationToken = default);
 }
+

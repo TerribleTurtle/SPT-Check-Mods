@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using SemanticVersioning;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Orchestrates the process of checking for SPT and Check Mods updates,
@@ -21,7 +21,7 @@ public interface IUpdateOrchestrationService
     /// <summary>
     /// Checks whether a newer version of Check Mods is available on the Forge and displays the result.
     /// </summary>
-    Task CheckForCheckModsUpdateAsync(Version sptVersion, CancellationToken cancellationToken = default);
+    Task CheckForCheckModsExtendedUpdateAsync(Version sptVersion, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Flags any mod whose available update matches a stored suppression so it renders as ignored.
@@ -31,3 +31,4 @@ public interface IUpdateOrchestrationService
         CancellationToken cancellationToken = default
     );
 }
+

@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Service responsible for matching local mods with their Forge API counterparts.
@@ -35,3 +35,4 @@ public interface IModMatchingService
         CancellationToken cancellationToken = default
     );
 }
+

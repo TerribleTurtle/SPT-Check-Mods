@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Response from the Forge API batch mod updates endpoint.
@@ -148,3 +148,4 @@ public sealed record IncompatibleMod(
     [property: JsonPropertyName("reason")] string Reason,
     [property: JsonPropertyName("latest_compatible_version")] ModUpdateVersion? LatestCompatibleVersion
 );
+

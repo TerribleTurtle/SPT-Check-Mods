@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Models.Pipeline;
+namespace CheckModsExtended.Models.Pipeline;
 
 /// <summary>
 /// Context passed through the update workflow pipeline.
@@ -37,3 +37,4 @@ public sealed class UpdateWorkflowContext
     /// </summary>
     public bool IsCancelled { get; set; }
 }
+

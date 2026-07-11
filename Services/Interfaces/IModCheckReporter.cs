@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Renders the user-facing console output for the mod-check workflow.
@@ -62,7 +62,7 @@ public interface IModCheckReporter
     void SptUpdateAvailable(SptVersionResult latest);
 
     /// <summary>Displays the outcome of the Check Mods self-update check.</summary>
-    void CheckModsUpdate(CheckModsUpdateResult result, SemanticVersioning.Version sptVersion);
+    void CheckModsExtendedUpdate(CheckModsExtendedUpdateResult result, SemanticVersioning.Version sptVersion);
 
     /// <summary>Reports that no mods were found, with the expected install locations.</summary>
     void NoModsFound();
@@ -128,3 +128,4 @@ public interface IModCheckReporter
     /// </summary>
     void IgnoreReportOpened(string url, bool browserOpened, bool prefilled);
 }
+

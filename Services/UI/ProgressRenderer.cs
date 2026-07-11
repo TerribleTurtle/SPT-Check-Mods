@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <summary>
 /// Spectre.Console implementation of <see cref="IProgressRenderer"/>.
@@ -52,3 +52,4 @@ public sealed class ProgressRenderer : IProgressRenderer
             );
     }
 }
+

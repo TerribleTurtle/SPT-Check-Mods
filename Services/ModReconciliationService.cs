@@ -1,10 +1,10 @@
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Service responsible for reconciling server and client mod components. Matches components of the same mod and selects
@@ -182,3 +182,4 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         return (serverMod, notes);
     }
 }
+

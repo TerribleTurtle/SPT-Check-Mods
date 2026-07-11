@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Tracks the update availability, blocking status, and compatibility of a mod.
@@ -55,3 +55,4 @@ public sealed record ModUpdateState
     /// </summary>
     public UpdateDependencyDelta? UpdateDependencyChanges { get; init; }
 }
+

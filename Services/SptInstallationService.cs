@@ -1,10 +1,10 @@
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Service responsible for SPT installation validation.
@@ -115,3 +115,4 @@ public sealed class SptInstallationService(
         );
     }
 }
+

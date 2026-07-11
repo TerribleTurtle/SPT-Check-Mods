@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Represents a mod discovered in the wrong installation directory.
@@ -76,3 +76,4 @@ public sealed record MisplacedModReport(
         .Select(directory => directory.Directory)
         .ToList();
 }
+

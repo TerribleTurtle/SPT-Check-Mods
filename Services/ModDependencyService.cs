@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Service responsible for analyzing mod dependencies and building a dependency tree.
@@ -464,4 +464,5 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         };
     }
 }
+
 

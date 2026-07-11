@@ -1,7 +1,7 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using OneOf;
 
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Helpers for parsing semantic version strings.
@@ -38,3 +38,4 @@ public static class SemVer
             && range.IsSatisfied(version);
     }
 }
+

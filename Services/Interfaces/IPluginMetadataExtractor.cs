@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Extracts BepInEx metadata reflection.
@@ -48,3 +48,4 @@ public interface IPluginMetadataExtractor
     /// </summary>
     MisplacedMod ToMisplacedMod(List<PluginDll> group, string directoryName);
 }
+

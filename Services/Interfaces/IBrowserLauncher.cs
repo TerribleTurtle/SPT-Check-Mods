@@ -1,4 +1,4 @@
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Opens URLs in the user's default browser.
@@ -10,3 +10,4 @@ public interface IBrowserLauncher
     /// </summary>
     bool TryOpenUrl(string url);
 }
+

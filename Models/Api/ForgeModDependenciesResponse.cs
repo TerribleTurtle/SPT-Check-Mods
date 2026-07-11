@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Response from the Forge API mod dependencies endpoint.
@@ -47,3 +47,4 @@ public sealed record DependencyVersionInfo(
     [property: JsonPropertyName("content_length")] long? ContentLength,
     [property: JsonPropertyName("fika_compatibility")] string? FikaCompatibility
 );
+

@@ -1,18 +1,18 @@
-using CheckMods.Configuration;
-using CheckMods.Extensions;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Extensions;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Spectre.Console;
 
-namespace CheckMods;
+namespace CheckModsExtended;
 
 /// <summary>
-/// Main entry point for the CheckMods application.
+/// Main entry point for the CheckModsExtended application.
 /// </summary>
 public sealed class Program
 {
@@ -56,11 +56,11 @@ public sealed class Program
                 .Build();
 
             var services = new ServiceCollection();
-            services.AddCheckModsServices(configuration);
+            services.AddCheckModsExtendedServices(configuration);
             serviceProvider = services.BuildServiceProvider();
 
             logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("CheckMods application starting. Args: {Args}", string.Join(", ", args));
+            logger.LogInformation("CheckModsExtended application starting. Args: {Args}", string.Join(", ", args));
 
             logFilePath = serviceProvider.GetRequiredService<IOptions<LoggingOptions>>().Value.LogFilePath;
 
@@ -74,7 +74,7 @@ public sealed class Program
                 await ignoredUpdateWorkflow.RunAsync(mods, _cts.Token);
             }
 
-            logger.LogInformation("CheckMods application completed successfully");
+            logger.LogInformation("CheckModsExtended application completed successfully");
         }
         catch (OperationCanceledException)
         {
@@ -134,3 +134,4 @@ public sealed class Program
         AnsiConsole.MarkupLine("[yellow]Cancellation requested. Shutting down gracefully...[/]");
     }
 }
+

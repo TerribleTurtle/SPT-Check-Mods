@@ -1,12 +1,12 @@
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using SPTarkov.DI.Annotations;
 
-using CheckMods.Configuration;
+using CheckModsExtended.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Default <see cref="IIgnoredUpdateWorkflow"/>. Presents the currently-flagged updates in a checklist (already-ignored
@@ -229,3 +229,4 @@ public sealed class IgnoredUpdateWorkflow(
         );
     }
 }
+

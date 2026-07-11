@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using SemanticVersioning;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Handles checking if mods are compatible with the currently installed SPT version.
@@ -19,3 +19,4 @@ public interface ICompatibilityValidationService
         SemanticVersioning.Version sptVersion
     );
 }
+

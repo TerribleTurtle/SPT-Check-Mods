@@ -5,12 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Unified service for scanning both server and client mods from disk. Returns unified Mod objects with validation warnings.
@@ -208,3 +208,4 @@ public sealed class ModScannerService(
         return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
     }
 }
+

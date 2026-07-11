@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 [Injectable(InjectionType.Transient)]
 public sealed class MisplacedModDetector(
@@ -208,3 +208,4 @@ public sealed class MisplacedModDetector(
         }
     }
 }
+

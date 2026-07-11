@@ -1,4 +1,4 @@
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 /// <summary>
 /// Configuration for the ignored-updates feature: where the local list is stored and where the optional
@@ -18,7 +18,7 @@ public sealed class IgnoredUpdateOptions
     public int RemoteTimeoutSeconds { get; set; } = 10;
 
     /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
-    private static readonly string _defaultDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SptCheckMods");
+    private static readonly string _defaultDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SptCheckModsExtended");
 
     /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
     public static string DefaultDirectory
@@ -26,9 +26,10 @@ public sealed class IgnoredUpdateOptions
         get { return _defaultDirectory; }
     }
 
-    /// <summary>The default local file path: <c>%AppData%/SptCheckMods/ignored-updates.json</c>.</summary>
+    /// <summary>The default local file path: <c>%AppData%/SptCheckModsExtended/ignored-updates.json</c>.</summary>
     public static string DefaultFilePath
     {
         get { return Path.Combine(DefaultDirectory, "ignored-updates.json"); }
     }
 }
+

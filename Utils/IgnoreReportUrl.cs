@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using System.Diagnostics.CodeAnalysis;
 
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Builds the GitHub "new issue" URL for reporting ignored-update suggestions. Pre-fills the ignore-suggestion issue
@@ -25,7 +25,7 @@ internal static class IgnoreReportUrl
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        TypeInfoResolver = CheckMods.Configuration.CheckModsJsonSerializerContext.Default,
+        TypeInfoResolver = CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default,
     };
 
     /// <summary>
@@ -67,3 +67,4 @@ internal static class IgnoreReportUrl
         [property: JsonPropertyName("ignoredLatestVersion")] string IgnoredLatestVersion
     );
 }
+

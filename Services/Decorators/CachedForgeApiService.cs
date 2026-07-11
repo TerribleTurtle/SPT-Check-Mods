@@ -1,10 +1,10 @@
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using OneOf;
 
-namespace CheckMods.Services.Decorators;
+namespace CheckModsExtended.Services.Decorators;
 
 /// <summary>
 /// A decorator for IForgeApiService that caches method results.
@@ -128,3 +128,4 @@ public sealed class CachedForgeApiService(
         return GetCachedAsync(key, () => inner.GetModDependenciesAsync(versionsList, cancellationToken));
     }
 }
+

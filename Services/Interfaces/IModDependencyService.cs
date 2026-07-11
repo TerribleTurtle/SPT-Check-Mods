@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Service responsible for analyzing mod dependencies and building a dependency tree.
@@ -139,3 +139,4 @@ public sealed class MissingDependency
     /// </summary>
     public string? DownloadLink { get; init; }
 }
+

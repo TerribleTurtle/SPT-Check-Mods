@@ -1,12 +1,12 @@
 using System.Net.Http.Headers;
 using System.Reflection;
-using CheckMods.Configuration;
-using CheckMods.Services;
-using CheckMods.Services.Decorators;
-using CheckMods.Services.Interfaces;
-using CheckMods.Services.Pipeline;
-using CheckMods.Services.Pipeline.Steps;
-using CheckMods.Services.UI;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Services;
+using CheckModsExtended.Services.Decorators;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Pipeline;
+using CheckModsExtended.Services.Pipeline.Steps;
+using CheckModsExtended.Services.UI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +18,7 @@ using Serilog;
 using Serilog.Events;
 using SPTarkov.DI;
 
-namespace CheckMods.Extensions;
+namespace CheckModsExtended.Extensions;
 
 /// <summary>
 /// Extension methods for configuring dependency injection services.
@@ -26,11 +26,11 @@ namespace CheckMods.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers all CheckMods services with the dependency injection container.
+    /// Registers all CheckModsExtended services with the dependency injection container.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configuration">The application configuration.</param>
-    public static IServiceCollection AddCheckModsServices(
+    public static IServiceCollection AddCheckModsExtendedServices(
         this IServiceCollection services,
         IConfiguration configuration
     )
@@ -116,7 +116,7 @@ public static class ServiceCollectionExtensions
                 // Disable HttpClient timeout to allow Polly's TotalRequestTimeout (5 minutes) to control the lifecycle
                 client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
-                var version = CheckMods.Utils.VersionInfo.SemVer;
+                var version = CheckModsExtended.Utils.VersionInfo.SemVer;
                 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
@@ -181,7 +181,7 @@ public static class ServiceCollectionExtensions
                 var ignoredOptions = serviceProvider.GetRequiredService<IOptions<IgnoredUpdateOptions>>().Value;
                 client.Timeout = TimeSpan.FromSeconds(ignoredOptions.RemoteTimeoutSeconds);
 
-                var version = CheckMods.Utils.VersionInfo.SemVer;
+                var version = CheckModsExtended.Utils.VersionInfo.SemVer;
                 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
@@ -192,7 +192,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowStep, RemoveLegacyApiKeyStep>();
         services.AddTransient<IWorkflowStep, ValidateSptPathStep>();
         services.AddTransient<IWorkflowStep, ValidateSptVersionStep>();
-        services.AddTransient<IWorkflowStep, CheckModsUpdateCheckStep>();
+        services.AddTransient<IWorkflowStep, CheckModsExtendedUpdateCheckStep>();
         services.AddTransient<IWorkflowStep, MaybeFetchRemoteIgnoresStep>();
         services.AddTransient<IWorkflowStep, DetectMisplacedModsStep>();
         services.AddTransient<IWorkflowStep, ScanAndReconcileModsStep>();
@@ -206,3 +206,4 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
+

@@ -1,7 +1,7 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using OneOf;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Interacts with the Forge API to search mods, validate versions, and retrieve mod data.
@@ -139,3 +139,4 @@ public interface IForgeApiService
         CancellationToken cancellationToken = default
     );
 }
+

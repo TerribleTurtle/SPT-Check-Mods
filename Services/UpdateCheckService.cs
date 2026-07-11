@@ -1,12 +1,12 @@
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Checks whether a newer version of Check Mods is available on the Forge, using the Forge API's mod updates endpoint.
@@ -21,7 +21,7 @@ public sealed class UpdateCheckService(
     private readonly UpdateCheckOptions _options = options.Value;
 
     /// <inheritdoc />
-    public async Task<CheckModsUpdateResult> CheckAsync(
+    public async Task<CheckModsExtendedUpdateResult> CheckAsync(
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
     )
@@ -60,20 +60,20 @@ public sealed class UpdateCheckService(
         }
 
         logger.LogDebug("Check Mods update check failed: API error");
-        return new CheckModsUpdateResult(CheckModsUpdateStatus.Unavailable, currentVersion);
+        return new CheckModsExtendedUpdateResult(CheckModsExtendedUpdateStatus.Unavailable, currentVersion);
     }
 
     /// <summary>
     /// Maps a categorized mod-updates response to an update result for the given mod, or null when the mod is absent
     /// from every category (the current version couldn't be resolved).
     /// </summary>
-    public static CheckModsUpdateResult? InterpretUpdates(ModUpdatesData data, int modId, string currentVersion)
+    public static CheckModsExtendedUpdateResult? InterpretUpdates(ModUpdatesData data, int modId, string currentVersion)
     {
         var safe = data.SafeToUpdate?.FirstOrDefault(u => u.ModId == modId);
         if (safe?.RecommendedVersion is not null)
         {
-            return new CheckModsUpdateResult(
-                CheckModsUpdateStatus.UpdateAvailable,
+            return new CheckModsExtendedUpdateResult(
+                CheckModsExtendedUpdateStatus.UpdateAvailable,
                 currentVersion,
                 safe.RecommendedVersion.Version,
                 safe.RecommendedVersion.Link
@@ -82,14 +82,14 @@ public sealed class UpdateCheckService(
 
         if (data.UpToDate?.Any(u => u.ModId == modId) == true)
         {
-            return new CheckModsUpdateResult(CheckModsUpdateStatus.UpToDate, currentVersion);
+            return new CheckModsExtendedUpdateResult(CheckModsExtendedUpdateStatus.UpToDate, currentVersion);
         }
 
         var incompatible = data.Incompatible?.FirstOrDefault(i => i.ModId == modId);
         if (incompatible is not null)
         {
-            return new CheckModsUpdateResult(
-                CheckModsUpdateStatus.IncompatibleWithSpt,
+            return new CheckModsExtendedUpdateResult(
+                CheckModsExtendedUpdateStatus.IncompatibleWithSpt,
                 currentVersion,
                 incompatible.LatestCompatibleVersion?.Version
             );
@@ -102,7 +102,7 @@ public sealed class UpdateCheckService(
     /// Handles the case where the running version wasn't recognized. If the mod exists on the Forge, suggests the
     /// latest stable version; otherwise reports the check as unavailable.
     /// </summary>
-    private async Task<CheckModsUpdateResult> ResolveUnrecognizedAsync(
+    private async Task<CheckModsExtendedUpdateResult> ResolveUnrecognizedAsync(
         int modId,
         string currentVersion,
         CancellationToken cancellationToken
@@ -113,7 +113,7 @@ public sealed class UpdateCheckService(
         if (!modResult.TryPickT0(out var mod, out _) || mod.Versions is not { Count: > 0 })
         {
             // Mod missing/disabled, or no versions to recommend.
-            return new CheckModsUpdateResult(CheckModsUpdateStatus.Unavailable, currentVersion);
+            return new CheckModsExtendedUpdateResult(CheckModsExtendedUpdateStatus.Unavailable, currentVersion);
         }
 
         var latestStable = mod
@@ -125,15 +125,16 @@ public sealed class UpdateCheckService(
 
         if (latestStable is null)
         {
-            return new CheckModsUpdateResult(CheckModsUpdateStatus.Unavailable, currentVersion);
+            return new CheckModsExtendedUpdateResult(CheckModsExtendedUpdateStatus.Unavailable, currentVersion);
         }
 
         var downloadLink = !string.IsNullOrWhiteSpace(latestStable.Link) ? latestStable.Link : mod.DetailUrl;
-        return new CheckModsUpdateResult(
-            CheckModsUpdateStatus.UnrecognizedBuild,
+        return new CheckModsExtendedUpdateResult(
+            CheckModsExtendedUpdateStatus.UnrecognizedBuild,
             currentVersion,
             latestStable.Version,
             downloadLink
         );
     }
 }
+

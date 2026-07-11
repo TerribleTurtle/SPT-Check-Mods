@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// HTTP client for the author-maintained remote base ignore list. Registered via AddHttpClient; carries no [Injectable]
@@ -23,7 +23,7 @@ public sealed class RemoteIgnoreFileClient(
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        TypeInfoResolver = CheckMods.Configuration.CheckModsJsonSerializerContext.Default,
+        TypeInfoResolver = CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default,
     };
 
     /// <inheritdoc />
@@ -51,7 +51,7 @@ public sealed class RemoteIgnoreFileClient(
             }
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            var file = JsonSerializer.Deserialize(json, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.IgnoredUpdatesFile);
+            var file = JsonSerializer.Deserialize(json, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile);
             if (file?.Ignored is null)
             {
                 return null;
@@ -80,3 +80,4 @@ public sealed class RemoteIgnoreFileClient(
         }
     }
 }
+

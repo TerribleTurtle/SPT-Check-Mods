@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <summary>
 /// Spectre.Console implementation of <see cref="ITableRenderer"/>.
@@ -59,3 +59,4 @@ public sealed class TableRenderer(
         versionTableRenderer.VersionTable(mods);
     }
 }
+

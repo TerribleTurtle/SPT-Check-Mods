@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <summary>
 /// Spectre.Console implementation of <see cref="ITextRenderer"/>.
@@ -179,11 +179,11 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-    public void CheckModsUpdate(CheckModsUpdateResult result, SemanticVersioning.Version sptVersion)
+    public void CheckModsExtendedUpdate(CheckModsExtendedUpdateResult result, SemanticVersioning.Version sptVersion)
     {
         switch (result.Status)
         {
-            case CheckModsUpdateStatus.UpdateAvailable:
+            case CheckModsExtendedUpdateStatus.UpdateAvailable:
                 AnsiConsole.MarkupLine(
                     $"[yellow]A new version of Check Mods is available:[/] [bold]v{(result.LatestVersion ?? "?").EscapeMarkup()}[/] [grey](you have v{result.CurrentVersion.EscapeMarkup()})[/]"
                 );
@@ -193,19 +193,19 @@ public sealed class TextRenderer : ITextRenderer
                 }
                 break;
 
-            case CheckModsUpdateStatus.UpToDate:
+            case CheckModsExtendedUpdateStatus.UpToDate:
                 AnsiConsole.MarkupLine(
                     $"[green]Check Mods is up to date (v{result.CurrentVersion.EscapeMarkup()}).[/]"
                 );
                 break;
 
-            case CheckModsUpdateStatus.IncompatibleWithSpt:
+            case CheckModsExtendedUpdateStatus.IncompatibleWithSpt:
                 AnsiConsole.MarkupLine(
                     $"[grey]A newer version of Check Mods exists but isn't compatible with SPT {sptVersion.ToString().EscapeMarkup()}.[/]"
                 );
                 break;
 
-            case CheckModsUpdateStatus.UnrecognizedBuild:
+            case CheckModsExtendedUpdateStatus.UnrecognizedBuild:
                 AnsiConsole.MarkupLine(
                     $"[grey]You're running an unrecognized Check Mods build (v{result.CurrentVersion.EscapeMarkup()}). Consider the stable version on the Forge: v{(result.LatestVersion ?? "?").EscapeMarkup()}.[/]"
                 );
@@ -409,3 +409,4 @@ public sealed class TextRenderer : ITextRenderer
         }
     }
 }
+

@@ -1,9 +1,9 @@
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Implementation of <see cref="IInitializationService"/>.
@@ -18,7 +18,7 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
         try
         {
             var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var configDirectory = Path.GetFullPath(Path.Combine(appDataFolder, "SptCheckMods"));
+            var configDirectory = Path.GetFullPath(Path.Combine(appDataFolder, "SptCheckModsExtended"));
             var configFilePath = Path.GetFullPath(Path.Combine(configDirectory, "apikey.txt"));
 
             if (!configFilePath.StartsWith(configDirectory + Path.DirectorySeparatorChar, StringComparison.Ordinal))
@@ -73,3 +73,4 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
         return safePath;
     }
 }
+

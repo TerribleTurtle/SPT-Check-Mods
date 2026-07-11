@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using CheckMods.Models;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Utils;
 
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 [JsonSourceGenerationOptions(
     WriteIndented = false,
@@ -16,6 +16,7 @@ namespace CheckMods.Configuration;
 [JsonSerializable(typeof(ModUpdatesApiResponse))]
 [JsonSerializable(typeof(ModDependenciesApiResponse))]
 [JsonSerializable(typeof(List<IgnoreReportUrl.ReportEntry>))]
-internal sealed partial class CheckModsJsonSerializerContext : JsonSerializerContext
+internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext
 {
 }
+

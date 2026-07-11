@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models.Pipeline;
+using CheckModsExtended.Models.Pipeline;
 
-namespace CheckMods.Services.Pipeline;
+namespace CheckModsExtended.Services.Pipeline;
 
 /// <summary>
 /// Represents a single step in the update workflow pipeline.
@@ -17,3 +17,4 @@ public interface IWorkflowStep
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task ExecuteAsync(UpdateWorkflowContext context, CancellationToken cancellationToken);
 }
+

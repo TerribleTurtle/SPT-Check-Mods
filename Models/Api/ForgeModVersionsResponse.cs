@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Represents a specific version of a mod.
@@ -39,3 +39,4 @@ public sealed record ModVersionsApiResponse(
     [property: JsonPropertyName("success")] bool Success,
     [property: JsonPropertyName("data")] List<ModVersion>? Data
 );
+

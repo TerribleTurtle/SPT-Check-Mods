@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Default <see cref="IBrowserLauncher"/>. Opens URLs via the OS shell.
@@ -38,3 +38,4 @@ public sealed class BrowserLauncher(ILogger<BrowserLauncher> logger) : IBrowserL
         }
     }
 }
+

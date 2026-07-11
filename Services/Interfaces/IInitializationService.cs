@@ -1,4 +1,4 @@
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Handles application initialization tasks such as validation and cleanup.
@@ -17,3 +17,4 @@ public interface IInitializationService
     /// <returns>Validated SPT path or null if validation failed.</returns>
     string? GetValidatedSptPath(string[] args);
 }
+

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Services.UI;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.UI;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Spectre.Console implementation of <see cref="IModCheckReporter"/>.
@@ -151,9 +151,9 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
     }
 
     /// <inheritdoc />
-    public void CheckModsUpdate(CheckModsUpdateResult result, SemanticVersioning.Version sptVersion)
+    public void CheckModsExtendedUpdate(CheckModsExtendedUpdateResult result, SemanticVersioning.Version sptVersion)
     {
-        _textRenderer.CheckModsUpdate(result, sptVersion);
+        _textRenderer.CheckModsExtendedUpdate(result, sptVersion);
     }
 
     /// <inheritdoc />
@@ -258,3 +258,4 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         _textRenderer.ApplicationFooter(version, hash, logFilePath);
     }
 }
+

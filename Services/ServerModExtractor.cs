@@ -6,14 +6,14 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 using System.Diagnostics.CodeAnalysis;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 [Injectable(InjectionType.Transient)]
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
@@ -198,3 +198,4 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
         return SemVer.TryParse(version, "ServerModExtractor").IsT0;
     }
 }
+

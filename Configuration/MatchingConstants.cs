@@ -1,4 +1,4 @@
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 /// <summary>
 /// Constants used for mod matching operations.
@@ -29,3 +29,4 @@ public static class MatchingConstants
     /// </summary>
     public const int MaxDisplayAuthorLength = 20;
 }
+

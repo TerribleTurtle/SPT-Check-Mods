@@ -1,9 +1,9 @@
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace CheckMods.Services.Decorators;
+namespace CheckModsExtended.Services.Decorators;
 
 /// <summary>
 /// A decorator for IModDependencyService that caches dependency analysis results.
@@ -47,3 +47,4 @@ public sealed class CachedModDependencyService(
         return result;
     }
 }
+

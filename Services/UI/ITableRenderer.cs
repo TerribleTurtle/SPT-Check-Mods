@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <summary>
 /// Renders complex tabular data and tree structures for the CLI.
@@ -30,3 +30,4 @@ public interface ITableRenderer
     /// <summary>Displays the final version summary table and update/blocked lists.</summary>
     void VersionTable(List<Mod> mods);
 }
+

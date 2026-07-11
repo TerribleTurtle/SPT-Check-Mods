@@ -1,12 +1,12 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models.Pipeline;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models.Pipeline;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 
 
-namespace CheckMods.Services.Pipeline.Steps;
+namespace CheckModsExtended.Services.Pipeline.Steps;
 
 /// <summary>
 /// Workflow step that matches mods with the Forge API.
@@ -45,3 +45,4 @@ public sealed class MatchModsWithApiStep(
         context.Mods = matchedMods.ToList();
     }
 }
+

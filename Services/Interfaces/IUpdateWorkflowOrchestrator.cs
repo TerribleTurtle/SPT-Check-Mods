@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Orchestrates the execution of the update workflow pipeline.
@@ -18,3 +18,4 @@ public interface IUpdateWorkflowOrchestrator
     /// <returns>A list of processed mods.</returns>
     Task<IReadOnlyList<Mod>> RunPipelineAsync(string[] args, CancellationToken cancellationToken = default);
 }
+

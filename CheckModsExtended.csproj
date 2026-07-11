@@ -1,0 +1,117 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- The test project lives under Tests/ and must not be compiled into the main app. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**</DefaultItemExcludes>
+    <LangVersion>13</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <ApplicationIcon>check-mods.ico</ApplicationIcon>
+    <Copyright>2026 Refringe</Copyright>
+    <Product>https://github.com/TerribleTurtle/SPT-Check-Mods</Product>
+    <AssemblyTitle>CheckModsExtended</AssemblyTitle>
+    <!--
+    Baseline semver for local/dev builds. Releases override this via -p:BuildVersion (from the git tag). Bump this when
+    preparing a new release so local builds report the in-progress version.
+    -->
+    <VersionPrefix>1.2.1</VersionPrefix>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);IL2104;IL2026;IL2072</NoWarn>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-Recommended</AnalysisLevel>
+    <PublishDir>$(MSBuildProjectDirectory)\publish\$(RuntimeIdentifier)\</PublishDir>
+  </PropertyGroup>
+  <Target Name="GetGitHash" BeforeTargets="GetAssemblyAttributes;Publish">
+    <!-- Capture the current Git commit hash and set it as a property. -->
+    <Exec Command="git rev-parse --short=6 HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" EchoOff="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitHash" />
+    </Exec>
+    <PropertyGroup>
+      <GitHash Condition="'$(GitHash)' == ''">unknown</GitHash>
+    </PropertyGroup>
+  </Target>
+  <Target Name="SetMetadata" BeforeTargets="GetAssemblyAttributes" DependsOnTargets="GetGitHash">
+    <PropertyGroup>
+      <!-- Use the tag-provided BuildVersion for releases, otherwise the project's VersionPrefix baseline. -->
+      <_EffectiveVersion Condition="'$(BuildVersion)' != ''">$(BuildVersion)</_EffectiveVersion>
+      <_EffectiveVersion Condition="'$(BuildVersion)' == ''">$(VersionPrefix)</_EffectiveVersion>
+      <!-- AssemblyVersion/FileVersion must be numeric (MAJOR.MINOR.PATCH.0); strip any prerelease suffix. -->
+      <_VersionCore>$([System.Text.RegularExpressions.Regex]::Match($(_EffectiveVersion), `^[0-9]+\.[0-9]+\.[0-9]+`))</_VersionCore>
+      <_VersionCore Condition="'$(_VersionCore)' == ''">0.0.0</_VersionCore>
+      <AssemblyVersion>$(_VersionCore).0</AssemblyVersion>
+      <FileVersion>$(_VersionCore).0</FileVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <!-- Embed the git hash for diagnostics. -->
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>GitHash</_Parameter1>
+        <_Parameter2>$(GitHash)</_Parameter2>
+      </AssemblyAttribute>
+      <!--
+      Product version is a clean semver plus the git hash as build metadata (e.g. 1.0.1+abc123). The runtime reads this
+      and strips the build metadata to get the comparable semver.
+      -->
+      <AssemblyAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
+        <_Parameter1>$(_EffectiveVersion)+$(GitHash)</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+  <!-- Rename the published executable to include the runtime identifier. -->
+  <Target Name="RenamePublishedExe" AfterTargets="Publish">
+    <!-- Windows target (RID starts with 'win') -->
+    <Move Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))" SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFiles="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe" />
+    <!-- Non-Windows target (Linux, macOS, etc.) -->
+    <Move Condition="'$(RuntimeIdentifier)' != '' AND !$(RuntimeIdentifier.StartsWith('win'))" SourceFiles="$(PublishDir)$(AssemblyName)" DestinationFiles="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier)" />
+  </Target>
+  <!-- Compress the Windows executable into a zip file with optimal compression. -->
+  <UsingTask TaskName="ZipFileWithCompression" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SourceFile ParameterType="System.String" Required="true" />
+      <DestinationArchive ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          if (File.Exists(DestinationArchive)) File.Delete(DestinationArchive);
+          using var archive = ZipFile.Open(DestinationArchive, ZipArchiveMode.Create);
+          archive.CreateEntryFromFile(SourceFile, Path.GetFileName(SourceFile), CompressionLevel.Optimal);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <Target Name="ZipWindowsExe" AfterTargets="RenamePublishedExe" Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))">
+    <ZipFileWithCompression SourceFile="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe" DestinationArchive="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).zip" />
+  </Target>
+  <ItemGroup>
+    <InternalsVisibleTo Include="CheckModsExtended.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="OneOf" Version="3.0.271" />
+    <PackageReference Include="SemanticVersioning" Version="3.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Spectre.Console" Version="0.57.2" />
+    <PackageReference Include="SPTarkov.DI" Version="4.0.13" />
+
+  </ItemGroup>
+</Project>

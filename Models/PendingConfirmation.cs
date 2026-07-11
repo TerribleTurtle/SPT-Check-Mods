@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Represents a mod match that requires user confirmation due to a low confidence score. Used to queue up matches for

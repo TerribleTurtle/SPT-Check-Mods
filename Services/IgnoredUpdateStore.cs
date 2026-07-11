@@ -1,13 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// File-backed <see cref="IIgnoredUpdateStore"/>. Stores the ignored-updates list as JSON under the app-data folder and
@@ -105,7 +105,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             }
 
             var json = await File.ReadAllTextAsync(_options.FilePath, cancellationToken);
-            var file = JsonSerializer.Deserialize(json, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.IgnoredUpdatesFile);
+            var file = JsonSerializer.Deserialize(json, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile);
             if (file?.Ignored is null)
             {
                 return [];
@@ -136,7 +136,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             }
 
             var file = new IgnoredUpdatesFile(IgnoredUpdatesFile.CurrentSchemaVersion, entries);
-            var json = JsonSerializer.Serialize(file, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.IgnoredUpdatesFile);
+            var json = JsonSerializer.Serialize(file, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile);
 
             // Atomic write: stage to a temp file then move into place.
             var tempPath = _options.FilePath + ".tmp";
@@ -159,3 +159,4 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
         return $"{apiModId}|{localVersion}|{latestVersion}";
     }
 }
+

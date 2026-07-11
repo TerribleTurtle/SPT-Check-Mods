@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Scans and loads mods from disk, returning unified Mod objects with validation warnings.
@@ -51,3 +51,4 @@ public interface IModScannerService
     /// </returns>
     Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default);
 }
+

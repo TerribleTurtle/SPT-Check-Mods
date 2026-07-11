@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Response from the Forge API SPT versions endpoint.
@@ -39,3 +39,4 @@ public sealed record SptVersionResult(
     [property: JsonPropertyName("created_at")] string? CreatedAt,
     [property: JsonPropertyName("updated_at")] string? UpdatedAt
 );
+

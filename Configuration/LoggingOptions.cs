@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace CheckMods.Configuration;
+namespace CheckModsExtended.Configuration;
 
 /// <summary>
 /// Configuration options for the logging infrastructure.
@@ -41,7 +41,7 @@ public sealed class LoggingOptions
         {
             return Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "SptCheckMods",
+                "SptCheckModsExtended",
                 "logs"
             );
         }
@@ -55,3 +55,4 @@ public sealed class LoggingOptions
         get { return Path.Combine(LogDirectory, "checkmod.log"); }
     }
 }
+

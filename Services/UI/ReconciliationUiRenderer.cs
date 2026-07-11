@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <inheritdoc />
 [Injectable(InjectionType.Singleton)]
@@ -171,3 +171,4 @@ public sealed class ReconciliationUiRenderer(ITextRenderer textRenderer) : IReco
         AnsiConsole.WriteLine();
     }
 }
+

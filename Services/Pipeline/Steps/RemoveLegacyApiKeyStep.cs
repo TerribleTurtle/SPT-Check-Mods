@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Models.Pipeline;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models.Pipeline;
+using CheckModsExtended.Services.Interfaces;
 
 
-namespace CheckMods.Services.Pipeline.Steps;
+namespace CheckModsExtended.Services.Pipeline.Steps;
 
 /// <summary>
 /// Workflow step that removes any legacy API key file.
@@ -18,3 +18,4 @@ public sealed class RemoveLegacyApiKeyStep(IInitializationService initialization
         await initializationService.RemoveLegacyApiKeyFileAsync();
     }
 }
+

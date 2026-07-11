@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Represents a BepInEx plugin attribute containing metadata about a client mod.
@@ -14,3 +14,4 @@ public sealed class BepInPluginAttribute(string guid, string name, string versio
 
     public string Version { get; init; } = version;
 }
+

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Provides the running application's version information, read from assembly metadata embedded at build time.
@@ -50,3 +50,4 @@ public static class VersionInfo
             ?? "unknown";
     }
 }
+

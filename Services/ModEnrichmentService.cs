@@ -1,9 +1,9 @@
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Service responsible for enriching matched mods with additional API data such as version information.
@@ -73,3 +73,4 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
         return modsDict.Values.ToList();
     }
 }
+

@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using SemanticVersioning;
 using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <inheritdoc />
 [Injectable(InjectionType.Transient)]
@@ -180,3 +180,4 @@ public sealed class ModResolutionService(IModLookupStrategy modLookupStrategy) :
         return (finalUpdatedPair, finalUpdatedMods);
     }
 }
+

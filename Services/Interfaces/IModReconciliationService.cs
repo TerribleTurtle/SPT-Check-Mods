@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Reconciles server and client mod components into a unified mod list.
@@ -67,3 +67,4 @@ public sealed class ModPair
     /// </summary>
     public required IReadOnlyList<string> Notes { get; init; }
 }
+

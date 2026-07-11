@@ -3,15 +3,15 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using CheckMods.Configuration;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf;
 
-namespace CheckMods.Services;
+namespace CheckModsExtended.Services;
 
 /// <summary>
 /// Service for interacting with the Forge API with rate limiting. Handles mod searching, version validation, and data
@@ -112,7 +112,7 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.SptVersionApiResponse);
+            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse);
 
             var isValid =
                 apiResponse is { Success: true, Data: not null } && apiResponse.Data.Any(v => v.Version == sptVersion);
@@ -157,7 +157,7 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.SptVersionApiResponse);
+            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse);
 
             return apiResponse is { Success: true, Data: not null } ? apiResponse.Data : [];
         }
@@ -240,7 +240,7 @@ public sealed partial class ForgeApiService(
                 return new NotFound();
             }
 
-            var result = JsonSerializer.Deserialize(dataElement.GetRawText(), CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModSearchResult);
+            var result = JsonSerializer.Deserialize(dataElement.GetRawText(), CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchResult);
             if (result is null)
             {
                 return new NotFound();
@@ -286,7 +286,7 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModSearchApiResponse);
+            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse);
 
             if (apiResponse is not { Success: true, Data.Count: > 0 })
             {
@@ -348,7 +348,7 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModSearchApiResponse);
+            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse);
 
             return apiResponse is { Success: true, Data: not null } ? apiResponse.Data : [];
         }
@@ -474,7 +474,7 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModUpdatesApiResponse);
+            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModUpdatesApiResponse);
 
             if (apiResponse?.Success != true || apiResponse.Data is null)
             {
@@ -522,7 +522,7 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModDependenciesApiResponse);
+            var apiResponse = JsonSerializer.Deserialize(response.Body, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModDependenciesApiResponse);
 
             if (apiResponse?.Success != true || apiResponse.Data is null)
             {
@@ -541,3 +541,4 @@ public sealed partial class ForgeApiService(
         }
     }
 }
+

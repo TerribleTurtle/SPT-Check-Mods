@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// The action a user picks from the end-of-run menu.
@@ -20,3 +20,4 @@ public enum EndOfRunChoice
     /// </summary>
     Exit = 2,
 }
+

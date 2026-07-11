@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Represents the various states a mod can be in after processing.
@@ -20,3 +20,4 @@ public enum ModStatus
     /// </summary>
     NeedsConfirmation,
 }
+

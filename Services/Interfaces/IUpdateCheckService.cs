@@ -1,6 +1,6 @@
-using CheckMods.Models;
+using CheckModsExtended.Models;
 
-namespace CheckMods.Services.Interfaces;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
 /// Checks whether a newer version of Check Mods is available on the Forge.
@@ -12,9 +12,10 @@ public interface IUpdateCheckService
     /// </summary>
     /// <param name="sptVersion">The installed SPT version, used for compatibility filtering by the Forge API.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The update status; API errors resolve to <see cref="CheckModsUpdateStatus.Unavailable"/>.</returns>
-    Task<CheckModsUpdateResult> CheckAsync(
+    /// <returns>The update status; API errors resolve to <see cref="CheckModsExtendedUpdateStatus.Unavailable"/>.</returns>
+    Task<CheckModsExtendedUpdateResult> CheckAsync(
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
     );
 }
+

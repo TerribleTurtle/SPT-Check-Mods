@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Helper to enable Virtual Terminal Processing on Windows to restore ANSI colors
@@ -48,3 +48,4 @@ public static class WindowsConsoleHelper
         }
     }
 }
+

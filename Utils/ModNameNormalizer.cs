@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Provides centralized name normalization for mod matching operations.
@@ -94,3 +94,4 @@ public static class ModNameNormalizer
         return !string.IsNullOrEmpty(normalized1) && string.Equals(normalized1, normalized2, StringComparison.Ordinal);
     }
 }
+

@@ -1,9 +1,9 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// The outcome of a Check Mods self-update check.
 /// </summary>
-public enum CheckModsUpdateStatus
+public enum CheckModsExtendedUpdateStatus
 {
     /// <summary>The running version is the newest compatible release.</summary>
     UpToDate,
@@ -28,9 +28,10 @@ public enum CheckModsUpdateStatus
 /// <param name="CurrentVersion">The running application version.</param>
 /// <param name="LatestVersion">The latest/recommended version, when known.</param>
 /// <param name="DownloadLink">A link to download the latest version, when known.</param>
-public sealed record CheckModsUpdateResult(
-    CheckModsUpdateStatus Status,
+public sealed record CheckModsExtendedUpdateResult(
+    CheckModsExtendedUpdateStatus Status,
     string CurrentVersion,
     string? LatestVersion = null,
     string? DownloadLink = null
 );
+

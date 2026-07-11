@@ -1,4 +1,4 @@
-# SPT Check Mods
+# SPT Check Mods Extended
 
 A .NET 9 console application (utilizing .NET 10.0 preview extensions) that validates Single Player Tarkov (SPT) mod compatibility using the Forge API.
 
@@ -37,7 +37,7 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 ## Installation
 
 ### Option 1: Download Release
-Download the latest release (`CheckMods-win-x64.exe`) from the [Releases](https://github.com/TerribleTurtle/SPT-Check-Mods/releases) page, then move it into the root of your SPT installation directory. Running it from there checks the mods in that installation.
+Download the latest release (`CheckModsExtended-win-x64.exe`) from the [Releases](https://github.com/TerribleTurtle/SPT-Check-Mods/releases) page, then move it into the root of your SPT installation directory. Running it from there checks the mods in that installation.
 
 ### Option 2: Build from Source
 ```bash
@@ -51,13 +51,13 @@ dotnet build
 If you downloaded the release executable and placed it in your SPT installation directory, run it from there:
 
 ```bash
-CheckMods-win-x64.exe
+CheckModsExtended-win-x64.exe
 ```
 
 It checks the mods in the current directory. You can also point it at an SPT installation elsewhere by passing the path:
 
 ```bash
-CheckMods-win-x64.exe "C:\path\to\spt"
+CheckModsExtended-win-x64.exe "C:\path\to\spt"
 ```
 
 If you built from source, use `dotnet run` instead. The `--` passes the path through to the application rather than to the .NET CLI:
@@ -78,26 +78,26 @@ You can override application settings using environment variables. This is parti
 ```bash
 # Windows CLI
 set LoggingOptions__MinimumLogLevel=Debug
-CheckMods-win-x64.exe
+CheckModsExtended-win-x64.exe
 
 # PowerShell
 $env:LoggingOptions__MinimumLogLevel="Debug"
-.\CheckMods-win-x64.exe
+.\CheckModsExtended-win-x64.exe
 ```
 
 **Override Rate Limits:**
 ```bash
 
-CheckMods-win-x64.exe
+CheckModsExtended-win-x64.exe
 ```
 
 ## Configuration
 
 ### Local Storage
-Check Mods keeps its data under `%APPDATA%\SptCheckMods`:
+Check Mods keeps its data under `%APPDATA%\SptCheckModsExtended`:
 
-- **Logs**: `%APPDATA%\SptCheckMods\logs\checkmod.log`
-- **Ignored updates**: `%APPDATA%\SptCheckMods\ignored-updates.json`
+- **Logs**: `%APPDATA%\SptCheckModsExtended\logs\checkmod.log`
+- **Ignored updates**: `%APPDATA%\SptCheckModsExtended\ignored-updates.json`
 
 > **Note on Telemetry**: When the community shared ignore list is enabled, Check Mods makes a remote HTTP GET request to `https://forge-static.sp-tarkov.com/check-mods/ignored-updates.json` to fetch the latest suppressed updates.
 

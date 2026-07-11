@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using CheckMods.Models;
-using CheckMods.Services.Interfaces;
-using CheckMods.Utils;
+using CheckModsExtended.Models;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
 
-namespace CheckMods.Services.UI;
+namespace CheckModsExtended.Services.UI;
 
 /// <inheritdoc />
 [Injectable(InjectionType.Singleton)]
@@ -288,3 +288,4 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
             .ToList();
     }
 }
+

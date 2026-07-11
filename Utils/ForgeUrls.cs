@@ -1,4 +1,4 @@
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Builds Forge website URLs for mod detail pages and downloads.
@@ -28,3 +28,4 @@ public static class ForgeUrls
         return $"{BaseUrl}/mod/download/{modId}/{slug}/{version}";
     }
 }
+

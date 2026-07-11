@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Extension methods for pure immutable modifications to <see cref="Mod"/> records.
@@ -116,3 +116,4 @@ public static class ModExtensions
         };
     }
 }
+

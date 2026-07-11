@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Contains metadata extracted locally from the physical mod files installed by the user.
@@ -55,3 +55,4 @@ public sealed record LocalModIdentity
     /// </summary>
     public string? Url { get; init; }
 }
+

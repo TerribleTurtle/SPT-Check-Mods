@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Specifies the update status of a mod compared to the latest available version.
@@ -40,3 +40,4 @@ public enum UpdateStatus
     /// </summary>
     Incompatible = 6,
 }
+

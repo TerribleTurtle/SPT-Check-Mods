@@ -1,4 +1,4 @@
-namespace CheckMods.Models;
+namespace CheckModsExtended.Models;
 
 /// <summary>
 /// Contains metadata retrieved from the remote Forge API.
@@ -40,3 +40,4 @@ public sealed record ForgeApiMetadata
     /// </summary>
     public IReadOnlyList<ModVersion>? ApiVersions { get; init; }
 }
+

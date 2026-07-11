@@ -1,4 +1,4 @@
-namespace CheckMods.Utils;
+namespace CheckModsExtended.Utils;
 
 /// <summary>
 /// Path validation utilities that prevent directory traversal.
@@ -47,3 +47,4 @@ public static class SecurityHelper
         }
     }
 }
+
