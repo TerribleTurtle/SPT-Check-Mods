@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using CheckModsExtended.Configuration;
+using CheckModsExtended.Models;
 using CheckModsExtended.Services;
 using CheckModsExtended.Tests.Fixtures;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -63,7 +64,7 @@ public class Plugin {}
         ";
         _fixture.CompileDummyDll(misplacedServerPath, serverCode);
 
-        var report = await _detector.DetectMisplacedModsAsync(_sptPath);
+        var report = await _detector.DetectMisplacedModsAsync(_sptPath, new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyList<PluginDll>>());
 
         Assert.Equal(2, report.WrongFolder.Count);
 
@@ -97,7 +98,7 @@ public class Plugin2 {}
 ";
         _fixture.CompileDummyDll(Path.Combine(dirPath, "Mod2.dll"), clientCode2);
 
-        var report = await _detector.DetectMisplacedModsAsync(_sptPath);
+        var report = await _detector.DetectMisplacedModsAsync(_sptPath, new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyList<PluginDll>>());
 
         Assert.Single(report.CrossInstalled);
         var crossInstall = report.CrossInstalled[0];
@@ -128,7 +129,7 @@ public class Plugin2 {}
 ";
         _fixture.CompileDummyDll(Path.Combine(dirPath, "Other.dll"), clientCode2);
 
-        var report = await _detector.DetectMisplacedModsAsync(_sptPath);
+        var report = await _detector.DetectMisplacedModsAsync(_sptPath, new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyList<PluginDll>>());
 
         Assert.Single(report.CrossInstalled);
         var crossInstall = report.CrossInstalled[0];

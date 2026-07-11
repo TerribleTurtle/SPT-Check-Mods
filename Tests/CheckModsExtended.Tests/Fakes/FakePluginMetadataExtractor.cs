@@ -30,13 +30,13 @@ public sealed class FakePluginMetadataExtractor : IPluginMetadataExtractor
         return Task.FromResult(ProcessedClientMods.ToList());
     }
 
-    public Task<List<Mod>> ConsolidateDirectoryModsAsync(
+    public Task<(List<Mod> Mods, List<PluginDll> Plugins)> ConsolidateDirectoryModsAsync(
         string directory,
         List<string> dllPaths,
         CancellationToken cancellationToken = default
     )
     {
-        return Task.FromResult(ConsolidatedMods.ToList());
+        return Task.FromResult((ConsolidatedMods.ToList(), PluginDlls.ToList()));
     }
 
     public Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default)

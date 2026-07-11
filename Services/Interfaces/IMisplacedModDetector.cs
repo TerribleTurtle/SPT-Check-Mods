@@ -11,5 +11,9 @@ public interface IMisplacedModDetector
     /// <summary>
     /// Detects misplaced mods (client mods in server folder and vice-versa) and cross-installed directories.
     /// </summary>
-    Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default);
+    Task<MisplacedModReport> DetectMisplacedModsAsync(
+        string sptPath,
+        System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<PluginDll>> clientPluginCache,
+        CancellationToken cancellationToken = default
+    );
 }

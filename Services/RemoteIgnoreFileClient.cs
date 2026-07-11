@@ -43,17 +43,18 @@ public sealed class RemoteIgnoreFileClient(
         try
         {
             logger.LogDebug("Fetching remote ignore list: GET {Url}", _options.RemoteUrl);
-            using var response = await httpClient.GetAsync(_options.RemoteUrl, cancellationToken);
+            using var response = await httpClient.GetAsync(_options.RemoteUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogInformation("Remote ignore list returned {Status}", response.StatusCode);
                 return null;
             }
 
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            var file = JsonSerializer.Deserialize(
-                json,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var file = await JsonSerializer.DeserializeAsync(
+                stream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile,
+                cancellationToken
             );
             if (file?.Ignored is null)
             {

@@ -26,9 +26,9 @@ public sealed class FakeModMatchingService : IModMatchingService
 
         if (MatchModAction != null)
         {
-            return Task.FromResult((MatchModAction(mod), (PendingConfirmation?)null));
+            return Task.FromResult((MatchModAction(mod), (PendingConfirmation?) null));
         }
-        return Task.FromResult((mod, (PendingConfirmation?)null));
+        return Task.FromResult((mod, (PendingConfirmation?) null));
     }
 
     /// <inheritdoc />

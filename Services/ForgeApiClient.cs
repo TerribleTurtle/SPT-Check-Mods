@@ -14,7 +14,7 @@ namespace CheckModsExtended.Services;
 public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient> logger) : IForgeApiClient
 {
     /// <inheritdoc />
-    public async Task<(HttpStatusCode StatusCode, string Body, bool IsSuccessStatusCode)> GetJsonAsync(
+    public async Task<(HttpStatusCode StatusCode, System.IO.Stream Body, bool IsSuccessStatusCode)> GetJsonAsync(
         string url,
         CancellationToken cancellationToken = default
     )
@@ -22,13 +22,12 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
         logger.LogDebug("API Request: GET {Url}", url);
         var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        var response = await httpClient.SendAsync(req, cancellationToken);
+        var response = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         var statusCode = response.StatusCode;
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.Dispose();
+        var body = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        var isSuccess = (int)statusCode is >= 200 and < 300;
+        var isSuccess = (int) statusCode is >= 200 and < 300;
         return (statusCode, body, isSuccess);
     }
 }

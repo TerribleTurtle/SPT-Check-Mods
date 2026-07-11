@@ -24,6 +24,8 @@ public sealed class ModScannerService(
     ILogger<ModScannerService> logger
 ) : IModScannerService
 {
+    private readonly ConcurrentDictionary<string, IReadOnlyList<PluginDll>> _pluginCache = new(StringComparer.OrdinalIgnoreCase);
+
     /// <inheritdoc />
     public async Task<List<Mod>> ScanServerModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
@@ -56,7 +58,7 @@ public sealed class ModScannerService(
                 {
                     try
                     {
-                        var mod = await serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, ct);
+                        var mod = await Task.Run(() => serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, ct), ct);
                         if (mod is not null)
                         {
                             concurrentMods.Add(mod);
@@ -114,22 +116,40 @@ public sealed class ModScannerService(
         reporter.Status($"Scanning {dllFiles.Count} DLL files for BepInEx plugins...");
 
         var dllsByDirectory = GroupDllsByDirectory(dllFiles, pluginsDir);
+        var concurrentMods = new ConcurrentBag<Mod>();
 
         // Process loose DLLs (directly in plugins folder) as individual mods
         if (dllsByDirectory.TryGetValue(pluginsDir, out var looseDlls))
         {
-            var looseResults = await pluginExtractor.ProcessClientDllsInParallelAsync(looseDlls, cancellationToken);
-            mods.AddRange(looseResults);
+            var looseResults = await Task.Run(() => pluginExtractor.ProcessClientDllsInParallelAsync(looseDlls, cancellationToken), cancellationToken);
+            foreach (var mod in looseResults)
+            {
+                concurrentMods.Add(mod);
+            }
             dllsByDirectory.Remove(pluginsDir);
         }
 
-        foreach (var (directory, directoryDlls) in dllsByDirectory)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            mods.AddRange(
-                await pluginExtractor.ConsolidateDirectoryModsAsync(directory, directoryDlls, cancellationToken)
-            );
-        }
+        reporter.Status($"Scanning {dllsByDirectory.Count} plugin directories for BepInEx plugins...");
+
+        await Parallel.ForEachAsync(
+            dllsByDirectory,
+            new ParallelOptions { CancellationToken = cancellationToken },
+            async (kvp, ct) =>
+            {
+                var directory = kvp.Key;
+                var directoryDlls = kvp.Value;
+
+                var (dirMods, allPlugins) = await Task.Run(() => pluginExtractor.ConsolidateDirectoryModsAsync(directory, directoryDlls, ct), ct);
+                _pluginCache[directory] = allPlugins;
+
+                foreach (var m in dirMods)
+                {
+                    concurrentMods.Add(m);
+                }
+            }
+        );
+
+        mods.AddRange(concurrentMods);
 
         logger.LogInformation("Found {ModCount} client mods", mods.Count);
         reporter.Status($"Found {mods.Count} client mods.");
@@ -221,6 +241,6 @@ public sealed class ModScannerService(
         CancellationToken cancellationToken = default
     )
     {
-        return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
+        return await misplacedDetector.DetectMisplacedModsAsync(sptPath, _pluginCache, cancellationToken);
     }
 }

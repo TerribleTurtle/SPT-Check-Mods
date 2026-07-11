@@ -154,7 +154,7 @@ public class ModulePlugin {}
 ";
         _fixture.CompileDummyDll(dllPath2, code2);
 
-        var consolidated = await _extractor.ConsolidateDirectoryModsAsync(
+        var (consolidated, _) = await _extractor.ConsolidateDirectoryModsAsync(
             dirPath,
             [Path.Combine(_sptPath, dllPath1), Path.Combine(_sptPath, dllPath2)]
         );

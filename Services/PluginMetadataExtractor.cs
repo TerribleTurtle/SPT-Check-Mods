@@ -77,8 +77,7 @@ public sealed class PluginMetadataExtractor(
             .ToList();
     }
 
-    /// <inheritdoc />
-    public async Task<List<Mod>> ConsolidateDirectoryModsAsync(
+    public async Task<(List<Mod> Mods, List<PluginDll> Plugins)> ConsolidateDirectoryModsAsync(
         string directory,
         List<string> dllPaths,
         CancellationToken cancellationToken = default
@@ -88,15 +87,17 @@ public sealed class PluginMetadataExtractor(
 
         if (allPlugins.Count == 0)
         {
-            return [];
+            return ([], []);
         }
 
         var directoryName = Path.GetFileName(directory);
 
-        return partitioner
+        var mods = partitioner
             .PartitionByRelatedness(allPlugins)
             .Select(group => CreateConsolidatedMod(group, directoryName))
             .ToList();
+
+        return (mods, allPlugins);
     }
 
     /// <inheritdoc />

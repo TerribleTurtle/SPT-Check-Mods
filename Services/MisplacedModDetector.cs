@@ -21,6 +21,7 @@ public sealed class MisplacedModDetector(
     /// <inheritdoc />
     public async Task<MisplacedModReport> DetectMisplacedModsAsync(
         string sptPath,
+        IReadOnlyDictionary<string, IReadOnlyList<PluginDll>> clientPluginCache,
         CancellationToken cancellationToken = default
     )
     {
@@ -33,7 +34,10 @@ public sealed class MisplacedModDetector(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var clientMod = await pluginExtractor.TryDetectClientModAsync(dllPath, cancellationToken);
+                var clientMod = await Task.Run(
+                    () => pluginExtractor.TryDetectClientModAsync(dllPath, cancellationToken),
+                    cancellationToken
+                );
                 if (clientMod is not null)
                 {
                     wrongFolder.Add(
@@ -56,9 +60,8 @@ public sealed class MisplacedModDetector(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var serverMod = await serverExtractor.ExtractServerModMetadataAsync(
-                    dllPath,
-                    sptPath,
+                var serverMod = await Task.Run(
+                    () => serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, cancellationToken),
                     cancellationToken
                 );
                 if (serverMod is not null)
@@ -76,7 +79,7 @@ public sealed class MisplacedModDetector(
             }
         }
 
-        var crossInstalled = await DetectCrossInstalledDirectoriesAsync(pluginsDir, cancellationToken);
+        var crossInstalled = await DetectCrossInstalledDirectoriesAsync(pluginsDir, clientPluginCache, cancellationToken);
 
         logger.LogDebug(
             "Detected {WrongFolder} misplaced mods and {CrossInstalled} cross-installed directories",
@@ -89,6 +92,7 @@ public sealed class MisplacedModDetector(
 
     private async Task<List<CrossInstalledDirectory>> DetectCrossInstalledDirectoriesAsync(
         string pluginsDir,
+        IReadOnlyDictionary<string, IReadOnlyList<PluginDll>> clientPluginCache,
         CancellationToken cancellationToken
     )
     {
@@ -106,7 +110,17 @@ public sealed class MisplacedModDetector(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var plugins = await pluginExtractor.ReadPluginDllsAsync(directoryDlls, cancellationToken);
+            if (!clientPluginCache.TryGetValue(directory, out var pluginsAsReadOnly))
+            {
+                var p = await Task.Run(
+                    () => pluginExtractor.ReadPluginDllsAsync(directoryDlls, cancellationToken),
+                    cancellationToken
+                );
+                pluginsAsReadOnly = p;
+            }
+
+            var plugins = pluginsAsReadOnly.ToList();
+
             if (plugins.Count < 2)
             {
                 continue;

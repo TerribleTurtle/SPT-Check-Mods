@@ -76,16 +76,18 @@ public sealed partial class ForgeApiService(
             var url = $"{_options.BaseUrl}spt/versions?filter[spt_version]={escapedVersion}";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("SPT version validation failed: {StatusCode}", response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(
-                response.Body,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse,
+                cancellationToken
             );
 
             var isValid =
@@ -124,16 +126,18 @@ public sealed partial class ForgeApiService(
             var url = $"{_options.BaseUrl}spt/versions?sort=-version&per_page=15";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to fetch SPT versions: {StatusCode}", response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(
-                response.Body,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse,
+                cancellationToken
             );
 
             return apiResponse is { Success: true, Data: not null } ? apiResponse.Data : [];
@@ -195,6 +199,7 @@ public sealed partial class ForgeApiService(
             var url = $"{_options.BaseUrl}mod/{modId}?include=versions,source_code_links";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -203,10 +208,10 @@ public sealed partial class ForgeApiService(
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            using var jsonDoc = JsonDocument.Parse(response.Body);
+            using var jsonDoc = await JsonDocument.ParseAsync(bodyStream, cancellationToken: cancellationToken);
 
             if (
                 !jsonDoc.RootElement.TryGetProperty("success", out var successElement)
@@ -260,15 +265,17 @@ public sealed partial class ForgeApiService(
                 $"{_options.BaseUrl}mods?filter[guid]={Uri.EscapeDataString(modGuid)}&include=versions,source_code_links";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(
-                response.Body,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse,
+                cancellationToken
             );
 
             if (apiResponse is not { Success: true, Data.Count: > 0 })
@@ -325,15 +332,17 @@ public sealed partial class ForgeApiService(
                 $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={sptVersion}&include=versions,source_code_links&per_page=50";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(
-                response.Body,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse,
+                cancellationToken
             );
 
             return apiResponse is { Success: true, Data: not null } ? apiResponse.Data : [];
@@ -457,15 +466,17 @@ public sealed partial class ForgeApiService(
             var url = $"{_options.BaseUrl}mods/updates{query}";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(
-                response.Body,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModUpdatesApiResponse
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModUpdatesApiResponse,
+                cancellationToken
             );
 
             if (apiResponse?.Success != true || apiResponse.Data is null)
@@ -510,19 +521,21 @@ public sealed partial class ForgeApiService(
             var url = $"{_options.BaseUrl}mods/dependencies{query}";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
+            await using var bodyStream = response.Body;
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            var apiResponse = JsonSerializer.Deserialize(
-                response.Body,
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
                 CheckModsExtended
                     .Configuration
                     .CheckModsExtendedJsonSerializerContext
                     .Default
-                    .ModDependenciesApiResponse
+                    .ModDependenciesApiResponse,
+                cancellationToken
             );
 
             if (apiResponse?.Success != true || apiResponse.Data is null)

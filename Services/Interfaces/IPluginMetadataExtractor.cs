@@ -26,7 +26,7 @@ public interface IPluginMetadataExtractor
     /// <summary>
     /// Turns a directory's DLLs into mods. DLLs that reference each other become one mod, while unrelated DLLs stay separate.
     /// </summary>
-    Task<List<Mod>> ConsolidateDirectoryModsAsync(
+    Task<(List<Mod> Mods, List<PluginDll> Plugins)> ConsolidateDirectoryModsAsync(
         string directory,
         List<string> dllPaths,
         CancellationToken cancellationToken = default
