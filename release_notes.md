@@ -25,6 +25,6 @@ First, a sincere thank you to Refringe for the foundational work on the original
   Renamed to "Check Mods Extended" to reflect the structural divergence from the original repository and establish it as an independent fork.
   
 - **Linux & Steam Deck Support**
-  The application is now cross-platform. Releases include a pre-compiled Linux binary for running natively on Linux servers, WSL, and the Steam Deck.
+  Releases continue to provide a pre-compiled Linux binary for running natively on Linux servers, WSL, and the Steam Deck.
 
 **Full Changelog**: https://github.com/TerribleTurtle/CheckModsExtended/compare/v1.2.1...v2.0.0
