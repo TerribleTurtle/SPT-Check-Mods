@@ -7,7 +7,7 @@ namespace CheckModsExtended.Utils;
 /// <summary>
 /// A utility for building URI query strings safely.
 /// </summary>
-public class QueryBuilder
+public sealed class QueryBuilder
 {
     private readonly List<KeyValuePair<string, string?>> _parameters = new();
 
@@ -29,6 +29,7 @@ public class QueryBuilder
         return this;
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         if (_parameters.Count == 0)

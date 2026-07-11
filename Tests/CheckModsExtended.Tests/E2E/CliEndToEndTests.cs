@@ -10,7 +10,7 @@ using Xunit;
 namespace CheckModsExtended.Tests.E2E;
 
 [Collection("Sequential")]
-public class CliEndToEndTests
+public sealed class CliEndToEndTests
 {
     [Fact]
     public async Task Program_main_when_given_valid_args_returns_success_exit_code()
