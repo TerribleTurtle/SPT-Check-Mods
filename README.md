@@ -16,8 +16,8 @@ A .NET 9 console application that validates Single Player Tarkov (SPT) mod compa
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- **Secure Static Analysis**: Securely reads mod metadata directly from server mods and client plugins using static IL analysis via `Mono.Cecil` to prevent arbitrary code execution
-- **Decoupled Architecture**: Highly optimized dependency reconciliation with O(1) matching and aggressive caching for fast processing
+- **Decoupled Architecture**: Extracted monolithic processing logic into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) resulting in a clean, strictly decoupled codebase
+- **Optimized Dependency Resolution**: Highly optimized dependency reconciliation with O(1) matching and aggressive caching for fast processing
 
 ## Requirements
 
@@ -77,7 +77,9 @@ Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code o
 
 ## Security
 
-For security concerns, please review our [Security Policy](.github/SECURITY.md).
+For general security concerns, please review our [Security Policy](.github/SECURITY.md).
+
+For details regarding the historical `AssemblyLoadContext` vulnerability and our static analysis patch, please read our [Security Advisory](SECURITY_ADVISORY.md).
 
 ## License
 
