@@ -106,6 +106,12 @@ Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code o
 
 ## Security
 
+**Release Integrity**  
+All binary releases attached to this repository are secured through automated CI checks to guarantee they have not been tampered with:
+- **Build Provenance**: Every release includes a GitHub Artifact Attestation that cryptographically signs the binary, verifying it was built directly from this repository's verified actions.
+- **VirusTotal Scanning**: Every release executable is automatically uploaded to VirusTotal and scanned by 70+ antivirus engines. A link to the clean scan report is automatically appended to the release notes.
+- **Checksums**: SHA256 checksums are generated and provided alongside the releases for manual verification.
+
 For general security concerns, please review our [Security Policy](.github/SECURITY.md).
 
 For details regarding the historical `AssemblyLoadContext` vulnerability and our static analysis patch, please read our [Security Advisory](SECURITY_ADVISORY.md).
