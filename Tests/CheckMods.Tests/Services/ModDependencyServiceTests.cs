@@ -92,7 +92,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task returns_all_mods_as_roots_when_none_are_matched()
+    public async Task Returns_all_mods_as_roots_when_none_are_matched()
     {
         // OnGetModDependencies intentionally unset.
         var api = new FakeForgeApiService();
@@ -108,7 +108,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task records_a_missing_dependency_with_a_download_link()
+    public async Task Records_a_missing_dependency_with_a_download_link()
     {
         var api = new FakeForgeApiService
         {
@@ -128,7 +128,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task does_not_flag_a_dependency_present_in_the_mod_list()
+    public async Task Does_not_flag_a_dependency_present_in_the_mod_list()
     {
         var main = MatchedMod("com.author.main", "Main", 100);
         var depMod = MatchedMod("com.author.dep", "Dep", 200);
@@ -145,7 +145,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task does_not_flag_a_dependency_listed_in_installed_guids()
+    public async Task Does_not_flag_a_dependency_listed_in_installed_guids()
     {
         var api = new FakeForgeApiService
         {
@@ -159,7 +159,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task detects_a_version_conflict()
+    public async Task Detects_a_version_conflict()
     {
         var api = new FakeForgeApiService
         {
@@ -178,7 +178,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task guards_against_circular_dependencies()
+    public async Task Guards_against_circular_dependencies()
     {
         // main -> A -> B -> A (circular back-edge).
         var backEdgeToA = Dep("com.a", "A");
@@ -197,7 +197,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task invokes_progress_once_per_unique_matched_mod()
+    public async Task Invokes_progress_once_per_unique_matched_mod()
     {
         // Two mods sharing one ApiModId should trigger a single dependency fetch.
         var m1 = MatchedMod("com.a.one", "One", 100);
@@ -212,7 +212,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task treats_a_dependency_fetch_error_as_no_dependencies()
+    public async Task Treats_a_dependency_fetch_error_as_no_dependencies()
     {
         var api = new FakeForgeApiService { OnGetModDependencies = _ => new ApiError("boom") };
 
@@ -224,7 +224,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task update_reports_a_newly_required_missing_dependency_with_a_download_link()
+    public async Task Update_reports_a_newly_required_missing_dependency_with_a_download_link()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var api = new FakeForgeApiService
@@ -253,7 +253,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task update_marks_an_installed_adequate_dependency_as_satisfied()
+    public async Task Update_marks_an_installed_adequate_dependency_as_satisfied()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var dep = MatchedModWithVersion("com.author.dep", "Dep", 500, "3.0.0");
@@ -275,7 +275,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task update_flags_an_installed_dependency_that_is_out_of_date()
+    public async Task Update_flags_an_installed_dependency_that_is_out_of_date()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var dep = MatchedModWithVersion("com.author.dep", "Dep", 500, "2.0.0");
@@ -298,7 +298,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task update_detects_a_transitively_added_dependency()
+    public async Task Update_detects_a_transitively_added_dependency()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var nested = Dep("com.b", "B", id: 601, version: "1.0.0");
@@ -324,7 +324,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task update_reports_a_no_longer_required_dependency()
+    public async Task Update_reports_a_no_longer_required_dependency()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var api = new FakeForgeApiService
@@ -345,7 +345,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task does_not_attach_dependency_changes_when_no_update_is_available()
+    public async Task Does_not_attach_dependency_changes_when_no_update_is_available()
     {
         var main = MatchedMod("com.author.main", "Main", 100);
         var api = new FakeForgeApiService { OnGetModDependencies = _ => new List<ModDependency>() };
@@ -356,7 +356,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task a_target_version_fetch_error_leaves_changes_unset_but_keeps_the_current_analysis()
+    public async Task A_target_version_fetch_error_leaves_changes_unset_but_keeps_the_current_analysis()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var api = new FakeForgeApiService
@@ -384,7 +384,7 @@ public sealed class ModDependencyServiceTests
     }
 
     [Fact]
-    public async Task update_surfaces_a_conflicting_new_dependency()
+    public async Task Update_surfaces_a_conflicting_new_dependency()
     {
         var main = UpdatableMod("com.author.main", "Main", 100, "2.0.0");
         var api = new FakeForgeApiService

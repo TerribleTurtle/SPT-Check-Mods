@@ -41,13 +41,13 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task load_returns_empty_when_file_missing()
+    public async Task Load_returns_empty_when_file_missing()
     {
         Assert.Empty(await CreateStore().LoadAsync());
     }
 
     [Fact]
-    public async Task save_then_load_round_trips_entries()
+    public async Task Save_then_load_round_trips_entries()
     {
         await CreateStore().SaveAsync([Entry(1, "1.0.0", "1.0.1"), Entry(2, "2.0.0", "2.1.0")]);
 
@@ -59,7 +59,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task isignored_matches_on_id_and_both_versions()
+    public async Task Isignored_matches_on_id_and_both_versions()
     {
         var store = CreateStore();
         await store.SaveAsync([Entry(1, "1.0.0", "1.0.1")]);
@@ -72,7 +72,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task isignored_is_case_insensitive_on_versions()
+    public async Task Isignored_is_case_insensitive_on_versions()
     {
         var store = CreateStore();
         await store.SaveAsync([Entry(1, "1.0.0-BETA", "1.0.1-RC")]);
@@ -81,7 +81,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task load_returns_empty_on_corrupt_file()
+    public async Task Load_returns_empty_on_corrupt_file()
     {
         await File.WriteAllTextAsync(_path, "{ this is not valid json ");
 
@@ -89,7 +89,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task mergewithoutoverwrite_adds_new_and_preserves_existing()
+    public async Task Mergewithoutoverwrite_adds_new_and_preserves_existing()
     {
         await CreateStore().SaveAsync([Entry(1, "1.0.0", "1.0.1", IgnoreSource.User)]);
 
@@ -108,7 +108,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task save_does_not_leave_temp_file()
+    public async Task Save_does_not_leave_temp_file()
     {
         await CreateStore().SaveAsync([Entry(1, "1.0.0", "1.0.1")]);
 

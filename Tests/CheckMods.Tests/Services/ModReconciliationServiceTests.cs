@@ -48,7 +48,7 @@ public sealed class ModReconciliationServiceTests
     }
 
     [Fact]
-    public void pairs_server_and_client_by_matching_guid()
+    public void Pairs_server_and_client_by_matching_guid()
     {
         var service = CreateService();
 
@@ -64,7 +64,7 @@ public sealed class ModReconciliationServiceTests
     }
 
     [Fact]
-    public void selects_higher_version_when_components_differ()
+    public void Selects_higher_version_when_components_differ()
     {
         var service = CreateService();
 
@@ -79,7 +79,7 @@ public sealed class ModReconciliationServiceTests
     }
 
     [Fact]
-    public void leaves_unrelated_mods_unmatched()
+    public void Leaves_unrelated_mods_unmatched()
     {
         var service = CreateService();
 
@@ -95,7 +95,7 @@ public sealed class ModReconciliationServiceTests
     }
 
     [Fact]
-    public void matches_by_normalized_name_when_guids_differ_and_notes_the_mismatch()
+    public void Matches_by_normalized_name_when_guids_differ_and_notes_the_mismatch()
     {
         var service = CreateService();
 
@@ -109,7 +109,7 @@ public sealed class ModReconciliationServiceTests
     }
 
     [Fact]
-    public void fika_server_and_client_are_not_falsely_paired()
+    public void Fika_server_and_client_are_not_falsely_paired()
     {
         var service = CreateService();
 
