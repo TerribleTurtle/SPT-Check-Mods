@@ -22,13 +22,12 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- ✨ **Static Bytecode Analysis**: Eliminated an Arbitrary Code Execution (RCE) vulnerability by replacing dynamic `AssemblyLoadContext` module loading with static IL bytecode analysis via `Mono.Cecil` for both client and server mod `.dll` files.
-- ✨ **Rate-Limited Concurrency**: Migrated sequential and unbounded network loops to `Parallel.ForEachAsync` governed by a token-bucket rate limiter. This maximizes network throughput for bulk dependency checks while strictly preventing Forge API `429 Too Many Requests` timeouts.
-- ✨ **AOT Trimming & Size Reduction**: Enabled .NET 9 Native AOT trimming to reduce the standalone executable footprint from ~65MB to ~15MB, utilizing custom P/Invokes to successfully retain `Spectre.Console` terminal colors.
-- ✨ **Strict Error Handling**: Replaced silent generic exception handling with strict `OneOf<T, Error>` result types across all API boundaries, surfacing HTTP failures and malformed semantic versions as explicit warnings in the UI.
-- ✨ **Pipeline Architecture & Offline CLI**: Refactored the monolithic application into a 13-step workflow pipeline driven by `Spectre.Console.Cli`. Introduced new offline commands (`list` and `ignore`) that operate instantly without network access.
-- ✨ **Path Security**: Hardened file-system interactions by patching CWD-relative and cross-volume path traversal vulnerabilities during local config and cache directory resolution.
-- ✨ **Resilient Metadata Extraction**: Upgraded metadata parsing to extract fallback URLs directly from local `package.json` files and SPT 3.10+ `.dll` assemblies, ensuring GitHub issue links remain available even when a mod is filtered out by the Forge API.
+- ✨ **Improved Security**: Mod files are now analyzed safely without executing their underlying code, protecting your system from potential security vulnerabilities.
+- ✨ **Faster Scans**: The app checks your mods in parallel while safely staying within the Forge API's network limits, making scans noticeably faster for large mod lists.
+- ✨ **Clearer Error Messages**: When the network drops or a mod has an invalid version number, the app displays an explicit warning explaining the exact issue.
+- ✨ **New Offline Commands**: You can now use terminal commands like `check-mods list` and `check-mods ignore` to instantly manage your local mods without needing an internet connection.
+- ✨ **Safer File Handling**: Improved how the app reads and writes to your configuration folders to ensure it works flawlessly across different hard drives and operating systems.
+- ✨ **More Reliable Links**: If a mod is missing from the Forge API, the app will now try to extract a fallback GitHub link directly from the mod's local files so you can still find its page.
 
 ## Requirements
 
