@@ -38,7 +38,10 @@ public static class SecurityHelper
             // Path.GetRelativePath returns "." if the paths are the same.
             // If the resolved path escapes the base directory, it will start with ".."
             // E.g., "..", "..\something", "../something"
-            if (relativePath == ".." || relativePath.StartsWith(".." + Path.DirectorySeparatorChar) || relativePath.StartsWith(".." + Path.AltDirectorySeparatorChar))
+            if (relativePath == ".." || 
+                relativePath.StartsWith(".." + Path.DirectorySeparatorChar) || 
+                relativePath.StartsWith(".." + Path.AltDirectorySeparatorChar) ||
+                Path.IsPathRooted(relativePath))
             {
                 return null;
             }

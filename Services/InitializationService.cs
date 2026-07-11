@@ -21,11 +21,6 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
             var configDirectory = Path.GetFullPath(Path.Combine(appDataFolder, "SptCheckModsExtended"));
             var configFilePath = Path.GetFullPath(Path.Combine(configDirectory, "apikey.txt"));
 
-            if (!configFilePath.StartsWith(configDirectory + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-            {
-                return;
-            }
-
             if (!File.Exists(configFilePath))
             {
                 return;
