@@ -35,7 +35,7 @@ internal static class IgnoreReportUrl
     /// <param name="prefilled">True when the returned URL carries the pre-filled entries.</param>
     public static string Build(IReadOnlyList<IgnoredUpdate> entries, out bool prefilled)
     {
-        var json = JsonSerializer.Serialize(entries.Select(ToReportEntry).ToList(), CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ListReportEntry);
+        var json = JsonSerializer.Serialize(entries.Select(ToReportEntry).ToList(), _jsonOptions);
 
         // Wrap in a fenced JSON code block.
         var field = $"```json\n{json}\n```";

@@ -87,7 +87,7 @@ public static class ServiceCollectionExtensions
                 var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
                 client.Timeout = TimeSpan.FromSeconds(rateLimitOptions.RequestTimeoutSeconds);
 
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+                var version = CheckMods.Utils.VersionInfo.SemVer;
                 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
@@ -123,7 +123,7 @@ public static class ServiceCollectionExtensions
                 var ignoredOptions = serviceProvider.GetRequiredService<IOptions<IgnoredUpdateOptions>>().Value;
                 client.Timeout = TimeSpan.FromSeconds(ignoredOptions.RemoteTimeoutSeconds);
 
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+                var version = CheckMods.Utils.VersionInfo.SemVer;
                 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
                     new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")

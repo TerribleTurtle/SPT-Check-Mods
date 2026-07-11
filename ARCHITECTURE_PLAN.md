@@ -1,108 +1,42 @@
-# Restore Lost Functionality — Phased Multi-Agent Plan
+# Modernization & Modularization Plan
 
-## Problem Summary
+## Phased Execution Strategy
 
-Three bugs were identified by comparing our output to the original. All features exist in the codebase but aren't executing correctly. This plan fixes them in dependency order with isolated, verifiable phases.
-
----
-
-## Dependency Graph
+We have divided the refactoring into four distinct phases based on effort and risk, culminating in the highest-effort architectural rewrites.
 
 ```mermaid
 graph TD
-    P1["Phase 1: Fix Fika False Match"]
-    P2["Phase 2: Fix Version Enrichment Pipeline"]
-    P4["Phase 4: Implement Bug 3 Fix (Missing URLs)"]
-    P3["Phase 3: Build & Test Gate"]
+    P1["Phase 1: Low Effort (Immutability & Bug Fixes)"]
+    P2["Phase 2: Medium Effort (Test Unrolling & Data Structures)"]
+    P3["Phase 3: Medium Effort (Resilience Migration)"]
+    P4["Phase 4: High Effort (Pipeline Architecture Rewrite)"]
     
-    P1 --> P3
+    P1 --> P2
     P2 --> P3
-    P4 --> P3
+    P3 --> P4
 ```
 
-Phases 1, 2, and 4 are **independent** — they touch different areas and can run in parallel via separate agents. Phase 3 is the combined verification gate.
+## Phase 1 — Low Effort (Immutability & Bug Fixes)
+> **Goal:** Address all quick-wins identified across the domains. Safe, isolated changes.
+- **Services:** `ApplicationService` Immutability Update (return `IReadOnlyList<Mod>`), `ModMatchingService` Consolidate Matching Logic.
+- **Models:** Add `sealed` to `CheckModsJsonSerializerContext`, Cache Statics in `IgnoredUpdateOptions`, make `PendingConfirmation` an immutable record.
+- **Infrastructure:** Fix JSON Options bug in `IgnoreReportUrl`, Consolidate Assembly reflection in `ServiceCollectionExtensions`, harden `SuffixesToRemove` in `ModNameNormalizer`.
+- **Tests:** Normalize Project Structure (relocate fakes/fixtures), Strict Naming Rules.
 
----
+## Phase 2 — Medium Effort (Data Structures & Test Unrolling)
+> **Goal:** Address structural inconsistencies in models and strictly enforce `AGENTS.md` testing rules.
+- **Models:** Unify DTOs (`SptVersionResponse`), update `DependencyChange` collections to `IReadOnlyList`, pre-compute `MisplacedModReport` expensive getters.
+- **Tests:** Unroll all `[Theory]` methods into `[Fact]`, consolidate Entity Factories (`ModFixture`), backfill missing coverage.
+- **Services:** Simplify `ModReconciliationService` reconciliation loop with LINQ.
 
-## Phase 1 — Fix Fika False Match (Agent A)
+## Phase 3 — Medium Effort (Resilience Migration)
+> **Goal:** Drop custom `RateLimitService` in favor of standard .NET native HTTP resilience.
+> 
+> **Why do this?** Polling and semaphores in custom rate limiters are notorious for introducing hard-to-reproduce thread-starvation or deadlock bugs. The native .NET `Microsoft.Extensions.Http.Resilience` package uses highly optimized, battle-tested Polly v8 engines. It ensures we don't accidentally DDOS an upstream service or lock our own threads.
+> 
+> **Is it easy / what is the blast radius?** Yes, it is very easy. The change is isolated purely to `Program.cs` / DI registration (adding `.AddStandardResilienceHandler()` to our `HttpClient`) and deleting the `RateLimitService.cs` class. The blast radius is completely contained to the HTTP pipeline; no business logic is affected. Standard Serilog logging will automatically capture retry attempts, so no custom telemetry migration is necessary.
 
-> **Goal:** Remove `"core"` from the suffix strip list so `"Fika.Core"` stops falsely matching `"Fika"`.  
-> **Files touched:** `Utils/ModNameNormalizer.cs`, `Tests/CheckMods.Tests/ModReconciliationServiceTests.cs`  
-> **Expected outcome:** 9 matched pairs (not 10), 54 total mods (not 53), "Project Fika - Server" reappears in dependency tree.
-
-### Step 1.1 — Read and understand the normalizer
-1. Edit `Utils/ModNameNormalizer.cs L9`:
-   ```diff
-   -public static readonly string[] SuffixesToRemove = ["server", "client", "plugin", "api", "core"];
-   +public static readonly string[] SuffixesToRemove = ["server", "client", "plugin", "api"];
-   ```
-
-### Step 1.2 — Add regression test
-1. Open `Tests/CheckMods.Tests/ModReconciliationServiceTests.cs`.
-2. Add a new `[Fact]` test method named `Fika_server_and_client_are_not_falsely_paired` that:
-   - Creates a server `Mod` with `LocalName = "Fika"`, `Guid = "Fika"`.
-   - Creates a client `Mod` with `LocalName = "Fika.Core"`, `Guid = "com.fika.core"`.
-   - Calls `ReconcileMods(serverMods, clientMods)`.
-   - Asserts `result.ReconciledPairs.Count == 0` (no match).
-
----
-
-## Phase 2 — Fix Version Enrichment Pipeline (Agent B)
-
-> **Goal:** Make `EnrichModsWithVersionDataAsync` and `ApplyIgnoredUpdatesAsync` merge their results back into the `mods` list, so the version table, FIN banner, download links, and menu options actually display.  
-> **Files touched:** `Services/ApplicationService.cs`  
-
-### Step 2.1 — Fix `EnrichModsWithVersionDataAsync`
-1. Capture the return value from `EnrichAllWithVersionDataAsync`.
-2. Build a dictionary of enriched mods keyed by GUID.
-3. Replace matching entries in the `mods` list.
-
-### Step 2.2 — Fix `ApplyIgnoredUpdatesAsync`
-1. Capture and merge the return value:
-   ```diff
-   -await updateOrchestrationService.ApplyIgnoredUpdatesAsync(mods, cancellationToken);
-   +var modsWithIgnores = await updateOrchestrationService.ApplyIgnoredUpdatesAsync(mods, cancellationToken);
-   +mods.Clear();
-   +mods.AddRange(modsWithIgnores);
-   ```
-
----
-
-## Phase 4 — Fix Missing Report URLs (Agent C)
-
-> **Goal:** Ensure "Please report" URLs are displayed for mods with loading warnings.
-> **Files touched:** `Services/ApplicationService.cs`, `Services/ModResolutionService.cs`
-
-### Step 4.1 — Fix Discarded Results in ApplicationService
-1. Update `ApplicationService.ScanAndReconcileModsAsync` to capture the return values of URL fetching.
-2. For `modsWithWarnings`:
-   ```csharp
-   if (modsWithWarnings.Count > 0)
-   {
-       modsWithWarnings = (await modResolutionService.FetchSourceCodeUrlsForModsAsync(modsWithWarnings, sptVersion, cancellationToken)).ToList();
-   }
-   ```
-3. For `pairsWithNotes`: capture `updatedPairs` from `FetchSourceCodeUrlsForPairedModsAsync` and update the `result.ReconciledPairs`.
-
-### Step 4.2 — Fix `NoCompatibleVersion` Fallback in ModResolutionService
-1. In `ModResolutionService.ResolveAndFetchUrlAsync` and `ResolveAndFetchUrlForPairAsync`, handle the `T2` (NoCompatibleVersion) case from `GetModByGuidAsync`:
-   ```csharp
-   if (guidResult.TryPickT0(out var match, out _))
-   {
-       apiResult = match;
-   }
-   else if (guidResult.TryPickT2(out var noCompat, out _))
-   {
-       apiResult = noCompat.Mod;
-   }
-   ```
-
----
-
-## Phase 3 — Combined Build & Test Gate
-
-> **Goal:** Verify all agents' changes compile and pass together.  
-
-1. Run `dotnet build CheckMods.slnx`.
-2. Run `dotnet test CheckMods.slnx`.
-3. Verify output looks correct and updates state files.
+## Phase 4 — High Effort (Pipeline Architecture & Domain Separation)
+> **Goal:** Dismantle God objects and split large domain files.
+- **Models:** Split `ApiResponses.cs` into isolated file-scoped records (`ModSearchResponses.cs`, etc).
+- **Services:** Dismantle the 14-dependency God object `ApplicationService` into a Pipeline or MediatR pattern for each workflow phase (e.g., `IWorkflowStep<WorkflowContext>`).
