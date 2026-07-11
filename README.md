@@ -102,7 +102,9 @@ Check Mods keeps its data under `%APPDATA%\SptCheckModsExtended`:
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+**This is a personal fork.** I maintain this repository strictly for my own usage and experimentation. 
+
+While you are absolutely welcome to fork this code and build upon it yourself, **I am not actively accepting feature requests, bug reports, or pull requests.** Thank you for understanding!
 
 ## Security
 
