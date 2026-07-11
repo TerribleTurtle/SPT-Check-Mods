@@ -1,7 +1,0 @@
-C:\dev\personal\SPT-Check-Mods\Extensions\ServiceCollectionExtensions.cs(4,17): error CS0234: The type or namespace name 'Logging' does not exist in the namespace 'CheckMods' (are you missing an assembly reference?) [C:\dev\personal\SPT-Check-Mods\CheckMods.csproj]
-
-Build FAILED.
-    0 Warning(s)
-    1 Error(s)
-
-Time Elapsed 00:00:03.29

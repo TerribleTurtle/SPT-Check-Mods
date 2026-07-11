@@ -1,9 +1,0 @@
-C:\dev\personal\SPT-Check-Mods\Tests\CheckMods.Tests\Fakes\FakeIgnoredUpdateStore.cs(46,110): error CS1513: } expected [C:\dev\personal\SPT-Check-Mods\Tests\CheckMods.Tests\CheckMods.Tests.csproj]
-C:\dev\personal\SPT-Check-Mods\Tests\CheckMods.Tests\Fakes\FakeIgnoredUpdateStore.cs(62,213): error CS1513: } expected [C:\dev\personal\SPT-Check-Mods\Tests\CheckMods.Tests\CheckMods.Tests.csproj]
-C:\dev\personal\SPT-Check-Mods\Tests\CheckMods.Tests\IgnoredUpdateStoreTests.cs(57,143): error CS1513: } expected [C:\dev\personal\SPT-Check-Mods\Tests\CheckMods.Tests\CheckMods.Tests.csproj]
-
-Build FAILED.
-    0 Warning(s)
-    3 Error(s)
-
-Time Elapsed 00:00:01.85
