@@ -1,14 +1,14 @@
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
 
-namespace CheckModsExtended.Services.UI;
+namespace CheckModsExtended.Services.Interfaces;
 
 /// <summary>
-/// Renders standard text output and headings for the CLI.
+/// Handles non-interactive logging and status reporting for the mod-check workflow.
 /// </summary>
-public interface ITextRenderer
+public interface ILoggingReporter
 {
     void Banner();
     void Rule();
@@ -18,10 +18,11 @@ public interface ITextRenderer
     void Success(string text);
     void Warning(string text);
     void Error(string text);
-    void Exception(Exception ex);
     void CouldNotReadModDll(string fileName, string reason);
     void CouldNotReadSptVersion(string reason);
     void PluginsDirectoryNotFound(string path);
+    Task RunForgeQueryProgressAsync(int total, Func<Action<int>, Task> work, CancellationToken cancellationToken = default);
+    Task<T> RunForgeQueryProgressAsync<T>(int total, Func<Action<int>, Task<T>> work, CancellationToken cancellationToken = default);
     void UsingPath(string path);
     void DirectoryDoesNotExist(string path);
     void ValidatingSptVersion(string version);
@@ -29,6 +30,7 @@ public interface ITextRenderer
     void SptUpdateAvailable(SptVersionResult latest);
     void CheckModsExtendedUpdate(CheckModsExtendedUpdateResult result, SemanticVersioning.Version sptVersion);
     void NoModsFound();
+    void Exception(Exception ex);
     void RemoteIgnoresMerged(int added);
     void RemoteIgnoresUnavailable();
     void UpdatePagesOpened(int opened, int total);

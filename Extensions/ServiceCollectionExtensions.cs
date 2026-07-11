@@ -122,9 +122,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMisplacedModUiRenderer, MisplacedModUiRenderer>();
         services.AddSingleton<IProgressRenderer, ProgressRenderer>();
         services.AddSingleton<IReconciliationUiRenderer, ReconciliationUiRenderer>();
-        services.AddSingleton<ITableRenderer, TableRenderer>();
+        
         services.AddSingleton<ITextRenderer, TextRenderer>();
         services.AddSingleton<IVersionTableUiRenderer, VersionTableUiRenderer>();
+        services.AddSingleton<IMiscTableUiRenderer, MiscTableUiRenderer>();
+        services.AddSingleton<IUserPromptService, InteractivePromptService>();
 
         // Register the named HttpClient for ForgeApi
         var httpClientBuilder = services.AddHttpClient(

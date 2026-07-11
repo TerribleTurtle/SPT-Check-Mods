@@ -13,54 +13,9 @@ namespace CheckModsExtended.Services.UI;
 [Injectable(InjectionType.Singleton)]
 public sealed class TextRenderer : ITextRenderer
 {
-    private readonly CheckModsExtended.Configuration.RuntimeConfig _runtimeConfig;
-
-    public TextRenderer(CheckModsExtended.Configuration.RuntimeConfig runtimeConfig)
-    {
-        _runtimeConfig = runtimeConfig;
-    }
-
-    private static readonly string[] _bannerTaglines =
-    [
-        "Cheeki breeki, your mods are peaky!",
-        "No FiR tag required.",
-        "Opachki! Your mods are showing.",
-        "Warning: May cause gear fear.",
-        "Fence would sell this for 3x the price.",
-        "Not responsible for any leg meta incidents.",
-        "Ref approved.",
-        "Scav karma not affected by usage.",
-        "No insurance fraud detected.",
-        "Jaeger would make this a daily quest.",
-        "Tested on scavs!",
-        "More reliable than a PM pistol.",
-        "Killa can't spawn here. You're safe.",
-        "Side effects may include mod addiction.",
-        "Lighthouse rogues hate this one simple trick!",
-        "Your stash is safe. Your mods? Let's see...",
-        "Better odds than finding a GPU in raid.",
-        "Tagilla tested, Tagilla approved.",
-        "No extract campers were consulted.",
-        "Mechanic charges extra for this service.",
-        "Labs keycard not required.",
-        "Results may vary based on desync.",
-        "Powered by strong coffee.",
-        "Divide my cheeks!",
-        "Won't fix your packet loss.",
-        "Prapor's dogs won't find your lost mods.",
-        "Extracting in 3... 2... 1...",
-        "Awaits session start forever.",
-        "Watch out for the Goons.",
-        "Therapist wants to know your location.",
-        "Head, Eyes.",
-        "More terrifying than a cultist in the bushes.",
-        "Dicky needles!",
-    ];
-
-    /// <inheritdoc />
     public void Banner()
     {
-        var tagline = _bannerTaglines[Random.Shared.Next(_bannerTaglines.Length)];
+        var tagline = BannerTaglineProvider.GetRandomTagline();
 
         AnsiConsole.Write(new FigletText("Check Mods").LeftJustified().Color(Color.Blue));
         AnsiConsole.MarkupLine("[fuchsia]A tool to check for mod issues and updates.[/]");
@@ -71,55 +26,46 @@ public sealed class TextRenderer : ITextRenderer
         AnsiConsole.WriteLine();
     }
 
-    /// <inheritdoc />
     public void Rule()
     {
         AnsiConsole.Write(new Rule().RuleStyle("grey"));
     }
 
-    /// <inheritdoc />
     public void Blank()
     {
         AnsiConsole.WriteLine();
     }
 
-    /// <inheritdoc />
     public void Heading(string text)
     {
         AnsiConsole.MarkupLine($"[bold blue]{text.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void Status(string text)
     {
         AnsiConsole.MarkupLine($"[grey]{text.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void Success(string text)
     {
         AnsiConsole.MarkupLine($"[green]{text.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void Warning(string text)
     {
         AnsiConsole.MarkupLine($"[yellow]{text.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void Error(string text)
     {
         AnsiConsole.MarkupLine($"[red]{text.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void Exception(Exception ex)
     {
         AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
     }
 
-    /// <inheritdoc />
     public void CouldNotReadModDll(string fileName, string reason)
     {
         AnsiConsole.MarkupLine(
@@ -127,13 +73,11 @@ public sealed class TextRenderer : ITextRenderer
         );
     }
 
-    /// <inheritdoc />
     public void CouldNotReadSptVersion(string reason)
     {
         AnsiConsole.MarkupLine($"[orange1]Warning:[/] Could not read SPT version. Reason: {reason.EscapeMarkup()}");
     }
 
-    /// <inheritdoc />
     public void PluginsDirectoryNotFound(string path)
     {
         AnsiConsole.MarkupLine(
@@ -141,19 +85,16 @@ public sealed class TextRenderer : ITextRenderer
         );
     }
 
-    /// <inheritdoc />
     public void UsingPath(string path)
     {
         AnsiConsole.MarkupLine($"[grey]Using Path:[/] {path.EscapeMarkup()}");
     }
 
-    /// <inheritdoc />
     public void DirectoryDoesNotExist(string path)
     {
         AnsiConsole.MarkupLine($"[red]Error: Directory does not exist: {path.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void ValidatingSptVersion(string version)
     {
         AnsiConsole.Markup(
@@ -161,13 +102,11 @@ public sealed class TextRenderer : ITextRenderer
         );
     }
 
-    /// <inheritdoc />
     public void SptVersionValidated(string version)
     {
         AnsiConsole.MarkupLine($"[green]Successfully validated SPT Version:[/] [bold]{version.EscapeMarkup()}[/]");
     }
 
-    /// <inheritdoc />
     public void SptUpdateAvailable(SptVersionResult latest)
     {
         var versionDisplay = $"[bold]{latest.Version.EscapeMarkup()}[/]";
@@ -185,7 +124,6 @@ public sealed class TextRenderer : ITextRenderer
         }
     }
 
-    /// <inheritdoc />
     public void CheckModsExtendedUpdate(CheckModsExtendedUpdateResult result, SemanticVersioning.Version sptVersion)
     {
         switch (result.Status)
@@ -231,7 +169,6 @@ public sealed class TextRenderer : ITextRenderer
         Rule();
     }
 
-    /// <inheritdoc />
     public void NoModsFound()
     {
         AnsiConsole.WriteLine();
@@ -241,24 +178,6 @@ public sealed class TextRenderer : ITextRenderer
         AnsiConsole.WriteLine();
     }
 
-    private bool IsHeadless()
-    {
-        return Console.IsInputRedirected || _runtimeConfig.IsHeadless;
-    }
-
-    /// <inheritdoc />
-    public bool PromptFetchRemoteIgnores()
-    {
-        if (IsHeadless())
-        {
-            return false;
-        }
-        return AnsiConsole.Prompt(
-            new ConfirmationPrompt("Fetch the latest community ignore list from the Forge?") { DefaultValue = false }
-        );
-    }
-
-    /// <inheritdoc />
     public void RemoteIgnoresMerged(int added)
     {
         AnsiConsole.MarkupLine(
@@ -268,82 +187,11 @@ public sealed class TextRenderer : ITextRenderer
         );
     }
 
-    /// <inheritdoc />
     public void RemoteIgnoresUnavailable()
     {
         AnsiConsole.MarkupLine("[red]Couldn't fetch the community ignore list; your local entries are unchanged.[/]");
     }
 
-    /// <inheritdoc />
-    public EndOfRunChoice PromptEndOfRun(int openableUpdateCount, bool canManageIgnoredUpdates)
-    {
-        if (IsHeadless())
-        {
-            return EndOfRunChoice.Exit;
-        }
-
-        DrainBufferedKeys();
-        AnsiConsole.WriteLine();
-
-        var prompt = new SelectionPrompt<EndOfRunChoice>()
-            .Title("[grey]What would you like to do?[/]")
-            .HighlightStyle(Style.Parse("blue"))
-            .UseConverter(choice => FormatEndOfRunChoice(choice, openableUpdateCount));
-
-        if (openableUpdateCount > 0)
-        {
-            prompt.AddChoice(EndOfRunChoice.OpenUpdatePages);
-        }
-
-        if (canManageIgnoredUpdates)
-        {
-            prompt.AddChoice(EndOfRunChoice.ManageIgnoredUpdates);
-        }
-
-        prompt.AddChoice(EndOfRunChoice.Exit);
-
-        return AnsiConsole.Prompt(prompt);
-    }
-
-    /// <inheritdoc />
-    public IReadOnlyList<Mod> SelectUpdatesToIgnore(IReadOnlyList<Mod> candidates, ISet<int> preIgnoredApiModIds)
-    {
-        if (IsHeadless())
-        {
-            var results = new List<Mod>();
-            foreach (var mod in candidates)
-            {
-                if (mod.Api.ApiModId.HasValue && preIgnoredApiModIds.Contains(mod.Api.ApiModId.Value))
-                {
-                    results.Add(mod);
-                }
-            }
-            return results;
-        }
-
-        AnsiConsole.WriteLine();
-
-        var prompt = new MultiSelectionPrompt<Mod>()
-            .Title("Select the updates to [grey]ignore[/] (checked = treated as up to date):")
-            .NotRequired()
-            .PageSize(15)
-            .MoreChoicesText("[grey](Move up and down to see more mods.)[/]")
-            .InstructionsText("[grey](Space to toggle, enter to confirm. Checked entries are ignored.)[/]")
-            .UseConverter(FormatIgnoreChoice);
-
-        foreach (var mod in candidates)
-        {
-            var item = prompt.AddChoice(mod);
-            if (mod.Api.ApiModId.HasValue && preIgnoredApiModIds.Contains(mod.Api.ApiModId.Value))
-            {
-                item.Select();
-            }
-        }
-
-        return AnsiConsole.Prompt(prompt);
-    }
-
-    /// <inheritdoc />
     public void UpdatePagesOpened(int opened, int total)
     {
         if (total == 0)
@@ -367,19 +215,6 @@ public sealed class TextRenderer : ITextRenderer
         }
     }
 
-    /// <inheritdoc />
-    public bool PromptReportIgnores()
-    {
-        if (IsHeadless())
-        {
-            return false;
-        }
-        return AnsiConsole.Prompt(
-            new ConfirmationPrompt("Report these ignored versions so other users benefit?") { DefaultValue = false }
-        );
-    }
-
-    /// <inheritdoc />
     public void IgnoreReportOpened(string url, bool browserOpened, bool prefilled)
     {
         if (browserOpened)
@@ -402,23 +237,10 @@ public sealed class TextRenderer : ITextRenderer
         }
     }
 
-    /// <inheritdoc />
     public void ApplicationFooter(string version, string hash, string logFilePath)
     {
         AnsiConsole.MarkupLine($"[grey]Check Mods v{version.EscapeMarkup()} (build {hash.EscapeMarkup()})[/]");
         AnsiConsole.MarkupLine($"[grey]Log file: {logFilePath.EscapeMarkup()}[/]");
-    }
-
-    private static string FormatEndOfRunChoice(EndOfRunChoice choice, int openableUpdateCount)
-    {
-        return choice switch
-        {
-            EndOfRunChoice.OpenUpdatePages =>
-                $"Open {openableUpdateCount} mod page{Plural(openableUpdateCount)} with updates in your browser",
-            EndOfRunChoice.ManageIgnoredUpdates => "Manage ignored updates",
-            EndOfRunChoice.Exit => "Close Check Mods",
-            _ => choice.ToString(),
-        };
     }
 
     private static string Plural(int count)
@@ -426,15 +248,6 @@ public sealed class TextRenderer : ITextRenderer
         return count == 1 ? string.Empty : "s";
     }
 
-    private static string FormatIgnoreChoice(Mod mod)
-    {
-        var name = mod.DisplayName.EscapeMarkup();
-        var local = mod.Local.LocalVersion.EscapeMarkup();
-        var latest = (mod.Update.LatestVersion ?? "?").EscapeMarkup();
-        return $"{name}  [grey]{local} -> {latest}[/]";
-    }
-
-    /// <inheritdoc />
     public void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion)
     {
         AnsiConsole.MarkupLine(
@@ -442,7 +255,6 @@ public sealed class TextRenderer : ITextRenderer
         );
     }
 
-    /// <inheritdoc />
     public void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion)
     {
         AnsiConsole.MarkupLine(
@@ -450,39 +262,15 @@ public sealed class TextRenderer : ITextRenderer
         );
     }
 
-    /// <inheritdoc />
     public void IgnoreRemoveNotFound(int apiModId)
     {
         AnsiConsole.MarkupLine($"[yellow]No ignored updates found for API Mod ID {apiModId}.[/]");
     }
 
-    /// <inheritdoc />
     public void IgnoreRemoveSuccess(int removedCount, int apiModId)
     {
         AnsiConsole.MarkupLine(
             $"[green]Successfully removed {removedCount} ignored update(s) for API Mod ID {apiModId}.[/]"
         );
-    }
-
-    /// <inheritdoc />
-    public async System.Threading.Tasks.Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
-    {
-        var displayMod = confirmation.OriginalMod.Local;
-        return await AnsiConsole.ConfirmAsync(
-            $"[yellow]Is '[white]{displayMod.LocalName.EscapeMarkup()}[/]' by '[white]{(displayMod.LocalAuthor ?? "Unknown").EscapeMarkup()}[/]' the same as '[white]{confirmation.ApiMatch.Name.EscapeMarkup()}[/]' by '[white]{(confirmation.ApiMatch.Owner?.Name ?? "N/A").EscapeMarkup()}[/]'? ([grey]Confidence: {confirmation.ConfidenceScore}%[/])[/]"
-        );
-    }
-
-    private static void DrainBufferedKeys()
-    {
-        if (Console.IsInputRedirected)
-        {
-            return;
-        }
-
-        while (Console.KeyAvailable)
-        {
-            Console.ReadKey(intercept: true);
-        }
     }
 }
