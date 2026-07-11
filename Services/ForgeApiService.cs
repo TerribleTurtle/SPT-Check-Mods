@@ -436,7 +436,12 @@ public sealed partial class ForgeApiService(
             // Build mods query parameter as comma-separated "id:version" pairs
             var modsParam = string.Join(",", chunk.Select(m => $"{m.ModId}:{Uri.EscapeDataString(m.CurrentVersion)}"));
 
-            var url = $"{_options.BaseUrl}mods/updates?mods={modsParam}&spt_version={sptVersion}";
+            var query = new QueryBuilder()
+                .AddRaw("mods", modsParam)
+                .Add("spt_version", sptVersion.ToString())
+                .ToString();
+
+            var url = $"{_options.BaseUrl}mods/updates{query}";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
@@ -484,7 +489,11 @@ public sealed partial class ForgeApiService(
                 modList.Select(m => $"{Uri.EscapeDataString(m.Identifier)}:{Uri.EscapeDataString(m.Version)}")
             );
 
-            var url = $"{_options.BaseUrl}mods/dependencies?mods={modsParam}";
+            var query = new QueryBuilder()
+                .AddRaw("mods", modsParam)
+                .ToString();
+
+            var url = $"{_options.BaseUrl}mods/dependencies{query}";
 
             var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
