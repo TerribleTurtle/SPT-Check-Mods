@@ -13,7 +13,7 @@ public sealed class InitializationServiceTests
 
     public InitializationServiceTests()
     {
-        _sut = new InitializationService(_reporter, _logger);
+        _sut = new InitializationService(_reporter, _logger, Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.AppPaths()));
     }
 
     [Fact]
@@ -83,3 +83,4 @@ public sealed class InitializationServiceTests
         }
     }
 }
+

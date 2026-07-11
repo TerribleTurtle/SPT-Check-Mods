@@ -52,6 +52,7 @@ public static class ServiceCollectionExtensions
         services.Configure<ModMatchingOptions>(configuration.GetSection("ModMatchingOptions"));
 
         services.Configure<ModScannerOptions>(configuration.GetSection("ModScannerOptions"));
+        services.Configure<AppPaths>(configuration.GetSection("AppPaths"));
         services.Configure<LoggingOptions>(configuration.GetSection("LoggingOptions"));
         services.Configure<UpdateCheckOptions>(configuration.GetSection("UpdateCheckOptions"));
         services.Configure<IgnoredUpdateOptions>(configuration.GetSection("IgnoredUpdateOptions"));
@@ -94,6 +95,8 @@ public static class ServiceCollectionExtensions
             }
         });
 
+        services.AddTransient<CheckModsExtended.Utils.IFileSystem, CheckModsExtended.Utils.FileSystem>();
+        services.AddTransient<CheckModsExtended.Utils.IProcessRunner, CheckModsExtended.Utils.ProcessRunner>();
         services.AddTransient<IBrowserLauncher, BrowserLauncher>();
         services.AddTransient<ICompatibilityValidationService, CompatibilityValidationService>();
         services.AddTransient<IIgnoredUpdateWorkflow, IgnoredUpdateWorkflow>();
@@ -226,3 +229,5 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
+
+

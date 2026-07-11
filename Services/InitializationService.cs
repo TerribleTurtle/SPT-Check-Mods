@@ -9,7 +9,7 @@ namespace CheckModsExtended.Services;
 /// Implementation of <see cref="IInitializationService"/>.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class InitializationService(IModCheckReporter reporter, ILogger<InitializationService> logger)
+public sealed class InitializationService(IModCheckReporter reporter, ILogger<InitializationService> logger, Microsoft.Extensions.Options.IOptions<CheckModsExtended.Configuration.AppPaths> appPaths)
     : IInitializationService
 {
     /// <inheritdoc />
@@ -17,8 +17,7 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
     {
         try
         {
-            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var configDirectory = Path.GetFullPath(Path.Combine(appDataFolder, "SptCheckModsExtended"));
+            var configDirectory = Path.GetFullPath(appPaths.Value.AppDataDirectory);
             var configFilePath = Path.GetFullPath(Path.Combine(configDirectory, "apikey.txt"));
 
             if (!File.Exists(configFilePath))
@@ -68,3 +67,4 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
         return safePath;
     }
 }
+
