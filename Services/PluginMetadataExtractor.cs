@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using Mono.Cecil;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckMods.Configuration;
@@ -95,22 +95,15 @@ public sealed class PluginMetadataExtractor(
         try
         {
             var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-            using var loadContext = CreateMetadataLoadContext(dllPath);
-            var assembly = loadContext.LoadFromByteArray(bytes);
+            using var stream = new MemoryStream(bytes);
+            using var module = ModuleDefinition.ReadModule(stream);
 
-            foreach (var type in GetLoadableTypes(assembly))
+            foreach (var type in module.Types)
             {
-                try
+                var plugin = ExtractBepInPluginAttribute(type);
+                if (plugin is not null)
                 {
-                    var plugin = ExtractBepInPluginAttribute(type);
-                    if (plugin is not null)
-                    {
-                        return CreateModFromBepInPlugin(plugin, dllPath);
-                    }
-                }
-                catch (Exception ex) when (ex is TypeLoadException or BadImageFormatException or ReflectionTypeLoadException or IOException or UnauthorizedAccessException)
-                {
-                    logger.LogDebug(ex, "Could not inspect type");
+                    return CreateModFromBepInPlugin(plugin, dllPath);
                 }
             }
         }
@@ -129,7 +122,6 @@ public sealed class PluginMetadataExtractor(
     }
 
     /// <inheritdoc />
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
     public async Task<List<PluginDll>> ReadPluginDllsAsync(List<string> dllPaths, CancellationToken cancellationToken = default)
     {
         List<PluginDll> plugins = [];
@@ -139,22 +131,29 @@ public sealed class PluginMetadataExtractor(
             try
             {
                 var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-                using var loadContext = CreateMetadataLoadContext(dllPath);
-                var assembly = loadContext.LoadFromByteArray(bytes);
-                var plugin = ScanAssemblyForBepInPluginAttribute(assembly);
+                using var stream = new MemoryStream(bytes);
+                using var module = ModuleDefinition.ReadModule(stream);
+                
+                BepInPluginAttribute? plugin = null;
+                foreach (var type in module.Types)
+                {
+                    plugin = ExtractBepInPluginAttribute(type);
+                    if (plugin is not null)
+                    {
+                        break;
+                    }
+                }
 
                 if (plugin is null)
                 {
                     continue;
                 }
 
-                var referencedNames = assembly
-                    .GetReferencedAssemblies()
-                    .Select(name => name.Name)
-                    .OfType<string>()
+                var referencedNames = module.AssemblyReferences
+                    .Select(r => r.Name)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                plugins.Add(new PluginDll(dllPath, plugin, assembly.GetName().Name, referencedNames));
+                plugins.Add(new PluginDll(dllPath, plugin, module.Assembly.Name.Name, referencedNames));
             }
             catch (Exception ex)
                 when (ex
@@ -217,15 +216,24 @@ public sealed class PluginMetadataExtractor(
         return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
-    private async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
+    private static async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
     {
         try
         {
             var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-            using var loadContext = CreateMetadataLoadContext(dllPath);
-            var assembly = loadContext.LoadFromByteArray(bytes);
+            using var stream = new MemoryStream(bytes);
+            using var module = ModuleDefinition.ReadModule(stream);
 
-            return ScanAssemblyForBepInPlugin(assembly, dllPath);
+            foreach (var type in module.Types)
+            {
+                var plugin = ExtractBepInPluginAttribute(type);
+                if (plugin is not null)
+                {
+                    return CreateModFromBepInPlugin(plugin, dllPath);
+                }
+            }
+
+            return null;
         }
         catch (Exception ex)
             when (ex
@@ -240,89 +248,26 @@ public sealed class PluginMetadataExtractor(
         }
     }
 
-    private static MetadataLoadContext CreateMetadataLoadContext(string dllPath)
+    private static BepInPluginAttribute? ExtractBepInPluginAttribute(TypeDefinition type)
     {
-        var resolver = new AssemblyResolver(dllPath);
-        return new MetadataLoadContext(resolver);
-    }
-
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
-    private Mod? ScanAssemblyForBepInPlugin(Assembly assembly, string dllPath)
-    {
-        foreach (var type in assembly.GetTypes())
-        {
-            try
-            {
-                var bepInPlugin = ExtractBepInPluginAttribute(type);
-                if (bepInPlugin is null)
-                {
-                    continue;
-                }
-
-                return CreateModFromBepInPlugin(bepInPlugin, dllPath);
-            }
-            catch (Exception ex) when (ex is TypeLoadException or BadImageFormatException or ReflectionTypeLoadException or IOException or UnauthorizedAccessException)
-            {
-                logger.LogDebug(ex, "Skipping type due to load exception");
-            }
-        }
-
-        return null;
-    }
-
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
-    private BepInPluginAttribute? ScanAssemblyForBepInPluginAttribute(Assembly assembly)
-    {
-        foreach (var type in assembly.GetTypes())
-        {
-            try
-            {
-                var bepInPlugin = ExtractBepInPluginAttribute(type);
-                if (bepInPlugin is null)
-                {
-                    continue;
-                }
-
-                return bepInPlugin;
-            }
-            catch (Exception ex) when (ex is TypeLoadException or BadImageFormatException or ReflectionTypeLoadException or IOException or UnauthorizedAccessException)
-            {
-                logger.LogDebug(ex, "Skipping type due to load exception");
-            }
-        }
-        return null;
-    }
-
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            return ex.Types.Where(t => t is not null)!;
-        }
-    }
-
-    private static BepInPluginAttribute? ExtractBepInPluginAttribute(Type type)
-    {
-        var customAttributes = type.GetCustomAttributesData();
-
-        var bepInPluginAttribute = customAttributes.FirstOrDefault(attr =>
-            attr.AttributeType.Name is "BepInPlugin" or "BepInPluginAttribute"
-            || (attr.AttributeType.FullName?.Contains("BepInPlugin") ?? false)
-        );
-
-        if (bepInPluginAttribute is null || bepInPluginAttribute.ConstructorArguments.Count < 3)
+        if (!type.HasCustomAttributes)
         {
             return null;
         }
 
-        var guid = bepInPluginAttribute.ConstructorArguments[0].Value?.ToString() ?? "";
-        var name = bepInPluginAttribute.ConstructorArguments[1].Value?.ToString() ?? "";
-        var version = bepInPluginAttribute.ConstructorArguments[2].Value?.ToString() ?? "";
+        var attr = type.CustomAttributes.FirstOrDefault(a => 
+            a.AttributeType.Name == "BepInPlugin" || 
+            a.AttributeType.Name == "BepInPluginAttribute" ||
+            a.AttributeType.FullName.Contains("BepInPlugin"));
+
+        if (attr is null || !attr.HasConstructorArguments || attr.ConstructorArguments.Count < 3)
+        {
+            return null;
+        }
+
+        var guid = attr.ConstructorArguments[0].Value?.ToString() ?? "";
+        var name = attr.ConstructorArguments[1].Value?.ToString() ?? "";
+        var version = attr.ConstructorArguments[2].Value?.ToString() ?? "";
 
         if (string.IsNullOrWhiteSpace(guid) || string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(version))
         {
@@ -331,6 +276,8 @@ public sealed class PluginMetadataExtractor(
 
         return new BepInPluginAttribute(guid, name, version);
     }
+
+
 
     private static Mod CreateConsolidatedMod(List<PluginDll> group, string directoryName)
     {
@@ -575,3 +522,4 @@ public sealed class PluginMetadataExtractor(
         return SemVer.TryParse(version, "PluginMetadataExtractor").IsT0;
     }
 }
+

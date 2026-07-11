@@ -11,10 +11,14 @@ using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CheckMods.Services;
 
 [Injectable(InjectionType.Transient)]
+[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
+[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
+[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
 public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : IServerModExtractor
 {
     /// <inheritdoc />
@@ -30,34 +34,31 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
 
     private Mod? ExtractServerModMetadata(string dllPath, string sptDirectory)
     {
-        var loadContext = new SptAssemblyLoadContext(sptDirectory);
-
         try
         {
             using var stream = new MemoryStream(File.ReadAllBytes(dllPath));
-            var assembly = loadContext.LoadFromStream(stream);
-            var metadata = LoadSptMetadataFromAssembly(assembly);
+            using var module = Mono.Cecil.ModuleDefinition.ReadModule(stream);
 
-            if (metadata is null)
+            var metadataType = module.Types.FirstOrDefault(t => t.BaseType?.Name == "AbstractModMetadata" && !t.IsAbstract);
+
+            if (metadataType is null)
             {
                 return null;
             }
 
-            // Use reflection to access properties
-            var metadataType = metadata.GetType();
-            var modGuid = metadataType.GetProperty("ModGuid")?.GetValue(metadata)?.ToString();
-            var name = metadataType.GetProperty("Name")?.GetValue(metadata)?.ToString();
-            var author = metadataType.GetProperty("Author")?.GetValue(metadata)?.ToString();
-            var modVersion = metadataType.GetProperty("Version")?.GetValue(metadata)?.ToString();
-            var sptVersion = metadataType.GetProperty("SptVersion")?.GetValue(metadata)?.ToString();
-            var modUrl = metadataType.GetProperty("Url")?.GetValue(metadata)?.ToString();
+            var modGuid = GetStringProperty(metadataType, "ModGuid");
+            var name = GetStringProperty(metadataType, "Name");
+            var author = GetStringProperty(metadataType, "Author");
+            var modVersion = GetStringProperty(metadataType, "Version");
+            var sptVersion = GetStringProperty(metadataType, "SptVersion");
+            var modUrl = GetStringProperty(metadataType, "Url");
 
             if (string.IsNullOrEmpty(modGuid))
             {
                 return null;
             }
 
-            var version = modVersion ?? GetAssemblyVersion(assembly);
+            var version = modVersion ?? GetAssemblyVersion(module);
 
             var warnings = ValidateModMetadata(name ?? string.Empty, author ?? string.Empty, version, modGuid);
 
@@ -89,75 +90,76 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
             logger.LogDebug(ex, "Could not inspect DLL as a server mod: {Path}", dllPath);
             return null;
         }
-        finally
-        {
-            loadContext.Unload();
-        }
     }
 
-    private static object? LoadSptMetadataFromAssembly(Assembly assembly)
+    private static string? GetStringProperty(Mono.Cecil.TypeDefinition type, string propertyName)
     {
-        var types = GetLoadableTypes(assembly);
-        var metadataType = types.FirstOrDefault(t => t.BaseType?.Name == "AbstractModMetadata" && !t.IsAbstract);
-
-        if (metadataType is null)
+        var getter = type.Methods.FirstOrDefault(m => m.Name == $"get_{propertyName}");
+        if (getter?.HasBody == true)
         {
-            return null;
-        }
-
-        return Activator.CreateInstance(metadataType);
-    }
-
-    /// <summary>
-    /// Gets all types from an assembly that can be loaded, gracefully handling types with missing dependencies.
-    /// </summary>
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            // Return only the types that loaded successfully (non-null entries)
-            return ex.Types.Where(t => t is not null)!;
-        }
-    }
-
-    private static string GetAssemblyVersion(Assembly assembly)
-    {
-        var infoVersionAttr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-
-        if (infoVersionAttr is null)
-        {
-            var version = assembly.GetName().Version;
-            if (version is null)
+            foreach (var instruction in getter.Body.Instructions)
             {
-                return string.Empty;
+                if (instruction.OpCode.Code == Mono.Cecil.Cil.Code.Ldstr)
+                {
+                    return instruction.Operand as string;
+                }
             }
-
-            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
 
-        var fullVersion = infoVersionAttr.InformationalVersion;
-        if (string.IsNullOrEmpty(fullVersion))
+        foreach (var ctor in type.Methods.Where(m => m.IsConstructor && !m.IsStatic && m.HasBody))
         {
-            var version = assembly.GetName().Version;
-            if (version is null)
+            string? lastString = null;
+            foreach (var instruction in ctor.Body.Instructions)
             {
-                return string.Empty;
+                if (instruction.OpCode.Code == Mono.Cecil.Cil.Code.Ldstr)
+                {
+                    lastString = instruction.Operand as string;
+                }
+                else if (instruction.OpCode.Code == Mono.Cecil.Cil.Code.Stfld)
+                {
+                    if (instruction.Operand is Mono.Cecil.FieldReference fieldRef &&
+                        fieldRef.Name.Contains($"<{propertyName}>"))
+                    {
+                        if (lastString != null)
+                        {
+                            return lastString;
+                        }
+                    }
+
+                    // Reset the tracked string after ANY field assignment so it doesn't leak
+                    // into properties that are dynamically initialized (e.g. via reflection).
+                    lastString = null;
+                }
             }
-
-            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
 
-        var plusIndex = fullVersion.IndexOf('+');
-        if (plusIndex > 0)
+        return null;
+    }
+
+    private static string GetAssemblyVersion(Mono.Cecil.ModuleDefinition module)
+    {
+        var infoVersionAttr = module.Assembly.CustomAttributes.FirstOrDefault(a => a.AttributeType.Name == "AssemblyInformationalVersionAttribute");
+        if (infoVersionAttr is not null && infoVersionAttr.HasConstructorArguments)
         {
-            fullVersion = fullVersion[..plusIndex];
+            var fullVersion = infoVersionAttr.ConstructorArguments[0].Value?.ToString();
+            if (!string.IsNullOrEmpty(fullVersion))
+            {
+                var plusIndex = fullVersion.IndexOf('+');
+                if (plusIndex > 0)
+                {
+                    return fullVersion[..plusIndex];
+                }
+                return fullVersion;
+            }
         }
 
-        return fullVersion;
+        var version = module.Assembly.Name.Version;
+        if (version is null)
+        {
+            return string.Empty;
+        }
+
+        return $"{version.Major}.{version.Minor}.{version.Build}";
     }
 
     private static List<string> ValidateModMetadata(string name, string author, string version, string guid)
@@ -194,24 +196,5 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
     private static bool IsValidVersion(string version)
     {
         return SemVer.TryParse(version, "ServerModExtractor").IsT0;
-    }
-
-    /// <summary>
-    /// Custom AssemblyLoadContext that resolves SPT assemblies from the SPT directory.
-    /// </summary>
-    private sealed class SptAssemblyLoadContext(string sptDirectory) : AssemblyLoadContext(true)
-    {
-        protected override Assembly? Load(AssemblyName assemblyName)
-        {
-            // Try to find the assembly in the SPT directory
-            var sptPath = Path.Combine(sptDirectory, "SPT", $"{assemblyName.Name}.dll");
-            if (File.Exists(sptPath))
-            {
-                using var stream = new MemoryStream(File.ReadAllBytes(sptPath));
-                return LoadFromStream(stream);
-            }
-
-            return null;
-        }
     }
 }

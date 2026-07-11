@@ -398,6 +398,11 @@ public sealed class TextRenderer : ITextRenderer
 
     private static void DrainBufferedKeys()
     {
+        if (Console.IsInputRedirected)
+        {
+            return;
+        }
+
         while (Console.KeyAvailable)
         {
             Console.ReadKey(intercept: true);

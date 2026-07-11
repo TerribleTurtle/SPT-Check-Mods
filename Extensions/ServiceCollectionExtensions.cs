@@ -6,6 +6,7 @@ using CheckMods.Services.Decorators;
 using CheckMods.Services.Interfaces;
 using CheckMods.Services.Pipeline;
 using CheckMods.Services.Pipeline.Steps;
+using CheckMods.Services.UI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -79,9 +80,33 @@ public static class ServiceCollectionExtensions
             }
         });
 
-        var diHandler = new DependencyInjectionHandler(services);
-        diHandler.AddInjectableTypesFromAssembly(Assembly.GetExecutingAssembly());
-        diHandler.InjectAll();
+        services.AddTransient<IBrowserLauncher, BrowserLauncher>();
+        services.AddTransient<ICompatibilityValidationService, CompatibilityValidationService>();
+        services.AddTransient<IIgnoredUpdateWorkflow, IgnoredUpdateWorkflow>();
+        services.AddTransient<IInitializationService, InitializationService>();
+        services.AddTransient<IMisplacedModDetector, MisplacedModDetector>();
+        services.AddTransient<IModEnrichmentService, ModEnrichmentService>();
+        services.AddTransient<IModLookupStrategy, ModLookupStrategy>();
+        services.AddTransient<IModMatchingService, ModMatchingService>();
+        services.AddTransient<IModReconciliationService, ModReconciliationService>();
+        services.AddTransient<IModResolutionService, ModResolutionService>();
+        services.AddTransient<IModScannerService, ModScannerService>();
+        services.AddTransient<IUpdateWorkflowOrchestrator, UpdateWorkflowOrchestrator>();
+        services.AddTransient<IPluginMetadataExtractor, PluginMetadataExtractor>();
+        services.AddTransient<IServerModExtractor, ServerModExtractor>();
+        services.AddTransient<ISptInstallationService, SptInstallationService>();
+        services.AddTransient<IUpdateCheckService, UpdateCheckService>();
+        services.AddTransient<IUpdateOrchestrationService, UpdateOrchestrationService>();
+
+        services.AddSingleton<IIgnoredUpdateStore, IgnoredUpdateStore>();
+        services.AddSingleton<IModCheckReporter, SpectreModCheckReporter>();
+        services.AddSingleton<IDependencyUiRenderer, DependencyUiRenderer>();
+        services.AddSingleton<IMisplacedModUiRenderer, MisplacedModUiRenderer>();
+        services.AddSingleton<IProgressRenderer, ProgressRenderer>();
+        services.AddSingleton<IReconciliationUiRenderer, ReconciliationUiRenderer>();
+        services.AddSingleton<ITableRenderer, TableRenderer>();
+        services.AddSingleton<ITextRenderer, TextRenderer>();
+        services.AddSingleton<IVersionTableUiRenderer, VersionTableUiRenderer>();
 
         // Register the named HttpClient for ForgeApi
         var httpClientBuilder = services.AddHttpClient(
