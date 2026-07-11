@@ -16,7 +16,7 @@ namespace CheckMods.Models;
 /// <param name="PublishedAt">The ISO 8601 timestamp when the version was published.</param>
 /// <param name="CreatedAt">The ISO 8601 timestamp when the version was created.</param>
 /// <param name="UpdatedAt">The ISO 8601 timestamp when the version was last updated.</param>
-public record ModVersion(
+public sealed record ModVersion(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("hub_id")] int? HubId,
     [property: JsonPropertyName("version")] string Version,
@@ -35,7 +35,7 @@ public record ModVersion(
 /// </summary>
 /// <param name="Success">Whether the API request was successful.</param>
 /// <param name="Data">The list of mod versions.</param>
-public record ModVersionsApiResponse(
+public sealed record ModVersionsApiResponse(
     [property: JsonPropertyName("success")] bool Success,
     [property: JsonPropertyName("data")] List<ModVersion>? Data
 );

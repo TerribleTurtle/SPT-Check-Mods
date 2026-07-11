@@ -7,7 +7,7 @@ namespace CheckMods.Models;
 /// </summary>
 /// <param name="Success">Whether the API request was successful.</param>
 /// <param name="Data">The categorized batch updates data.</param>
-public record ModUpdatesApiResponse(
+public sealed record ModUpdatesApiResponse(
     [property: JsonPropertyName("success")] bool Success,
     [property: JsonPropertyName("data")] ModUpdatesData? Data
 );
@@ -19,7 +19,7 @@ public record ModUpdatesApiResponse(
 /// <param name="Blocked">A list of mods whose updates are blocked by dependencies.</param>
 /// <param name="UpToDate">A list of mods that are already up to date.</param>
 /// <param name="Incompatible">A list of mods that are incompatible with the installed SPT version.</param>
-public record ModUpdatesData(
+public sealed record ModUpdatesData(
     [property: JsonPropertyName("updates")] List<SafeToUpdateMod>? SafeToUpdate,
     [property: JsonPropertyName("blocked_updates")] List<BlockedUpdateMod>? Blocked,
     [property: JsonPropertyName("up_to_date")] List<UpToDateMod>? UpToDate,
@@ -38,7 +38,7 @@ public record ModUpdatesData(
 /// <param name="Version">The version string.</param>
 /// <param name="Link">The download link for this version.</param>
 /// <param name="SptVersions">A list of compatible SPT versions.</param>
-public record ModUpdateVersion(
+public sealed record ModUpdateVersion(
     [property: JsonPropertyName("id")] int? Id,
     [property: JsonPropertyName("mod_id")] int ModId,
     [property: JsonPropertyName("guid")] string? Guid,
@@ -55,7 +55,7 @@ public record ModUpdateVersion(
 /// <param name="CurrentVersion">Information about the currently installed version.</param>
 /// <param name="RecommendedVersion">Information about the recommended update version.</param>
 /// <param name="UpdateReason">The reason why the update is recommended.</param>
-public record SafeToUpdateMod(
+public sealed record SafeToUpdateMod(
     [property: JsonPropertyName("current_version")] ModUpdateVersion? CurrentVersion,
     [property: JsonPropertyName("recommended_version")] ModUpdateVersion? RecommendedVersion,
     [property: JsonPropertyName("update_reason")] string? UpdateReason
@@ -77,7 +77,7 @@ public record SafeToUpdateMod(
 /// <param name="LatestVersion">Information about the latest version that is blocked.</param>
 /// <param name="BlockReason">A description of why the update is blocked.</param>
 /// <param name="BlockingMods">A list of the specific mods causing the blockage.</param>
-public record BlockedUpdateMod(
+public sealed record BlockedUpdateMod(
     [property: JsonPropertyName("current_version")] ModUpdateVersion? CurrentVersion,
     [property: JsonPropertyName("latest_version")] ModUpdateVersion? LatestVersion,
     [property: JsonPropertyName("block_reason")] string? BlockReason,
@@ -102,7 +102,7 @@ public record BlockedUpdateMod(
 /// <param name="CurrentVersion">The currently installed version of the blocking mod.</param>
 /// <param name="Constraint">The version constraint that is causing the blockage.</param>
 /// <param name="IncompatibleWith">The component the mod is incompatible with.</param>
-public record BlockingModInfo(
+public sealed record BlockingModInfo(
     [property: JsonPropertyName("mod_id")] int ModId,
     [property: JsonPropertyName("mod_guid")] string? ModGuid,
     [property: JsonPropertyName("mod_name")] string Name,
@@ -120,7 +120,7 @@ public record BlockingModInfo(
 /// <param name="Name">The display name of the mod.</param>
 /// <param name="Version">The version string.</param>
 /// <param name="SptVersions">A list of compatible SPT versions.</param>
-public record UpToDateMod(
+public sealed record UpToDateMod(
     [property: JsonPropertyName("id")] int? Id,
     [property: JsonPropertyName("mod_id")] int ModId,
     [property: JsonPropertyName("guid")] string? Guid,
@@ -139,7 +139,7 @@ public record UpToDateMod(
 /// <param name="Version">The version string.</param>
 /// <param name="Reason">The reason why the mod is incompatible.</param>
 /// <param name="LatestCompatibleVersion">The latest version of the mod that was compatible, if any.</param>
-public record IncompatibleMod(
+public sealed record IncompatibleMod(
     [property: JsonPropertyName("id")] int? Id,
     [property: JsonPropertyName("mod_id")] int ModId,
     [property: JsonPropertyName("guid")] string? Guid,

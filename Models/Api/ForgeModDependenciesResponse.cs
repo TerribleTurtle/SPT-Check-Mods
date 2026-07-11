@@ -7,7 +7,7 @@ namespace CheckMods.Models;
 /// </summary>
 /// <param name="Success">Whether the API request was successful.</param>
 /// <param name="Data">The list of mod dependencies.</param>
-public record ModDependenciesApiResponse(
+public sealed record ModDependenciesApiResponse(
     [property: JsonPropertyName("success")] bool Success,
     [property: JsonPropertyName("data")] List<ModDependency>? Data
 );
@@ -22,7 +22,7 @@ public record ModDependenciesApiResponse(
 /// <param name="LatestCompatibleVersion">The latest compatible version of the dependency.</param>
 /// <param name="Conflict">Whether there is a conflict with this dependency.</param>
 /// <param name="Dependencies">A nested list of further dependencies.</param>
-public record ModDependency(
+public sealed record ModDependency(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("guid")] string Guid,
     [property: JsonPropertyName("name")] string Name,
@@ -40,7 +40,7 @@ public record ModDependency(
 /// <param name="Link">A download link for the version.</param>
 /// <param name="ContentLength">The file size of the download in bytes.</param>
 /// <param name="FikaCompatibility">Compatibility information with the Fika mod.</param>
-public record DependencyVersionInfo(
+public sealed record DependencyVersionInfo(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("version")] string Version,
     [property: JsonPropertyName("link")] string? Link,

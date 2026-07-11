@@ -7,7 +7,7 @@ namespace CheckMods.Models;
 /// </summary>
 /// <param name="Success">Whether the API request was successful.</param>
 /// <param name="Data">The list of mod search results.</param>
-public record ModSearchApiResponse(
+public sealed record ModSearchApiResponse(
     [property: JsonPropertyName("success")] bool Success,
     [property: JsonPropertyName("data")] List<ModSearchResult>? Data
 );
@@ -26,7 +26,7 @@ public record ModSearchApiResponse(
 /// <param name="DetailUrl">The URL to the mod's detail page.</param>
 /// <param name="Owner">The author or owner of the mod.</param>
 /// <param name="Versions">A list of available versions for the mod.</param>
-public record ModSearchResult(
+public sealed record ModSearchResult(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("hub_id")] int? HubId,
     [property: JsonPropertyName("name")] string Name,
@@ -55,7 +55,7 @@ public record ModSearchResult(
 /// <param name="Id">The numeric ID of the author.</param>
 /// <param name="Name">The display name of the author.</param>
 /// <param name="ProfilePhotoUrl">The URL to the author's profile photo.</param>
-public record ModAuthor(
+public sealed record ModAuthor(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("profile_photo_url")] string? ProfilePhotoUrl
@@ -66,7 +66,7 @@ public record ModAuthor(
 /// </summary>
 /// <param name="Url">The URL to the repository.</param>
 /// <param name="Label">An optional label for the link.</param>
-public record SourceCodeLink(
+public sealed record SourceCodeLink(
     [property: JsonPropertyName("url")] string Url,
     [property: JsonPropertyName("label")] string? Label
 );
