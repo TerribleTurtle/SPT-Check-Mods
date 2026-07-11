@@ -74,12 +74,29 @@ jobs:
         prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
 
     - name: VirusTotal Scan
+      id: vt
       uses: crazy-max/ghaction-virustotal@v4
       with:
         vt_api_key: ${{ secrets.VT_API_KEY }}
         files: |
           ./publish/artifacts/CheckModsExtended-*
-        update_release_body: true
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Append VirusTotal links to Release
+      run: |
+        echo "### VirusTotal Security Scans" > vt_notes.md
+        IFS=',' read -ra ADDR <<< "${{ steps.vt.outputs.analysis }}"
+        for i in "${ADDR[@]}"; do
+          FILEPATH="${i%%=*}"
+          FILENAME="$(basename "$FILEPATH")"
+          URL="${i#*=}"
+          echo "- [$FILENAME]($URL)" >> vt_notes.md
+        done
+        gh release view ${{ github.ref_name }} --json body -q .body > current_notes.md
+        echo "" >> current_notes.md
+        cat vt_notes.md >> current_notes.md
+        gh release edit ${{ github.ref_name }} --notes-file current_notes.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
