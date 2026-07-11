@@ -6,8 +6,8 @@ First and foremost, a massive thank you to Refringe for their incredible foundat
 
 ### What's Changed
 
-- **Safer Mod Scanning**
-  We completely changed how mods are read. The tool now safely scans mod files without ever needing to "run" or load their code, meaning there is zero risk of malicious mods doing harm during a check.
+- **Modernized Mod Scanning**
+  We've updated how mod data is read under the hood. The tool now analyzes mod files statically rather than dynamically loading them into memory, providing an extra layer of security and peace of mind when checking large mod lists.
   
 - **Guaranteed Safe Downloads**
   Every release is now automatically scanned by over 70 antivirus engines (via VirusTotal) and cryptographically signed. You can download with 100% confidence that the files are safe and untampered.
