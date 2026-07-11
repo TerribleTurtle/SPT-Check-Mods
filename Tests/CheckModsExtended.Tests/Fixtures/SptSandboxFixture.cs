@@ -14,7 +14,6 @@ public sealed class SptSandboxFixture : IDisposable
     public SptSandboxFixture()
     {
         SandboxPath = Path.Combine(Path.GetTempPath(), "SptSandbox_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(SandboxPath);
         FileSystem.CreateDirectory(SandboxPath);
     }
 
@@ -40,7 +39,6 @@ public sealed class SptSandboxFixture : IDisposable
         var dir = Path.GetDirectoryName(fullPath);
         if (dir is not null)
         {
-            Directory.CreateDirectory(dir);
             FileSystem.CreateDirectory(dir);
         }
 
@@ -54,16 +52,11 @@ public sealed class SptSandboxFixture : IDisposable
         }
 
         FileSystem.Files[fullPath] = ms.ToArray();
-        File.WriteAllBytes(fullPath, ms.ToArray());
         return fullPath;
     }
 
     public void Dispose()
     {
-        if (Directory.Exists(SandboxPath))
-        {
-            Directory.Delete(SandboxPath, recursive: true);
-        }
     }
 }
 
