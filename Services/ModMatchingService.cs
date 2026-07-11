@@ -228,7 +228,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                 confirmation = matchResult.Confirmation;
                 if (confirmation != null)
                 {
-                    confirmation.ResultIndex = index;
+                    confirmation = confirmation with { ResultIndex = index };
                 }
             }
             catch (OperationCanceledException)

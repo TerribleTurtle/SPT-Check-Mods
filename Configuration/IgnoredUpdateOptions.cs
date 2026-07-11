@@ -18,12 +18,12 @@ public sealed class IgnoredUpdateOptions
     public int RemoteTimeoutSeconds { get; set; } = 10;
 
     /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
+    private static readonly string _defaultDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SptCheckMods");
+
+    /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
     public static string DefaultDirectory
     {
-        get
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SptCheckMods");
-        }
+        get { return _defaultDirectory; }
     }
 
     /// <summary>The default local file path: <c>%AppData%/SptCheckMods/ignored-updates.json</c>.</summary>

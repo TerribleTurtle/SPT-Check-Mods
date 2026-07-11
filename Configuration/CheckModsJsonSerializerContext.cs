@@ -16,6 +16,6 @@ namespace CheckMods.Configuration;
 [JsonSerializable(typeof(ModUpdatesApiResponse))]
 [JsonSerializable(typeof(ModDependenciesApiResponse))]
 [JsonSerializable(typeof(List<IgnoreReportUrl.ReportEntry>))]
-internal partial class CheckModsJsonSerializerContext : JsonSerializerContext
+internal sealed partial class CheckModsJsonSerializerContext : JsonSerializerContext
 {
 }
