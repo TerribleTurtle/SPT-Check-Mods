@@ -70,25 +70,26 @@ public sealed partial class ForgeApiService(
     {
         logger.LogDebug("Validating SPT version: {SptVersion}", sptVersion);
 
-        try
-        {
-            var escapedVersion = Uri.EscapeDataString(sptVersion);
+        var escapedVersion = Uri.EscapeDataString(sptVersion);
             var url = $"{_options.BaseUrl}spt/versions?filter[spt_version]={escapedVersion}";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                logger.LogError("SPT version validation failed: {StatusCode}", response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
+            var result = await apiClient.GetFromJsonAsync(
+                url,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse,
                 cancellationToken
             );
+
+            if (result.TryPickT2(out var error, out _))
+            {
+                logger.LogError("SPT version validation failed: {Message}", error.Message);
+                return error;
+            }
+            if (result.TryPickT1(out var notFound, out _))
+            {
+                logger.LogWarning("SPT version {SptVersion} not found in Forge API", sptVersion);
+                return new InvalidSptVersion();
+            }
+            var apiResponse = result.AsT0;
 
             var isValid =
                 apiResponse is { Success: true, Data: not null } && apiResponse.Data.Any(v => v.Version == sptVersion);
@@ -101,17 +102,6 @@ public sealed partial class ForgeApiService(
 
             logger.LogDebug("SPT version {SptVersion} validated successfully", sptVersion);
             return true;
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogError(ex, "Network error during SPT version validation");
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            logger.LogError(ex, "Failed to parse SPT version validation response");
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 
     /// <inheritdoc />
@@ -121,37 +111,26 @@ public sealed partial class ForgeApiService(
     {
         logger.LogDebug("Fetching all SPT versions from Forge API");
 
-        try
-        {
-            var url = $"{_options.BaseUrl}spt/versions?sort=-version&per_page=15";
+        var url = $"{_options.BaseUrl}spt/versions?sort=-version&per_page=15";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                logger.LogError("Failed to fetch SPT versions: {StatusCode}", response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
+            var result = await apiClient.GetFromJsonAsync(
+                url,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.SptVersionApiResponse,
                 cancellationToken
             );
 
+            if (result.TryPickT2(out var error, out _))
+            {
+                logger.LogError("Failed to fetch SPT versions: {Message}", error.Message);
+                return error;
+            }
+            if (result.TryPickT1(out var notFound, out _))
+            {
+                return new List<SptVersionResult>();
+            }
+            var apiResponse = result.AsT0;
+
             return apiResponse is { Success: true, Data: not null } ? apiResponse.Data : [];
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogError(ex, "Network error during SPT versions fetch");
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            logger.LogError(ex, "Failed to parse SPT versions response");
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 
     /// <inheritdoc />
@@ -194,28 +173,17 @@ public sealed partial class ForgeApiService(
             return new InvalidInput("modId", "Mod ID must be greater than 0");
         }
 
-        try
-        {
-            var url = $"{_options.BaseUrl}mod/{modId}?include=versions,source_code_links";
+        var url = $"{_options.BaseUrl}mod/{modId}?include=versions,source_code_links";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return new NotFound();
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModByIdApiResponse,
+            var result = await apiClient.GetFromJsonAsync(
+                url,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModApiResponse,
                 cancellationToken
             );
+
+            if (result.TryPickT2(out var error, out _)) { return error; }
+            if (result.TryPickT1(out var notFound, out _)) { return notFound; }
+            var apiResponse = result.AsT0;
 
             if (apiResponse?.Success != true || apiResponse.Data is null)
             {
@@ -223,15 +191,6 @@ public sealed partial class ForgeApiService(
             }
 
             return apiResponse.Data;
-        }
-        catch (HttpRequestException ex)
-        {
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 
     /// <inheritdoc />
@@ -249,25 +208,19 @@ public sealed partial class ForgeApiService(
             return new NotFound();
         }
 
-        try
-        {
-            // filter[guid] is case-insensitive, so the GUID is sent verbatim.
+        // filter[guid] is case-insensitive, so the GUID is sent verbatim.
             var url =
                 $"{_options.BaseUrl}mods?filter[guid]={Uri.EscapeDataString(modGuid)}&include=versions,source_code_links";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
+            var res = await apiClient.GetFromJsonAsync(
+                url,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse,
                 cancellationToken
             );
+
+            if (res.TryPickT2(out var error, out _)) { return error; }
+            if (res.TryPickT1(out var notFound, out _)) { return notFound; }
+            var apiResponse = res.AsT0;
 
             if (apiResponse is not { Success: true, Data.Count: > 0 })
             {
@@ -293,15 +246,6 @@ public sealed partial class ForgeApiService(
             }
 
             return result;
-        }
-        catch (HttpRequestException ex)
-        {
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 
     /// <summary>
@@ -317,35 +261,20 @@ public sealed partial class ForgeApiService(
         CancellationToken cancellationToken = default
     )
     {
-        try
-        {
-            var url =
+        var url =
                 $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={sptVersion}&include=versions,source_code_links&per_page=50";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
+            var res = await apiClient.GetFromJsonAsync(
+                url,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchApiResponse,
                 cancellationToken
             );
 
+            if (res.TryPickT2(out var error, out _)) { return error; }
+            // Ignore notFound (T1) and return empty list if not found
+            var apiResponse = res.TryPickT1(out var _, out var _) ? null : res.AsT0;
+
             return apiResponse is { Success: true, Data: not null } ? apiResponse.Data : [];
-        }
-        catch (HttpRequestException ex)
-        {
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 
     /// <inheritdoc />
@@ -444,9 +373,7 @@ public sealed partial class ForgeApiService(
         CancellationToken cancellationToken
     )
     {
-        try
-        {
-            // Build mods query parameter as comma-separated "id:version" pairs
+        // Build mods query parameter as comma-separated "id:version" pairs
             var modsParam = string.Join(",", chunk.Select(m => $"{m.ModId}:{Uri.EscapeDataString(m.CurrentVersion)}"));
 
             var query = new QueryBuilder()
@@ -456,19 +383,15 @@ public sealed partial class ForgeApiService(
 
             var url = $"{_options.BaseUrl}mods/updates{query}";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
+            var res = await apiClient.GetFromJsonAsync(
+                url,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModUpdatesApiResponse,
                 cancellationToken
             );
+
+            if (res.TryPickT2(out var error, out _)) { return error; }
+            if (res.TryPickT1(out var notFound, out _)) { return notFound; }
+            var apiResponse = res.AsT0;
 
             if (apiResponse?.Success != true || apiResponse.Data is null)
             {
@@ -476,15 +399,6 @@ public sealed partial class ForgeApiService(
             }
 
             return apiResponse.Data;
-        }
-        catch (HttpRequestException ex)
-        {
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 
     /// <inheritdoc />
@@ -499,9 +413,7 @@ public sealed partial class ForgeApiService(
             return new NotFound();
         }
 
-        try
-        {
-            // Build mods query parameter as comma-separated "identifier:version" pairs
+        // Build mods query parameter as comma-separated "identifier:version" pairs
             var modsParam = string.Join(
                 ",",
                 modList.Select(m => $"{Uri.EscapeDataString(m.Identifier)}:{Uri.EscapeDataString(m.Version)}")
@@ -511,23 +423,15 @@ public sealed partial class ForgeApiService(
 
             var url = $"{_options.BaseUrl}mods/dependencies{query}";
 
-            var response = await apiClient.GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = response.Body;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
-            }
-
-            var apiResponse = await JsonSerializer.DeserializeAsync(
-                bodyStream,
-                CheckModsExtended
-                    .Configuration
-                    .CheckModsExtendedJsonSerializerContext
-                    .Default
-                    .ModDependenciesApiResponse,
+            var res = await apiClient.GetFromJsonAsync(
+                url,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModDependenciesApiResponse,
                 cancellationToken
             );
+
+            if (res.TryPickT2(out var error, out _)) { return error; }
+            if (res.TryPickT1(out var notFound, out _)) { return notFound; }
+            var apiResponse = res.AsT0;
 
             if (apiResponse?.Success != true || apiResponse.Data is null)
             {
@@ -535,14 +439,5 @@ public sealed partial class ForgeApiService(
             }
 
             return apiResponse.Data;
-        }
-        catch (HttpRequestException ex)
-        {
-            return new ApiError("Network error occurred", Exception: ex);
-        }
-        catch (JsonException ex)
-        {
-            return new ApiError("Failed to parse API response", Exception: ex);
-        }
     }
 }
