@@ -16,7 +16,7 @@ public sealed class InitializationServiceTests
     }
 
     [Fact]
-    public async Task Remove_legacy_api_key_file_does_not_throw_if_file_missing()
+    public async Task remove_legacy_api_key_file_does_not_throw_if_file_missing()
     {
         // Act
         var exception = await Record.ExceptionAsync(() => _sut.RemoveLegacyApiKeyFileAsync());
@@ -26,7 +26,7 @@ public sealed class InitializationServiceTests
     }
 
     [Fact]
-    public void Get_validated_spt_path_returns_current_directory_if_no_args()
+    public void get_validated_spt_path_returns_current_directory_if_no_args()
     {
         // Act
         var result = _sut.GetValidatedSptPath([]);
@@ -36,7 +36,7 @@ public sealed class InitializationServiceTests
     }
 
     [Fact]
-    public void Get_validated_spt_path_returns_null_if_path_invalid()
+    public void get_validated_spt_path_returns_null_if_path_invalid()
     {
         // Act
         // Invalid path chars usually make GetFullPath throw or SecurityHelper return null.
@@ -49,7 +49,7 @@ public sealed class InitializationServiceTests
     }
 
     [Fact]
-    public void Get_validated_spt_path_returns_null_if_directory_does_not_exist()
+    public void get_validated_spt_path_returns_null_if_directory_does_not_exist()
     {
         // Arrange
         var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -63,7 +63,7 @@ public sealed class InitializationServiceTests
     }
 
     [Fact]
-    public void Get_validated_spt_path_returns_path_if_directory_exists()
+    public void get_validated_spt_path_returns_path_if_directory_exists()
     {
         // Arrange
         var tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());

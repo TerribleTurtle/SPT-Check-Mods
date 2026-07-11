@@ -55,7 +55,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildUpdatePageUrls_prefers_the_api_detail_url()
+    public void buildupdatepageurls_prefers_the_api_detail_url()
     {
         var mod = MatchedMod(2471, "cool-mod", "https://forge.sp-tarkov.com/mod/2471/cool-mod");
 
@@ -65,7 +65,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildUpdatePageUrls_falls_back_to_a_mod_page_built_from_id_and_slug()
+    public void buildupdatepageurls_falls_back_to_a_mod_page_built_from_id_and_slug()
     {
         // No detail URL from the API, but the Forge id and slug are enough to build the page link.
         var mod = MatchedMod(2471, "cool-mod", detailUrl: null);
@@ -76,7 +76,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildUpdatePageUrls_dedups_components_that_share_a_page()
+    public void buildupdatepageurls_dedups_components_that_share_a_page()
     {
         // Paired server/client components resolve to the same Forge mod page.
         var server = MatchedMod(2471, "cool-mod", "https://forge.sp-tarkov.com/mod/2471/cool-mod");
@@ -88,7 +88,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildNewSet_preserves_entries_for_mods_not_evaluated_this_run()
+    public void buildnewset_preserves_entries_for_mods_not_evaluated_this_run()
     {
         var existing = new List<IgnoredUpdate> { Entry(1), Entry(2) };
         var evaluated = new HashSet<int> { 1 }; // only mod 1 was installed/evaluated this run
@@ -100,7 +100,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildNewSet_drops_evaluated_but_unselected_entries()
+    public void buildnewset_drops_evaluated_but_unselected_entries()
     {
         var existing = new List<IgnoredUpdate> { Entry(1) };
         var evaluated = new HashSet<int> { 1 };
@@ -112,7 +112,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildNewSet_adds_selected_entries()
+    public void buildnewset_adds_selected_entries()
     {
         var result = IgnoredUpdateWorkflow.BuildNewSet([], new HashSet<int> { 5 }, [Entry(5, latest: "2.0.0")]);
 
@@ -122,7 +122,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void BuildNewSet_keeps_reselected_entry_without_duplicating()
+    public void buildnewset_keeps_reselected_entry_without_duplicating()
     {
         var existing = new List<IgnoredUpdate> { Entry(1) };
         var evaluated = new HashSet<int> { 1 };
@@ -135,7 +135,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void SelectReportableEntries_returns_all_chosen_when_community_is_empty()
+    public void selectreportableentries_returns_all_chosen_when_community_is_empty()
     {
         // No community list configured.
         var chosen = new List<IgnoredUpdate> { Entry(1), Entry(2) };
@@ -146,7 +146,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void SelectReportableEntries_drops_entries_already_in_the_community_list()
+    public void selectreportableentries_drops_entries_already_in_the_community_list()
     {
         var chosen = new List<IgnoredUpdate> { Entry(1), Entry(2) };
         // The community already has mod 1's exact (id, local, latest) triple.
@@ -159,7 +159,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void SelectReportableEntries_returns_empty_when_community_already_has_all_chosen()
+    public void selectreportableentries_returns_empty_when_community_already_has_all_chosen()
     {
         var chosen = new List<IgnoredUpdate> { Entry(1), Entry(2) };
         var community = new List<IgnoredUpdate> { Entry(1), Entry(2) };
@@ -170,7 +170,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void SelectReportableEntries_matches_on_the_full_triple_not_just_id()
+    public void selectreportableentries_matches_on_the_full_triple_not_just_id()
     {
         // Same mod id but a different latest version.
         var chosen = new List<IgnoredUpdate> { Entry(1, latest: "2.0.0") };
@@ -183,7 +183,7 @@ public sealed class IgnoredUpdateWorkflowTests
     }
 
     [Fact]
-    public void SelectReportableEntries_compares_keys_case_insensitively()
+    public void selectreportableentries_compares_keys_case_insensitively()
     {
         var chosen = new List<IgnoredUpdate> { Entry(1, local: "1.0.0-RC1", latest: "1.0.1-RC2") };
         var community = new List<IgnoredUpdate> { Entry(1, local: "1.0.0-rc1", latest: "1.0.1-rc2") };

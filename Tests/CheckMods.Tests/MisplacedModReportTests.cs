@@ -14,7 +14,7 @@ public sealed class MisplacedModReportTests
     }
 
     [Fact]
-    public void Empty_report_excludes_nothing()
+    public void empty_report_excludes_nothing()
     {
         var report = new MisplacedModReport([], []);
 
@@ -24,7 +24,7 @@ public sealed class MisplacedModReportTests
     }
 
     [Fact]
-    public void Wrong_folder_mods_are_excluded_by_file_path()
+    public void wrong_folder_mods_are_excluded_by_file_path()
     {
         var serverInClient = Mod("ServerMod", @"C:\SPT\BepInEx\plugins\ServerMod.dll", isServerMod: true);
         var clientInServer = Mod("ClientMod", @"C:\SPT\SPT\user\mods\ClientMod\ClientMod.dll");
@@ -37,7 +37,7 @@ public sealed class MisplacedModReportTests
     }
 
     [Fact]
-    public void Identified_cross_installed_intruder_is_excluded_but_the_legitimate_occupant_is_not()
+    public void identified_cross_installed_intruder_is_excluded_but_the_legitimate_occupant_is_not()
     {
         var legitimate = Mod("HostMod", @"C:\SPT\BepInEx\plugins\HostMod\HostMod.dll");
         var intruder = Mod("Intruder", @"C:\SPT\BepInEx\plugins\HostMod\Intruder.dll");
@@ -58,7 +58,7 @@ public sealed class MisplacedModReportTests
     }
 
     [Fact]
-    public void Ambiguous_cross_installed_directory_is_excluded_by_folder_not_by_file()
+    public void ambiguous_cross_installed_directory_is_excluded_by_folder_not_by_file()
     {
         var modA = Mod("ModA", @"C:\SPT\BepInEx\plugins\Shared\ModA.dll");
         var modB = Mod("ModB", @"C:\SPT\BepInEx\plugins\Shared\ModB.dll");

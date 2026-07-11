@@ -19,7 +19,7 @@ public sealed class ModEnrichmentServiceTests
     }
 
     [Fact]
-    public async Task Skips_unmatched_mods()
+    public async Task skips_unmatched_mods()
     {
         // Arrange
         var unmatchedMod = new Mod
@@ -44,7 +44,7 @@ public sealed class ModEnrichmentServiceTests
     }
 
     [Fact]
-    public async Task Handles_api_error_gracefully()
+    public async Task handles_api_error_gracefully()
     {
         // Arrange
         var matchedMod = new Mod
@@ -74,7 +74,7 @@ public sealed class ModEnrichmentServiceTests
     }
 
     [Fact]
-    public async Task Maps_safe_to_update_payload_correctly()
+    public async Task maps_safe_to_update_payload_correctly()
     {
         // Arrange
         var matchedMod = new Mod

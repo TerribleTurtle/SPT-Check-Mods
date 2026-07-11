@@ -37,7 +37,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAndValidateSptVersionAsync_WithValidVersion_ReturnsParsedVersion()
+    public async Task getandvalidatesptversionasync_withvalidversion_returnsparsedversion()
     {
         var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
         Directory.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
@@ -53,7 +53,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAndValidateSptVersionAsync_MissingCoreDll_ReturnsNull()
+    public async Task getandvalidatesptversionasync_missingcoredll_returnsnull()
     {
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
 
@@ -61,7 +61,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAndValidateSptVersionAsync_InvalidVersion_ReturnsNull()
+    public async Task getandvalidatesptversionasync_invalidversion_returnsnull()
     {
         var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
         Directory.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);

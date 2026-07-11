@@ -80,7 +80,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromApiMatch_populates_api_fields_and_marks_verified()
+    public void updatefromapimatch_populates_api_fields_and_marks_verified()
     {
         var mod = NewMod();
         var result = ApiResult(
@@ -103,7 +103,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromApiMatch_handles_null_optionals()
+    public void updatefromapimatch_handles_null_optionals()
     {
         var mod = NewMod();
         var result = ApiResult(owner: null, detailUrl: null, sourceLinks: null, versions: null);
@@ -120,7 +120,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void MarkUnmatched_resets_status_after_a_match()
+    public void markunmatched_resets_status_after_a_match()
     {
         var mod = NewMod();
         mod = mod.WithApiMatch(ApiResult());
@@ -133,7 +133,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromSafeToUpdate_sets_version_link_and_status()
+    public void updatefromsafetoupdate_sets_version_link_and_status()
     {
         var mod = NewMod();
         var update = new SafeToUpdateMod(
@@ -150,7 +150,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromSafeToUpdate_handles_null_recommended_version()
+    public void updatefromsafetoupdate_handles_null_recommended_version()
     {
         var mod = NewMod();
         var update = new SafeToUpdateMod(UpdateVersion("1.0.0"), RecommendedVersion: null, UpdateReason: null);
@@ -163,7 +163,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromBlocked_sets_fields_and_status()
+    public void updatefromblocked_sets_fields_and_status()
     {
         var mod = NewMod();
         var blocking = new BlockingModInfo(99, "com.other.mod", "Other Mod", "1.0.0", "<2.0.0", null);
@@ -183,7 +183,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromBlocked_handles_null_latest_version()
+    public void updatefromblocked_handles_null_latest_version()
     {
         var mod = NewMod();
         var blocked = new BlockedUpdateMod(
@@ -200,7 +200,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromUpToDate_sets_version_and_status()
+    public void updatefromuptodate_sets_version_and_status()
     {
         var mod = NewMod();
 
@@ -211,7 +211,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void UpdateFromIncompatible_sets_reason_and_status()
+    public void updatefromincompatible_sets_reason_and_status()
     {
         var mod = NewMod();
 
@@ -224,7 +224,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void SetLocalSptIncompatible_records_reason_and_compatible_version()
+    public void setlocalsptincompatible_records_reason_and_compatible_version()
     {
         var mod = NewMod();
 
@@ -236,7 +236,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void SetLocalSptIncompatible_leaves_compatible_version_null_by_default()
+    public void setlocalsptincompatible_leaves_compatible_version_null_by_default()
     {
         var mod = NewMod();
 
@@ -247,13 +247,13 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void IsMatched_is_false_for_a_freshly_scanned_mod()
+    public void ismatched_is_false_for_a_freshly_scanned_mod()
     {
         Assert.False(NewMod().IsMatched);
     }
 
     [Fact]
-    public void DisplayName_prefers_api_name_then_falls_back_to_local()
+    public void displayname_prefers_api_name_then_falls_back_to_local()
     {
         var mod = NewMod(name: "LocalName");
         Assert.Equal("LocalName", mod.DisplayName);
@@ -263,7 +263,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void DisplayAuthor_falls_back_to_local_when_no_api_author()
+    public void displayauthor_falls_back_to_local_when_no_api_author()
     {
         var mod = NewMod(author: "LocalAuthor");
         Assert.Equal("LocalAuthor", mod.DisplayAuthor);
@@ -273,7 +273,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void DisplayAuthor_prefers_api_author_when_present()
+    public void displayauthor_prefers_api_author_when_present()
     {
         var mod = NewMod(author: "LocalAuthor");
 
@@ -283,7 +283,7 @@ public sealed class ModUpdateMethodsTests
     }
 
     [Fact]
-    public void HasWarnings_reflects_load_warnings()
+    public void haswarnings_reflects_load_warnings()
     {
         var mod = NewMod();
         Assert.False(mod.HasWarnings);

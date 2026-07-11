@@ -70,7 +70,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Version_compatibility_results_delegates_to_version_table_renderer()
+    public void version_compatibility_results_delegates_to_version_table_renderer()
     {
         var fakeVersion = new FakeVersionTableUiRenderer();
         var facade = new TableRenderer(
@@ -86,7 +86,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Loading_warnings_delegates_to_reconciliation_renderer()
+    public void loading_warnings_delegates_to_reconciliation_renderer()
     {
         var fakeReconciliation = new FakeReconciliationUiRenderer();
         var facade = new TableRenderer(
@@ -102,7 +102,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Reconciliation_results_delegates_to_reconciliation_renderer()
+    public void reconciliation_results_delegates_to_reconciliation_renderer()
     {
         var fakeReconciliation = new FakeReconciliationUiRenderer();
         var facade = new TableRenderer(
@@ -126,7 +126,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Misplaced_mods_delegates_to_misplaced_mod_renderer()
+    public void misplaced_mods_delegates_to_misplaced_mod_renderer()
     {
         var fakeMisplaced = new FakeMisplacedModUiRenderer();
         var facade = new TableRenderer(
@@ -142,7 +142,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Unverified_mods_delegates_to_reconciliation_renderer()
+    public void unverified_mods_delegates_to_reconciliation_renderer()
     {
         var fakeReconciliation = new FakeReconciliationUiRenderer();
         var facade = new TableRenderer(
@@ -158,7 +158,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Dependency_results_delegates_to_dependency_renderer()
+    public void dependency_results_delegates_to_dependency_renderer()
     {
         var fakeDependency = new FakeDependencyUiRenderer();
         var facade = new TableRenderer(
@@ -181,7 +181,7 @@ public sealed class TableRendererTests
     }
 
     [Fact]
-    public void Version_table_delegates_to_version_table_renderer()
+    public void version_table_delegates_to_version_table_renderer()
     {
         var fakeVersion = new FakeVersionTableUiRenderer();
         var facade = new TableRenderer(

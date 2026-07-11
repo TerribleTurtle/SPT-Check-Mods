@@ -14,7 +14,7 @@ public sealed class BrowserLauncherTests
     [InlineData("javascript:alert(1)")]
     [InlineData("not a url")]
     [InlineData("")]
-    public void TryOpenUrl_refuses_non_http_urls(string url)
+    public void tryopenurl_refuses_non_http_urls(string url)
     {
         var launcher = new BrowserLauncher(NullLogger<BrowserLauncher>.Instance);
 

@@ -51,7 +51,7 @@ public sealed class ApplicationServiceTests
     }
 
     [Fact]
-    public async Task Run_async_given_invalid_path_returns_empty_and_short_circuits()
+    public async Task run_async_given_invalid_path_returns_empty_and_short_circuits()
     {
         // Act
         var result = await _sut.RunAsync([Path.Combine("invalid", "path", "that", "does", "not", "exist")]);
@@ -63,7 +63,7 @@ public sealed class ApplicationServiceTests
     }
 
     [Fact]
-    public async Task Run_async_when_dependency_throws_exception_handles_gracefully()
+    public async Task run_async_when_dependency_throws_exception_handles_gracefully()
     {
         // Arrange
         var currentDir = Directory.GetCurrentDirectory();
@@ -104,7 +104,7 @@ public sealed class ApplicationServiceTests
     }
 
     [Fact]
-    public async Task Run_async_happy_path_executes_core_components_in_correct_order()
+    public async Task run_async_happy_path_executes_core_components_in_correct_order()
     {
         // Arrange
         var currentDir = Directory.GetCurrentDirectory();
@@ -165,7 +165,7 @@ public sealed class ApplicationServiceTests
     }
 
     [Fact]
-    public async Task Run_async_mutates_state_when_subservices_return_updated_immutable_records()
+    public async Task run_async_mutates_state_when_subservices_return_updated_immutable_records()
     {
         // Arrange
         var currentDir = Directory.GetCurrentDirectory();

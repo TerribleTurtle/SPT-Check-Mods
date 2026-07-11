@@ -19,7 +19,7 @@ public sealed class CompatibilityValidationServiceTests
     }
 
     [Fact]
-    public void CheckModVersionCompatibility_when_compatible_does_not_flag_incompatibility()
+    public void checkmodversioncompatibility_when_compatible_does_not_flag_incompatibility()
     {
         // Arrange
         var sptVersion = new Version("3.9.0");
@@ -60,7 +60,7 @@ public sealed class CompatibilityValidationServiceTests
     }
 
     [Fact]
-    public void CheckModVersionCompatibility_when_incompatible_flags_incompatibility_and_suggests_version()
+    public void checkmodversioncompatibility_when_incompatible_flags_incompatibility_and_suggests_version()
     {
         // Arrange
         var sptVersion = new Version("3.9.0");
@@ -105,7 +105,7 @@ public sealed class CompatibilityValidationServiceTests
     }
 
     [Fact]
-    public void CheckModVersionCompatibility_warns_when_constraint_unparseable()
+    public void checkmodversioncompatibility_warns_when_constraint_unparseable()
     {
         // Arrange
         var sptVersion = new Version("3.9.0");

@@ -48,7 +48,7 @@ public sealed class RemoteIgnoreFileClientTests
     }
 
     [Fact]
-    public async Task FetchAsync_parses_valid_file()
+    public async Task fetchasync_parses_valid_file()
     {
         var client = CreateClient(HttpStatusCode.OK, Json(1, (1, "1.0.0", "1.0.1"), (2, "2.0.0", "2.1.0")));
 
@@ -59,7 +59,7 @@ public sealed class RemoteIgnoreFileClientTests
     }
 
     [Fact]
-    public async Task FetchAsync_returns_null_on_newer_schema()
+    public async Task fetchasync_returns_null_on_newer_schema()
     {
         var client = CreateClient(
             HttpStatusCode.OK,
@@ -70,19 +70,19 @@ public sealed class RemoteIgnoreFileClientTests
     }
 
     [Fact]
-    public async Task FetchAsync_returns_null_on_malformed_json()
+    public async Task fetchasync_returns_null_on_malformed_json()
     {
         Assert.Null(await CreateClient(HttpStatusCode.OK, "not json").FetchAsync());
     }
 
     [Fact]
-    public async Task FetchAsync_returns_null_on_error_status()
+    public async Task fetchasync_returns_null_on_error_status()
     {
         Assert.Null(await CreateClient(HttpStatusCode.NotFound, "").FetchAsync());
     }
 
     [Fact]
-    public async Task FetchAsync_drops_malformed_entries()
+    public async Task fetchasync_drops_malformed_entries()
     {
         // One valid entry and one missing its versions.
         const string body =
@@ -98,7 +98,7 @@ public sealed class RemoteIgnoreFileClientTests
     }
 
     [Fact]
-    public async Task FetchAsync_returns_null_when_not_configured()
+    public async Task fetchasync_returns_null_when_not_configured()
     {
         var client = CreateClient(HttpStatusCode.OK, Json(1, (1, "1.0.0", "1.0.1")), url: null);
 

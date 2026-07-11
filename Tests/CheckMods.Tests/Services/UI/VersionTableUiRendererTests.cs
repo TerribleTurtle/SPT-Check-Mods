@@ -12,7 +12,7 @@ namespace CheckMods.Tests.Services.UI;
 public sealed class VersionTableUiRendererTests
 {
     [Fact]
-    public void Version_table_renders_table_with_mods()
+    public void version_table_renders_table_with_mods()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -44,7 +44,7 @@ public sealed class VersionTableUiRendererTests
     }
 
     [Fact]
-    public void Version_table_renders_update_available()
+    public void version_table_renders_update_available()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -78,7 +78,7 @@ public sealed class VersionTableUiRendererTests
     }
 
     [Fact]
-    public void Version_compatibility_results_renders_incompatible()
+    public void version_compatibility_results_renders_incompatible()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -107,7 +107,7 @@ public sealed class VersionTableUiRendererTests
     }
 
     [Fact]
-    public void Version_table_renders_blocked_and_suppressed_updates_with_dependency_changes()
+    public void version_table_renders_blocked_and_suppressed_updates_with_dependency_changes()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;

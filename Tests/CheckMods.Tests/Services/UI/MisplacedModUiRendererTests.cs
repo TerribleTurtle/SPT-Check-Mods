@@ -12,7 +12,7 @@ namespace CheckMods.Tests.Services.UI;
 public sealed class MisplacedModUiRendererTests
 {
     [Fact]
-    public void Misplaced_mods_renders_list()
+    public void misplaced_mods_renders_list()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -33,7 +33,7 @@ public sealed class MisplacedModUiRendererTests
     }
 
     [Fact]
-    public void Misplaced_mods_renders_cross_installed_directories()
+    public void misplaced_mods_renders_cross_installed_directories()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -58,7 +58,7 @@ public sealed class MisplacedModUiRendererTests
     }
 
     [Fact]
-    public void Misplaced_mods_renders_server_mod_in_client_folder()
+    public void misplaced_mods_renders_server_mod_in_client_folder()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -85,7 +85,7 @@ public sealed class MisplacedModUiRendererTests
     }
 
     [Fact]
-    public void Misplaced_mods_renders_non_ambiguous_cross_installed()
+    public void misplaced_mods_renders_non_ambiguous_cross_installed()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;

@@ -31,7 +31,7 @@ public sealed class MisplacedModDetectorTests : IDisposable
     }
 
     [Fact]
-    public async Task DetectMisplacedModsAsync_IdentifiesMisplacedServerAndClientMods()
+    public async Task detectmisplacedmodsasync_identifiesmisplacedserverandclientmods()
     {
         var misplacedClientPath = Path.Combine("SPT", "user", "mods", "wrong-client", "WrongClient.dll");
         var clientCode =
@@ -69,7 +69,7 @@ public class Plugin {}
     }
 
     [Fact]
-    public async Task DetectMisplacedModsAsync_DetectsCrossInstalledDirectories()
+    public async Task detectmisplacedmodsasync_detectscrossinstalleddirectories()
     {
         var dirPath = Path.Combine("BepInEx", "plugins", "cross-installed");
 
@@ -100,7 +100,7 @@ public class Plugin2 {}
     }
 
     [Fact]
-    public async Task DetectMisplacedModsAsync_DetectsCrossInstalledDirectories_Unambiguous()
+    public async Task detectmisplacedmodsasync_detectscrossinstalleddirectories_unambiguous()
     {
         var dirPath = Path.Combine("BepInEx", "plugins", "unambiguous-mod");
 

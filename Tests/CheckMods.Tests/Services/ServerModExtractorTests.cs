@@ -23,7 +23,7 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsValidMod()
+    public async Task extractservermodmetadataasync_returnsvalidmod()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
 
@@ -56,7 +56,7 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForMissingGuid()
+    public async Task extractservermodmetadataasync_returnsnull_formissingguid()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
 
@@ -79,7 +79,7 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsModWithWarnings_ForMissingProperties()
+    public async Task extractservermodmetadataasync_returnsmodwithwarnings_formissingproperties()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
 
@@ -105,7 +105,7 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForUnreadableFile()
+    public async Task extractservermodmetadataasync_returnsnull_forunreadablefile()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "unreadable-mod");
         var dllPath = Path.Combine(modPath, "Unreadable.dll");

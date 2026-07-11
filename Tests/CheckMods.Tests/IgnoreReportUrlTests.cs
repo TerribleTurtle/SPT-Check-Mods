@@ -18,7 +18,7 @@ public sealed class IgnoreReportUrlTests
     }
 
     [Fact]
-    public void Build_prefills_url_with_entries()
+    public void build_prefills_url_with_entries()
     {
         var url = IgnoreReportUrl.Build([Entry(1234, "Some Mod", "1.2.3", "1.2.4")], out var prefilled);
 
@@ -34,7 +34,7 @@ public sealed class IgnoreReportUrlTests
     }
 
     [Fact]
-    public void Build_drops_prefill_when_too_large()
+    public void build_drops_prefill_when_too_large()
     {
         var entries = Enumerable.Range(1, 400).Select(i => Entry(i, new string('x', 60), "1.0.0", "1.0.1")).ToList();
 

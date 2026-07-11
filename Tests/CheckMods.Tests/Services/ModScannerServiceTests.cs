@@ -40,7 +40,7 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ScanServerModsAsync_ReturnsValidMods()
+    public async Task scanservermodsasync_returnsvalidmods()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
         var serverCode = @"
@@ -79,7 +79,7 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ScanClientModsAsync_ReturnsValidMods()
+    public async Task scanclientmodsasync_returnsvalidmods()
     {
         var pluginsDir = Path.Combine(_sptPath, "BepInEx", "plugins");
         Directory.CreateDirectory(pluginsDir);
@@ -110,7 +110,7 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ScanAllModsAsync_WithMissingDirectories_ReturnsEmpty()
+    public async Task scanallmodsasync_withmissingdirectories_returnsempty()
     {
         var (serverMods, clientMods) = await _service.ScanAllModsAsync(_sptPath);
 
@@ -119,7 +119,7 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DetectMisplacedModsAsync_CallsDetector()
+    public async Task detectmisplacedmodsasync_callsdetector()
     {
         var expectedReport = new MisplacedModReport([], []);
         _misplacedDetector.ReportToReturn = expectedReport;
@@ -135,7 +135,7 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task E2e_scan_all_mods_async_returns_valid_mods()
+    public async Task e2e_scan_all_mods_async_returns_valid_mods()
     {
         // Setup real extractors
         var options = Microsoft.Extensions.Options.Options.Create(new CheckMods.Configuration.ModScannerOptions());

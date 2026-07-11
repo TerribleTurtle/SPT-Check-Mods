@@ -13,7 +13,7 @@ namespace CheckMods.Tests.Services.UI;
 public sealed class DependencyUiRendererTests
 {
     [Fact]
-    public void Dependency_results_renders_missing_deps()
+    public void dependency_results_renders_missing_deps()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -62,7 +62,7 @@ public sealed class DependencyUiRendererTests
     }
 
     [Fact]
-    public void Dependency_results_renders_conflicts()
+    public void dependency_results_renders_conflicts()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -119,7 +119,7 @@ public sealed class DependencyUiRendererTests
     }
 
     [Fact]
-    public void Dependency_results_renders_empty_when_no_root_mods()
+    public void dependency_results_renders_empty_when_no_root_mods()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -134,7 +134,7 @@ public sealed class DependencyUiRendererTests
     }
 
     [Fact]
-    public void Dependency_results_renders_success_when_no_issues()
+    public void dependency_results_renders_success_when_no_issues()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;

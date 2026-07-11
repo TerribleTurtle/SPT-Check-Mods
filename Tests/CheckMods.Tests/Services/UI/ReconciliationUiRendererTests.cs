@@ -13,7 +13,7 @@ namespace CheckMods.Tests.Services.UI;
 public sealed class ReconciliationUiRendererTests
 {
     [Fact]
-    public void Unverified_mods_renders_list()
+    public void unverified_mods_renders_list()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -41,7 +41,7 @@ public sealed class ReconciliationUiRendererTests
     }
 
     [Fact]
-    public void Loading_warnings_renders_list()
+    public void loading_warnings_renders_list()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -70,7 +70,7 @@ public sealed class ReconciliationUiRendererTests
     }
 
     [Fact]
-    public void Reconciliation_results_renders_orphans()
+    public void reconciliation_results_renders_orphans()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
@@ -119,7 +119,7 @@ public sealed class ReconciliationUiRendererTests
     }
 
     [Fact]
-    public void Reconciliation_results_renders_reconciled_pairs_with_notes_and_guid_mismatches()
+    public void reconciliation_results_renders_reconciled_pairs_with_notes_and_guid_mismatches()
     {
         var console = new TestConsole();
         AnsiConsole.Console = console;
