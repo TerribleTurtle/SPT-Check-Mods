@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
+using Spectre.Console;
 using CheckModsExtended.Services.UI;
 using SPTarkov.DI.Annotations;
 
@@ -256,6 +257,40 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
     public void ApplicationFooter(string version, string hash, string logFilePath)
     {
         _textRenderer.ApplicationFooter(version, hash, logFilePath);
+    }
+
+    /// <inheritdoc />
+    public void PendingConfirmationsSummary(IReadOnlyList<PendingConfirmation> pendingConfirmations)
+    {
+        AnsiConsole.MarkupLine($"\n[yellow]Found {pendingConfirmations.Count} match(es) that need confirmation...[/]");
+
+        var table = new Table();
+        table.AddColumn("Local Server Mod");
+        table.AddColumn("Author");
+        table.AddColumn("API Match");
+        table.AddColumn("API Author");
+        table.AddColumn("Confidence");
+
+        foreach (var pending in pendingConfirmations)
+        {
+            table.AddRow(
+                pending.OriginalMod.Local.LocalName.EscapeMarkup(),
+                pending.OriginalMod.Local.LocalAuthor?.EscapeMarkup() ?? "Unknown",
+                pending.ApiMatch.Name.EscapeMarkup(),
+                pending.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A",
+                $"{pending.ConfidenceScore}%"
+            );
+        }
+        AnsiConsole.Write(table);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
+    {
+        var displayMod = confirmation.OriginalMod.Local;
+        return await AnsiConsole.ConfirmAsync(
+            $"[yellow]Is '[white]{displayMod.LocalName.EscapeMarkup()}[/]' by '[white]{displayMod.LocalAuthor?.EscapeMarkup() ?? "Unknown"}[/]' the same as '[white]{confirmation.ApiMatch.Name.EscapeMarkup()}[/]' by '[white]{confirmation.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A"}[/]'? ([grey]Confidence: {confirmation.ConfidenceScore}%[/])[/]"
+        );
     }
 }
 

@@ -23,7 +23,7 @@ public sealed class CachedModDependencyService(
     public async Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
         ISet<string> installedModGuids,
-        Action<int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -35,12 +35,12 @@ public sealed class CachedModDependencyService(
         if (cache.TryGetValue(key, out (IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)? cachedValue) && cachedValue is not null)
         {
             logger.LogDebug("Cache hit for dependency analysis");
-            progressCallback?.Invoke(1, 1);
+            progress?.Report(1);
             return cachedValue.Value;
         }
 
         logger.LogDebug("Cache miss for dependency analysis");
-        var result = await inner.AnalyzeDependenciesAsync(mods, installedModGuids, progressCallback, cancellationToken);
+        var result = await inner.AnalyzeDependenciesAsync(mods, installedModGuids, progress, cancellationToken);
 
         cache.Set(key, result, _cacheEntryOptions);
 

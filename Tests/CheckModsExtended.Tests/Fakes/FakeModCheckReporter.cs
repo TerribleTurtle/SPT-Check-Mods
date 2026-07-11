@@ -238,5 +238,14 @@ public sealed class FakeModCheckReporter : IModCheckReporter
 
     /// <inheritdoc />
     public void ApplicationFooter(string version, string hash, string logFilePath) { }
+
+    /// <inheritdoc />
+    public void PendingConfirmationsSummary(IReadOnlyList<PendingConfirmation> pendingConfirmations) { }
+
+    /// <inheritdoc />
+    public Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
+    {
+        return Task.FromResult(true);
+    }
 }
 

@@ -127,5 +127,15 @@ public interface IModCheckReporter
     /// use), and whether the entries were pre-filled.
     /// </summary>
     void IgnoreReportOpened(string url, bool browserOpened, bool prefilled);
+
+    /// <summary>
+    /// Displays a summary of pending confirmations.
+    /// </summary>
+    void PendingConfirmationsSummary(IReadOnlyList<PendingConfirmation> pendingConfirmations);
+
+    /// <summary>
+    /// Prompts the user to confirm a mod match.
+    /// </summary>
+    Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation);
 }
 

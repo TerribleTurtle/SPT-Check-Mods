@@ -25,6 +25,18 @@ namespace CheckModsExtended.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    private const int RateLimiterTokenLimit = 5;
+    private const int RateLimiterReplenishmentPeriodMs = 333;
+    private const double CircuitBreakerFailureRatioThreshold = 0.99;
+
+    private static void ConfigureDefaultUserAgent(HttpClient client)
+    {
+        var version = CheckModsExtended.Utils.VersionInfo.SemVer;
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CheckModsExtended", version));
+        client.DefaultRequestHeaders.UserAgent.Add(
+            new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/CheckModsExtended)")
+        );
+    }
     /// <summary>
     /// Registers all CheckModsExtended services with the dependency injection container.
     /// </summary>
@@ -36,6 +48,7 @@ public static class ServiceCollectionExtensions
     )
     {
         services.Configure<ForgeApiOptions>(configuration.GetSection("ForgeApiOptions"));
+        services.Configure<ModMatchingOptions>(configuration.GetSection("ModMatchingOptions"));
 
         services.Configure<ModScannerOptions>(configuration.GetSection("ModScannerOptions"));
         services.Configure<LoggingOptions>(configuration.GetSection("LoggingOptions"));
@@ -116,11 +129,7 @@ public static class ServiceCollectionExtensions
                 // Disable HttpClient timeout to allow Polly's TotalRequestTimeout (5 minutes) to control the lifecycle
                 client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
-                var version = CheckModsExtended.Utils.VersionInfo.SemVer;
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CheckModsExtended", version));
-                client.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/CheckModsExtended)")
-                );
+                ConfigureDefaultUserAgent(client);
             }
         );
         
@@ -129,9 +138,9 @@ public static class ServiceCollectionExtensions
             var rateLimiter = new System.Threading.RateLimiting.TokenBucketRateLimiter(
                 new System.Threading.RateLimiting.TokenBucketRateLimiterOptions
                 {
-                    TokenLimit = 5,
+                    TokenLimit = RateLimiterTokenLimit,
                     TokensPerPeriod = 1,
-                    ReplenishmentPeriod = TimeSpan.FromMilliseconds(333),
+                    ReplenishmentPeriod = TimeSpan.FromMilliseconds(RateLimiterReplenishmentPeriodMs),
                     QueueLimit = 10_000,
                     QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst,
                     AutoReplenishment = true
@@ -149,7 +158,7 @@ public static class ServiceCollectionExtensions
             options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
             
             // Prevent the Circuit Breaker from tripping during heavy rate limiting
-            options.CircuitBreaker.FailureRatio = 0.99;
+            options.CircuitBreaker.FailureRatio = CircuitBreakerFailureRatioThreshold;
             options.CircuitBreaker.MinimumThroughput = 1000;
         });
 
@@ -181,11 +190,7 @@ public static class ServiceCollectionExtensions
                 var ignoredOptions = serviceProvider.GetRequiredService<IOptions<IgnoredUpdateOptions>>().Value;
                 client.Timeout = TimeSpan.FromSeconds(ignoredOptions.RemoteTimeoutSeconds);
 
-                var version = CheckModsExtended.Utils.VersionInfo.SemVer;
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CheckModsExtended", version));
-                client.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/CheckModsExtended)")
-                );
+                ConfigureDefaultUserAgent(client);
             }
         ).AddStandardResilienceHandler();
 

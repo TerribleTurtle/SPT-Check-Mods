@@ -31,7 +31,7 @@ public interface IModMatchingService
     Task<IReadOnlyList<Mod>> MatchModsAsync(
         IEnumerable<Mod> mods,
         SemanticVersioning.Version sptVersion,
-        Action<Mod, int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     );
 }

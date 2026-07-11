@@ -18,7 +18,7 @@ public interface IModDependencyService
     Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
         ISet<string> installedModGuids,
-        Action<int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     );
 }
