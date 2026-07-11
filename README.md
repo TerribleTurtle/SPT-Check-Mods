@@ -24,7 +24,6 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
 - ✨ **Faster Scans**: Completely rebuilt the internal engine to check your mods in parallel, making it significantly faster (especially for massive mod lists) without triggering API rate limits.
 - ✨ **Better Error Messages**: When a mod fails to load or your internet connection drops, you'll now get a clear, easy-to-read warning explaining exactly what went wrong instead of a silent crash.
-- ✨ **Smaller Download Size**: The app is now highly compressed and much faster to download, while still keeping all the beautiful terminal colors and formatting.
 - ✨ **Smarter Version Checking**: Improved how mod versions are read to fix several bugs where mods were falsely flagged as outdated.
 - ✨ **Reliable Logging**: Upgraded the internal logging system so if you ever need to share a log file for support, it will always be complete and well-organized.
 
