@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
     )
     {
         services.Configure<ForgeApiOptions>(configuration.GetSection("ForgeApiOptions"));
-        services.Configure<RateLimitOptions>(configuration.GetSection("RateLimitOptions"));
+
         services.Configure<ModScannerOptions>(configuration.GetSection("ModScannerOptions"));
         services.Configure<LoggingOptions>(configuration.GetSection("LoggingOptions"));
         services.Configure<UpdateCheckOptions>(configuration.GetSection("UpdateCheckOptions"));
@@ -85,8 +85,8 @@ public static class ServiceCollectionExtensions
             "ForgeApi",
             (serviceProvider, client) =>
             {
-                var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
-                client.Timeout = TimeSpan.FromSeconds(rateLimitOptions.RequestTimeoutSeconds);
+
+                client.Timeout = TimeSpan.FromSeconds(30);
 
                 var version = CheckMods.Utils.VersionInfo.SemVer;
                 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));

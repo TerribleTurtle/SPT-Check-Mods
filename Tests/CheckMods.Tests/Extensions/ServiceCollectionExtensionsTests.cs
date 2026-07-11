@@ -17,7 +17,7 @@ public sealed class ServiceCollectionExtensionsTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "ForgeApiOptions:BaseUrl", "https://api.example.com/" },
-                { "RateLimitOptions:RequestTimeoutSeconds", "30" },
+
                 { "LoggingOptions:EnableFileLogging", "false" },
                 { "LoggingOptions:MinimumLogLevel", "Information" },
                 { "IgnoredUpdateOptions:RemoteTimeoutSeconds", "10" }

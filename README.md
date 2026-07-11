@@ -87,7 +87,7 @@ $env:LoggingOptions__MinimumLogLevel="Debug"
 
 **Override Rate Limits:**
 ```bash
-set RateLimitOptions__MaxBurst=10
+
 CheckMods-win-x64.exe
 ```
 
