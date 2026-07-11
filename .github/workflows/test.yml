@@ -22,12 +22,12 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore dependencies
-        run: dotnet restore CheckModsExtendedExtended.slnx
+        run: dotnet restore CheckModsExtended.slnx
 
       - name: Test
-        run: dotnet test CheckModsExtendedExtended.slnx --no-restore --verbosity normal
+        run: dotnet test CheckModsExtended.slnx --no-restore --verbosity normal
 
       - name: Enforce Formatting & Analyzers
-        run: dotnet format analyzers --verify-no-changes CheckModsExtendedExtended.slnx
+        run: dotnet format analyzers --verify-no-changes CheckModsExtended.slnx
 
 

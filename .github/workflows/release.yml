@@ -36,11 +36,11 @@ jobs:
         echo "Version: ${VERSION_CLEAN}"
     
     - name: Restore dependencies
-      run: dotnet restore CheckModsExtendedExtended.csproj
+      run: dotnet restore CheckModsExtended.csproj
 
     - name: Build and Publish Windows x64
       run: |
-        dotnet publish CheckModsExtendedExtended.csproj -c Release -r win-x64 -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/win-x64
+        dotnet publish CheckModsExtended.csproj -c Release -r win-x64 -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/win-x64
     
     - name: Create Release
       uses: softprops/action-gh-release@v3
