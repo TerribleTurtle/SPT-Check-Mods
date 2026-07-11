@@ -4,6 +4,8 @@ using CheckMods.Configuration;
 using CheckMods.Services;
 using CheckMods.Services.Decorators;
 using CheckMods.Services.Interfaces;
+using CheckMods.Services.Pipeline;
+using CheckMods.Services.Pipeline.Steps;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -131,6 +133,20 @@ public static class ServiceCollectionExtensions
                 );
             }
         ).AddStandardResilienceHandler();
+
+        services.AddTransient<IWorkflowStep, RemoveLegacyApiKeyStep>();
+        services.AddTransient<IWorkflowStep, ValidateSptPathStep>();
+        services.AddTransient<IWorkflowStep, ValidateSptVersionStep>();
+        services.AddTransient<IWorkflowStep, CheckModsUpdateCheckStep>();
+        services.AddTransient<IWorkflowStep, MaybeFetchRemoteIgnoresStep>();
+        services.AddTransient<IWorkflowStep, DetectMisplacedModsStep>();
+        services.AddTransient<IWorkflowStep, ScanAndReconcileModsStep>();
+        services.AddTransient<IWorkflowStep, MatchModsWithApiStep>();
+        services.AddTransient<IWorkflowStep, EnrichModsWithVersionDataStep>();
+        services.AddTransient<IWorkflowStep, ApplyIgnoredUpdatesStep>();
+        services.AddTransient<IWorkflowStep, CheckModVersionCompatibilityStep>();
+        services.AddTransient<IWorkflowStep, CheckModDependenciesStep>();
+        services.AddTransient<IWorkflowStep, DisplayResultsStep>();
 
         return services;
     }

@@ -54,10 +54,10 @@ public sealed class Program
 
             logFilePath = serviceProvider.GetRequiredService<IOptions<LoggingOptions>>().Value.LogFilePath;
 
-            var applicationService = serviceProvider.GetRequiredService<IApplicationService>();
+            var applicationService = serviceProvider.GetRequiredService<IUpdateWorkflowOrchestrator>();
             var ignoredUpdateWorkflow = serviceProvider.GetRequiredService<IIgnoredUpdateWorkflow>();
 
-            var mods = await applicationService.RunAsync(args, _cts.Token);
+            var mods = await applicationService.RunPipelineAsync(args, _cts.Token);
 
             if (mods is not null)
             {
