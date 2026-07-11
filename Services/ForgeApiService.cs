@@ -21,7 +21,7 @@ namespace CheckModsExtended.Services;
 /// Registered manually in ServiceCollectionExtensions via AddHttpClient, not via [Injectable].
 /// </remarks>
 public sealed partial class ForgeApiService(
-    HttpClient httpClient,
+    IForgeApiClient apiClient,
     IOptions<ForgeApiOptions> options,
     ILogger<ForgeApiService> logger
 ) : IForgeApiService
@@ -34,35 +34,6 @@ public sealed partial class ForgeApiService(
     private const int MaxModsPerUpdateRequest = 50;
 
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
-
-    /// <summary>
-    /// Issues a rate-limited GET request and returns its status code and body. 
-    /// This method does NOT perform caching on its own. Caching of successful 
-    /// (2xx) and NotFound (404) responses is handled externally by the 
-    /// <see cref="CachedForgeApiService"/> decorator.
-    /// </summary>
-    /// <example>
-    /// <code>
-    /// var (statusCode, body, isSuccess) = await GetJsonAsync("https://api/v1/data", ct);
-    /// if (isSuccess) { /* parse body */ }
-    /// </code>
-    /// </example>
-    /// <param name="url">The request URL, which is used as the cache key by the decorator.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task<(HttpStatusCode StatusCode, string Body, bool IsSuccessStatusCode)> GetJsonAsync(string url, CancellationToken cancellationToken)
-    {
-        logger.LogDebug("API Request: GET {Url}", url);
-        var req = new HttpRequestMessage(HttpMethod.Get, url);
-        req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        var response = await httpClient.SendAsync(req, cancellationToken);
-
-        var statusCode = response.StatusCode;
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.Dispose();
-
-        var isSuccess = (int) statusCode is >= 200 and < 300;
-        return (statusCode, body, isSuccess);
-    }
 
     /// <summary>
     /// A regular expression to convert camelCase strings to space-separated words.
@@ -104,7 +75,7 @@ public sealed partial class ForgeApiService(
             var escapedVersion = Uri.EscapeDataString(sptVersion);
             var url = $"{_options.BaseUrl}spt/versions?filter[spt_version]={escapedVersion}";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -149,7 +120,7 @@ public sealed partial class ForgeApiService(
         {
             var url = $"{_options.BaseUrl}spt/versions?sort=-version&per_page=15";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -217,7 +188,7 @@ public sealed partial class ForgeApiService(
         {
             var url = $"{_options.BaseUrl}mod/{modId}?include=versions,source_code_links";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -279,7 +250,7 @@ public sealed partial class ForgeApiService(
             var url =
                 $"{_options.BaseUrl}mods?filter[guid]={Uri.EscapeDataString(modGuid)}&include=versions,source_code_links";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -341,7 +312,7 @@ public sealed partial class ForgeApiService(
             var url =
                 $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={sptVersion}&include=versions,source_code_links&per_page=50";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -467,7 +438,7 @@ public sealed partial class ForgeApiService(
 
             var url = $"{_options.BaseUrl}mods/updates?mods={modsParam}&spt_version={sptVersion}";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -515,7 +486,7 @@ public sealed partial class ForgeApiService(
 
             var url = $"{_options.BaseUrl}mods/dependencies?mods={modsParam}";
 
-            var response = await GetJsonAsync(url, cancellationToken);
+            var response = await apiClient.GetJsonAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {

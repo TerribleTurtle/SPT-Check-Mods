@@ -22,7 +22,7 @@ public sealed class ForgeApiServiceTests
         var options = Options.Create(new ForgeApiOptions());
 
         return new ForgeApiService(
-            httpClient,
+            new ForgeApiClient(httpClient, NullLogger<ForgeApiClient>.Instance),
             options,
             NullLogger<ForgeApiService>.Instance
         );

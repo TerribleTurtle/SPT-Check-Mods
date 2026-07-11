@@ -39,11 +39,6 @@ public interface IPluginMetadataExtractor
     Task<List<PluginDll>> ReadPluginDllsAsync(List<string> dllPaths, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Groups plugin DLLs that belong to the same mod and separates those that don't.
-    /// </summary>
-    List<List<PluginDll>> PartitionByRelatedness(List<PluginDll> plugins);
-
-    /// <summary>
     /// Describes a relatedness component as a single mod, using its primary plugin for the name, GUID, and path.
     /// </summary>
     MisplacedMod ToMisplacedMod(List<PluginDll> group, string directoryName);

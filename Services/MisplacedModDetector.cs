@@ -12,6 +12,7 @@ namespace CheckModsExtended.Services;
 
 [Injectable(InjectionType.Transient)]
 public sealed class MisplacedModDetector(
+    IModPartitioner partitioner,
     IPluginMetadataExtractor pluginExtractor,
     IServerModExtractor serverExtractor,
     ILogger<MisplacedModDetector> logger
@@ -104,7 +105,7 @@ public sealed class MisplacedModDetector(
                 continue;
             }
 
-            var components = pluginExtractor.PartitionByRelatedness(plugins);
+            var components = partitioner.PartitionByRelatedness(plugins);
             if (components.Count < 2)
             {
                 continue;

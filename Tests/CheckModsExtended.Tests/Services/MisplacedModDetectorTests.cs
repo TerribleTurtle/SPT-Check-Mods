@@ -21,9 +21,10 @@ public sealed class MisplacedModDetectorTests : IDisposable
         _fixture = new SptSandboxFixture();
         _sptPath = _fixture.SandboxPath;
         var options = Options.Create(new ModScannerOptions { MaxDllSizeBytes = 10 * 1024 * 1024 });
-        var pluginExtractor = new PluginMetadataExtractor(options, NullLogger<PluginMetadataExtractor>.Instance);
+        var pluginExtractor = new PluginMetadataExtractor(new ModPartitioner(), options, NullLogger<PluginMetadataExtractor>.Instance);
         var serverExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance);
         _detector = new MisplacedModDetector(
+            new ModPartitioner(),
             pluginExtractor,
             serverExtractor,
             NullLogger<MisplacedModDetector>.Instance

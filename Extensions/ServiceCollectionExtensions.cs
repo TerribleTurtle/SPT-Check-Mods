@@ -92,6 +92,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IModResolutionService, ModResolutionService>();
         services.AddTransient<IModScannerService, ModScannerService>();
         services.AddTransient<IUpdateWorkflowOrchestrator, UpdateWorkflowOrchestrator>();
+        services.AddTransient<IModPartitioner, ModPartitioner>();
         services.AddTransient<IPluginMetadataExtractor, PluginMetadataExtractor>();
         services.AddTransient<IServerModExtractor, ServerModExtractor>();
         services.AddTransient<ISptInstallationService, SptInstallationService>();
@@ -153,10 +154,15 @@ public static class ServiceCollectionExtensions
             options.CircuitBreaker.MinimumThroughput = 1000;
         });
 
-        services.AddTransient<IForgeApiService, CachedForgeApiService>(sp =>
+        services.AddTransient<IForgeApiClient, ForgeApiClient>(sp =>
         {
             var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ForgeApi");
-            var inner = ActivatorUtilities.CreateInstance<ForgeApiService>(sp, httpClient);
+            return ActivatorUtilities.CreateInstance<ForgeApiClient>(sp, httpClient);
+        });
+
+        services.AddTransient<IForgeApiService, CachedForgeApiService>(sp =>
+        {
+            var inner = ActivatorUtilities.CreateInstance<ForgeApiService>(sp);
             return new CachedForgeApiService(
                 inner,
                 sp.GetRequiredService<IMemoryCache>(),

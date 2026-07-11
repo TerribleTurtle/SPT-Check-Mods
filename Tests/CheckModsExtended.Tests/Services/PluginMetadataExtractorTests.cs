@@ -22,7 +22,7 @@ public sealed class PluginMetadataExtractorTests : IDisposable
         _fixture = new SptSandboxFixture();
         _sptPath = _fixture.SandboxPath;
         var options = Options.Create(new ModScannerOptions { MaxDllSizeBytes = 10 * 1024 * 1024 });
-        _extractor = new PluginMetadataExtractor(options, NullLogger<PluginMetadataExtractor>.Instance);
+        _extractor = new PluginMetadataExtractor(new ModPartitioner(), options, NullLogger<PluginMetadataExtractor>.Instance);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class ModulePlugin {}
         _fixture.CompileDummyDll(dllPath2, code2);
 
         var plugins = await _extractor.ReadPluginDllsAsync([Path.Combine(_sptPath, dllPath1), Path.Combine(_sptPath, dllPath2)]);
-        var partitioned = _extractor.PartitionByRelatedness(plugins);
+        var partitioned = new ModPartitioner().PartitionByRelatedness(plugins);
 
         Assert.Single(partitioned); // Same author namespace 'com.partition'
         Assert.Equal(2, partitioned[0].Count);

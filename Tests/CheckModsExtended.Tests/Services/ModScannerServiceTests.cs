@@ -168,9 +168,10 @@ public sealed class ModScannerServiceTests : IDisposable
     {
         // Setup real extractors
         var options = Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.ModScannerOptions());
-        var realPluginExtractor = new PluginMetadataExtractor(options, NullLogger<PluginMetadataExtractor>.Instance);
+        var realPluginExtractor = new PluginMetadataExtractor(new ModPartitioner(), options, NullLogger<PluginMetadataExtractor>.Instance);
         var realServerExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance);
         var realMisplacedDetector = new MisplacedModDetector(
+            new ModPartitioner(),
             realPluginExtractor,
             realServerExtractor,
             NullLogger<MisplacedModDetector>.Instance
