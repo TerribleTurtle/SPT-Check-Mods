@@ -15,7 +15,7 @@ public sealed class ModMatchingServiceTests
 
     private static ModMatchingService CreateService(FakeForgeApiService api)
     {
-        return new ModMatchingService(api, NullLogger<ModMatchingService>.Instance);
+        return new ModMatchingService(new ModLookupStrategy(api), NullLogger<ModMatchingService>.Instance);
     }
 
     private static Mod ClientMod(string guid, string name = "Mod", string version = "1.0.0")

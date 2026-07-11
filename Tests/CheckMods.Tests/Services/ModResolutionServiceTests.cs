@@ -16,7 +16,7 @@ public sealed class ModResolutionServiceTests
 
     public ModResolutionServiceTests()
     {
-        _sut = new ModResolutionService(_forgeApiService);
+        _sut = new ModResolutionService(new ModLookupStrategy(_forgeApiService));
     }
 
     [Fact]

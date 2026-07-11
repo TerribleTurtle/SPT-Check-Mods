@@ -15,7 +15,7 @@ namespace CheckMods.Services;
 
 /// <inheritdoc />
 [Injectable(InjectionType.Transient)]
-public sealed class ModResolutionService(IForgeApiService forgeApiService) : IModResolutionService
+public sealed class ModResolutionService(IModLookupStrategy modLookupStrategy) : IModResolutionService
 {
     /// <inheritdoc />
     public async Task<IReadOnlyList<Mod>> FetchSourceCodeUrlsForModsAsync(
@@ -32,7 +32,6 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
             return modsList;
         }
 
-        // Dispatch the lookups concurrently and let the rate limiter throttle.
         var updatedModsDict = modsList.ToDictionary(m => m.Local.Guid);
 
         var tasks = modsWithNames.Select(async mod =>
@@ -70,7 +69,6 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
             return (pairsList, []);
         }
 
-        // Dispatch the lookups concurrently and let the rate limiter throttle.
         var updatedPairsDict = pairsList.ToDictionary(p => p.SelectedMod.Local.Guid);
         var allUpdatedMods = new List<Mod>();
 
@@ -90,52 +88,27 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
         return (updatedPairsDict.Values.ToList(), allUpdatedMods);
     }
 
-    /// <summary>
-    /// Fetches source code URL from the API for a single mod.
-    /// </summary>
     private async Task<Mod> ResolveAndFetchUrlAsync(
         Mod mod,
         Version sptVersion,
         CancellationToken cancellationToken = default
     )
     {
-        // Skip if already has API info
         if (mod.Api.ApiSourceCodeUrl is not null || mod.Api.ApiUrl is not null)
         {
             return mod;
         }
 
-        ModSearchResult? apiResult = null;
+        var lookupResult = await modLookupStrategy.LookupModAsync(mod, sptVersion, null, cancellationToken);
 
-        // Try to find the mod by GUID first
-        if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
-        {
-            var guidResult = await forgeApiService.GetModByGuidAsync(mod.Local.Guid, sptVersion, cancellationToken);
-            if (guidResult.TryPickT0(out var match, out _))
-            {
-                apiResult = match;
-            }
-            else if (guidResult.TryPickT2(out var noCompat, out _))
-            {
-                apiResult = noCompat.Mod;
-            }
-        }
-
-        // If not found by GUID, try searching by name with fuzzy matching
-        apiResult ??= await SearchModByNameAsync(mod, sptVersion, cancellationToken);
-
-        if (apiResult is null)
+        if (lookupResult is null)
         {
             return mod;
         }
 
-        return mod.WithApiMatch(apiResult);
+        return mod.WithApiMatch(lookupResult.Value.Match);
     }
 
-    /// <summary>
-    /// Fetches and applies Forge API info for a single reconciled pair, trying both the server and client GUIDs
-    /// before falling back to a fuzzy name search.
-    /// </summary>
     private async Task<(ModPair UpdatedPair, List<Mod> UpdatedMods)> ResolveAndFetchUrlForPairAsync(
         ModPair pair,
         Version sptVersion,
@@ -144,15 +117,11 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
     {
         var selectedMod = pair.SelectedMod;
 
-        // Skip if already has API info
         if (selectedMod.Api.ApiSourceCodeUrl is not null || selectedMod.Api.ApiUrl is not null)
         {
             return (pair, []);
         }
 
-        ModSearchResult? apiResult = null;
-
-        // Collect all unique GUIDs to try (server GUID, client GUID)
         List<string> guidsToTry = [];
         if (!string.IsNullOrWhiteSpace(pair.ServerMod?.Local.Guid))
         {
@@ -167,58 +136,14 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
             guidsToTry.Add(pair.ClientMod.Local.Guid);
         }
 
-        // Try each GUID until we find a match
-        foreach (var guid in guidsToTry)
-        {
-            var guidResult = await forgeApiService.GetModByGuidAsync(guid, sptVersion, cancellationToken);
-            ModSearchResult? match = null;
-            if (guidResult.TryPickT0(out var t0Match, out _))
-            {
-                match = t0Match;
-            }
-            else if (guidResult.TryPickT2(out var noCompat, out _))
-            {
-                match = noCompat.Mod;
-            }
+        var lookupResult = await modLookupStrategy.LookupModAsync(selectedMod, sptVersion, guidsToTry, cancellationToken);
 
-            if (match is null)
-            {
-                continue;
-            }
-
-            var updatedMods = new List<Mod>();
-            var updatedServerMod = pair.ServerMod;
-            var updatedClientMod = pair.ClientMod;
-
-            if (updatedServerMod != null)
-            {
-                updatedServerMod = updatedServerMod.WithApiMatch(match);
-                updatedMods.Add(updatedServerMod);
-            }
-
-            if (updatedClientMod != null)
-            {
-                updatedClientMod = updatedClientMod.WithApiMatch(match);
-                updatedMods.Add(updatedClientMod);
-            }
-
-            var updatedPair = new ModPair
-            {
-                ServerMod = updatedServerMod,
-                ClientMod = updatedClientMod,
-                SelectedMod = pair.SelectedMod == pair.ServerMod ? updatedServerMod! : updatedClientMod!,
-                Notes = pair.Notes
-            };
-            return (updatedPair, updatedMods);
-        }
-
-        // If not found by any GUID, try searching by name with fuzzy matching
-        apiResult ??= await SearchModByNameAsync(selectedMod, sptVersion, cancellationToken);
-
-        if (apiResult is null)
+        if (lookupResult is null)
         {
             return (pair, []);
         }
+
+        var match = lookupResult.Value.Match;
 
         var finalUpdatedMods = new List<Mod>();
         var finalUpdatedServerMod = pair.ServerMod;
@@ -226,13 +151,13 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
 
         if (finalUpdatedServerMod != null)
         {
-            finalUpdatedServerMod = finalUpdatedServerMod.WithApiMatch(apiResult);
+            finalUpdatedServerMod = finalUpdatedServerMod.WithApiMatch(match);
             finalUpdatedMods.Add(finalUpdatedServerMod);
         }
 
         if (finalUpdatedClientMod != null)
         {
-            finalUpdatedClientMod = finalUpdatedClientMod.WithApiMatch(apiResult);
+            finalUpdatedClientMod = finalUpdatedClientMod.WithApiMatch(match);
             finalUpdatedMods.Add(finalUpdatedClientMod);
         }
 
@@ -245,56 +170,5 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
         };
 
         return (finalUpdatedPair, finalUpdatedMods);
-    }
-
-    /// <summary>
-    /// Searches for a mod by name using fuzzy matching.
-    /// </summary>
-    private async Task<ModSearchResult?> SearchModByNameAsync(
-        Mod mod,
-        Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (string.IsNullOrWhiteSpace(mod.Local.LocalName))
-        {
-            return null;
-        }
-
-        var searchResult = mod.Local.IsServerMod
-            ? await forgeApiService.SearchModsAsync(mod.Local.LocalName, sptVersion, cancellationToken)
-            : await forgeApiService.SearchClientModsAsync(mod.Local.LocalName, sptVersion, cancellationToken);
-
-        // Extract search results or empty list on error
-        var searchResults = searchResult.Match(
-            results => results,
-            _ => [] // ApiError
-        );
-
-        if (searchResults.Count == 0)
-        {
-            return null;
-        }
-
-        var normalizedLocalName = ModNameNormalizer.Normalize(mod.Local.LocalName);
-
-        // Try exact match first
-        var apiResult = searchResults.FirstOrDefault(r =>
-            ModNameNormalizer.Normalize(r.Name).Equals(normalizedLocalName, StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (apiResult is not null)
-        {
-            return apiResult;
-        }
-
-        // If no exact match, try fuzzy match with high threshold
-        var bestMatch = searchResults
-            .Select(r => (Result: r, Score: ModNameNormalizer.GetFuzzyMatchScore(mod.Local.LocalName, r.Name)))
-            .Where(x => x.Score >= MatchingConstants.NameSearchFuzzyThreshold)
-            .OrderByDescending(x => x.Score)
-            .FirstOrDefault();
-
-        return bestMatch.Result;
     }
 }

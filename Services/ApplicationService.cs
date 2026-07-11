@@ -102,16 +102,15 @@ public sealed class ApplicationService(
             logger.LogInformation("Found {ModCount} mods after reconciliation", mods.Count);
 
             logger.LogDebug("Matching mods with Forge API");
-            await MatchModsWithApiAsync(mods, sptVersion, cancellationToken);
+            mods = (await MatchModsWithApiAsync(mods, sptVersion, cancellationToken)).ToList();
 
             // Enrich matched mods with version data, then apply locally-stored update suppressions.
             logger.LogDebug("Enriching mods with version data");
-            await EnrichModsWithVersionDataAsync(mods, sptVersion, cancellationToken);
+            mods = (await EnrichModsWithVersionDataAsync(mods, sptVersion, cancellationToken)).ToList();
 
             logger.LogDebug("Applying ignored updates");
             var modsWithIgnores = await updateOrchestrationService.ApplyIgnoredUpdatesAsync(mods, cancellationToken);
-            mods.Clear();
-            mods.AddRange(modsWithIgnores);
+            mods = modsWithIgnores.ToList();
 
             // Suppressed false positives are skipped.
             logger.LogDebug("Checking mod version compatibility");
@@ -121,7 +120,7 @@ public sealed class ApplicationService(
             reporter.VersionCompatibilityResults(mods, sptVersion);
 
             logger.LogDebug("Checking mod dependencies");
-            await CheckModDependenciesAsync(mods, cancellationToken);
+            mods = (await CheckModDependenciesAsync(mods, cancellationToken)).ToList();
 
             logger.LogDebug("Displaying results");
             reporter.VersionTable(mods);
@@ -327,8 +326,8 @@ public sealed class ApplicationService(
     /// <param name="mods">Mods to match.</param>
     /// <param name="sptVersion">SPT version for compatibility filtering.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task MatchModsWithApiAsync(
-        List<Mod> mods,
+    private async Task<IReadOnlyList<Mod>> MatchModsWithApiAsync(
+        IReadOnlyList<Mod> mods,
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
     )
@@ -348,16 +347,15 @@ public sealed class ApplicationService(
             cancellationToken
         );
 
-        mods.Clear();
-        mods.AddRange(matchedMods);
-
         reporter.Success("Forge verification complete!");
         reporter.Blank();
 
         // Display warnings for mods that couldn't be verified
-        reporter.UnverifiedMods(mods);
+        reporter.UnverifiedMods(matchedMods.ToList());
 
         reporter.Rule();
+        
+        return matchedMods;
     }
 
     /// <summary>
@@ -366,8 +364,8 @@ public sealed class ApplicationService(
     /// <param name="mods">Mods to enrich.</param>
     /// <param name="sptVersion">SPT version for compatibility filtering.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task EnrichModsWithVersionDataAsync(
-        List<Mod> mods,
+    private async Task<IReadOnlyList<Mod>> EnrichModsWithVersionDataAsync(
+        IReadOnlyList<Mod> mods,
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
     )
@@ -376,7 +374,7 @@ public sealed class ApplicationService(
 
         if (matchedMods.Count == 0)
         {
-            return;
+            return mods;
         }
 
         var enrichedMods = await modEnrichmentService.EnrichAllWithVersionDataAsync(
@@ -385,14 +383,21 @@ public sealed class ApplicationService(
 
         var enrichedByGuid = enrichedMods.ToDictionary(m => m.Local.Guid, StringComparer.OrdinalIgnoreCase);
 
-        for (var i = 0; i < mods.Count; i++)
+        var result = new List<Mod>(mods.Count);
+        foreach (var mod in mods)
         {
-            if (!string.IsNullOrWhiteSpace(mods[i].Local.Guid) && 
-                enrichedByGuid.TryGetValue(mods[i].Local.Guid, out var enriched))
+            if (!string.IsNullOrWhiteSpace(mod.Local.Guid) && 
+                enrichedByGuid.TryGetValue(mod.Local.Guid, out var enriched))
             {
-                mods[i] = enriched;
+                result.Add(enriched);
+            }
+            else
+            {
+                result.Add(mod);
             }
         }
+        
+        return result;
     }
 
     /// <summary>
@@ -400,7 +405,7 @@ public sealed class ApplicationService(
     /// </summary>
     /// <param name="mods">Mods to check dependencies for.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task<List<Mod>> CheckModDependenciesAsync(List<Mod> mods, CancellationToken cancellationToken = default)
+    private async Task<IReadOnlyList<Mod>> CheckModDependenciesAsync(IReadOnlyList<Mod> mods, CancellationToken cancellationToken = default)
     {
         if (!mods.Any(m => m.IsMatched))
         {
@@ -443,11 +448,7 @@ public sealed class ApplicationService(
             cancellationToken
         );
 
-        // Merge updated mods back into the main list if needed, or reassign mods:
-        mods.Clear();
-        mods.AddRange(updatedMods);
-
         reporter.DependencyResults(result);
-        return mods;
+        return updatedMods;
     }
 }
