@@ -89,4 +89,7 @@ public interface ITextRenderer
 
     /// <summary>Reports the outcome of opening the ignore-suggestion issue: whether the browser opened, the link (for manual use), and whether the entries were pre-filled.</summary>
     void IgnoreReportOpened(string url, bool browserOpened, bool prefilled);
+
+    /// <summary>Writes the application footer with version and log file info.</summary>
+    void ApplicationFooter(string version, string hash, string logFilePath);
 }

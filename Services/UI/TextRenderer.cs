@@ -38,6 +38,16 @@ public sealed class TextRenderer : ITextRenderer
         "Labs keycard not required.",
         "Results may vary based on desync.",
         "Powered by strong coffee.",
+        "Divide my cheeks!",
+        "Won't fix your packet loss.",
+        "Prapor's dogs won't find your lost mods.",
+        "Extracting in 3... 2... 1...",
+        "Awaits session start forever.",
+        "Watch out for the Goons.",
+        "Therapist wants to know your location.",
+        "Head, Eyes.",
+        "More terrifying than a cultist in the bushes.",
+        "Dicky needles!",
     ];
 
     /// <inheritdoc />
@@ -352,6 +362,13 @@ public sealed class TextRenderer : ITextRenderer
                 "[grey]Your list was too large to pre-fill; paste the contents of your ignored-updates.json into the issue.[/]"
             );
         }
+    }
+
+    /// <inheritdoc />
+    public void ApplicationFooter(string version, string hash, string logFilePath)
+    {
+        AnsiConsole.MarkupLine($"[grey]Check Mods v{version.EscapeMarkup()} (build {hash.EscapeMarkup()})[/]");
+        AnsiConsole.MarkupLine($"[grey]Log file: {logFilePath.EscapeMarkup()}[/]");
     }
 
     private static string FormatEndOfRunChoice(EndOfRunChoice choice, int openableUpdateCount)

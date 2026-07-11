@@ -79,6 +79,9 @@ public interface IModCheckReporter
     /// <summary>Displays the results of mod reconciliation.</summary>
     void ReconciliationResults(ModReconciliationResult result);
 
+    /// <summary>Writes the application footer with version and log file info.</summary>
+    void ApplicationFooter(string version, string hash, string logFilePath);
+
     /// <summary>Displays mods installed in the wrong location, shown before they're excluded from the remaining checks.</summary>
     void MisplacedMods(MisplacedModReport report);
 

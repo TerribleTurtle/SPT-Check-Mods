@@ -3,6 +3,9 @@ using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
 using SPTarkov.DI.Annotations;
 
+using CheckMods.Configuration;
+using Microsoft.Extensions.Options;
+
 namespace CheckMods.Services;
 
 /// <summary>
@@ -15,7 +18,8 @@ public sealed class IgnoredUpdateWorkflow(
     IIgnoredUpdateStore store,
     IModCheckReporter reporter,
     IBrowserLauncher browserLauncher,
-    IRemoteIgnoreFileClient remoteIgnoreFileClient
+    IRemoteIgnoreFileClient remoteIgnoreFileClient,
+    IOptions<LoggingOptions> loggingOptions
 ) : IIgnoredUpdateWorkflow
 {
     /// <inheritdoc />
@@ -33,6 +37,8 @@ public sealed class IgnoredUpdateWorkflow(
 
         // The end-of-run menu loops until the user chooses to close. The counts reflect this run's results and don't
         // change as ignores are edited.
+        reporter.ApplicationFooter(VersionInfo.SemVer, VersionInfo.GitHash, loggingOptions.Value.LogFilePath);
+
         while (true)
         {
             var choice = reporter.PromptEndOfRun(openable.Count, canManageIgnoredUpdates: candidates.Count > 0);

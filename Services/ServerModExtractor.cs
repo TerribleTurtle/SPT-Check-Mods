@@ -50,6 +50,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
             var author = metadataType.GetProperty("Author")?.GetValue(metadata)?.ToString();
             var modVersion = metadataType.GetProperty("Version")?.GetValue(metadata)?.ToString();
             var sptVersion = metadataType.GetProperty("SptVersion")?.GetValue(metadata)?.ToString();
+            var modUrl = metadataType.GetProperty("Url")?.GetValue(metadata)?.ToString();
 
             if (string.IsNullOrEmpty(modGuid))
             {
@@ -71,6 +72,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
                     LocalAuthor = author ?? string.Empty,
                     LocalVersion = version,
                     LocalSptVersion = sptVersion,
+                    Url = modUrl,
                 },
                 LoadWarnings = warnings,
             };

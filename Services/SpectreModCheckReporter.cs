@@ -251,4 +251,10 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
     {
         _textRenderer.IgnoreReportOpened(url, browserOpened, prefilled);
     }
+
+    /// <inheritdoc />
+    public void ApplicationFooter(string version, string hash, string logFilePath)
+    {
+        _textRenderer.ApplicationFooter(version, hash, logFilePath);
+    }
 }

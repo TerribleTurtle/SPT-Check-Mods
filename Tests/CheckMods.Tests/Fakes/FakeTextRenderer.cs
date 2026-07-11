@@ -77,4 +77,6 @@ public sealed class FakeTextRenderer : ITextRenderer
     }
 
     public void IgnoreReportOpened(string url, bool browserOpened, bool prefilled) { }
+
+    public void ApplicationFooter(string version, string hash, string logFilePath) { }
 }

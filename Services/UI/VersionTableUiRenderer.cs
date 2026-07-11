@@ -284,6 +284,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                     )
                     .First()
             )
+            .OrderBy(m => m.DisplayName)
             .ToList();
     }
 }

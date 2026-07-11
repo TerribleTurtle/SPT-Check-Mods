@@ -49,4 +49,9 @@ public sealed record LocalModIdentity
     /// The SPT compatibility version read from the local file metadata, if available.
     /// </summary>
     public string? LocalSptVersion { get; init; }
+
+    /// <summary>
+    /// The mod URL read from the local file metadata (e.g. package.json), if available.
+    /// </summary>
+    public string? Url { get; init; }
 }
