@@ -7,14 +7,14 @@ using CheckMods.Models;
 using CheckMods.Models.Pipeline;
 using CheckMods.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
+
 
 namespace CheckMods.Services.Pipeline.Steps;
 
 /// <summary>
 /// Workflow step that enriches mods with version data.
 /// </summary>
-[Injectable(InjectionType.Transient)]
+
 public sealed class EnrichModsWithVersionDataStep(
     IModEnrichmentService modEnrichmentService,
     ILogger<EnrichModsWithVersionDataStep> logger) : IWorkflowStep

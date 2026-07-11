@@ -6,14 +6,14 @@ using CheckMods.Models;
 using CheckMods.Models.Pipeline;
 using CheckMods.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
+
 
 namespace CheckMods.Services.Pipeline.Steps;
 
 /// <summary>
 /// Workflow step that checks mod dependencies.
 /// </summary>
-[Injectable(InjectionType.Transient)]
+
 public sealed class CheckModDependenciesStep(
     IModDependencyService modDependencyService,
     IModCheckReporter reporter,

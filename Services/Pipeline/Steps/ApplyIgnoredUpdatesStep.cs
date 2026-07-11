@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 using CheckMods.Models.Pipeline;
 using CheckMods.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
+
 
 namespace CheckMods.Services.Pipeline.Steps;
 
 /// <summary>
 /// Workflow step that applies ignored updates.
 /// </summary>
-[Injectable(InjectionType.Transient)]
+
 public sealed class ApplyIgnoredUpdatesStep(
     IUpdateOrchestrationService updateOrchestrationService,
     ILogger<ApplyIgnoredUpdatesStep> logger) : IWorkflowStep
