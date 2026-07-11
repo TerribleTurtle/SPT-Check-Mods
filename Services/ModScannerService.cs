@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Utils;
 using CheckModsExtended.Models;
+using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -18,6 +19,7 @@ namespace CheckModsExtended.Services;
 /// </summary>
 [Injectable(InjectionType.Transient)]
 public sealed class ModScannerService(
+    IPluginScanCache pluginScanCache,
     IPluginMetadataExtractor pluginExtractor,
     IServerModExtractor serverExtractor,
     IMisplacedModDetector misplacedDetector,
@@ -26,7 +28,6 @@ public sealed class ModScannerService(
     IFileSystem fileSystem
 ) : IModScannerService
 {
-    private readonly ConcurrentDictionary<string, IReadOnlyList<PluginDll>> _pluginCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc />
     public async Task<List<Mod>> ScanServerModsAsync(string sptPath, CancellationToken cancellationToken = default)
@@ -117,7 +118,7 @@ public sealed class ModScannerService(
 
         reporter.Status($"Scanning {dllFiles.Count} DLL files for BepInEx plugins...");
 
-        var dllsByDirectory = GroupDllsByDirectory(dllFiles, pluginsDir);
+        var dllsByDirectory = ModPathUtils.GroupDllsByDirectory(dllFiles, pluginsDir);
         var concurrentMods = new ConcurrentBag<Mod>();
 
         // Process loose DLLs (directly in plugins folder) as individual mods
@@ -142,7 +143,7 @@ public sealed class ModScannerService(
                 var directoryDlls = kvp.Value;
 
                 var (dirMods, allPlugins) = await Task.Run(() => pluginExtractor.ConsolidateDirectoryModsAsync(directory, directoryDlls, ct), ct);
-                _pluginCache[directory] = allPlugins;
+                pluginScanCache.AddPlugins(directory, allPlugins);
 
                 foreach (var m in dirMods)
                 {
@@ -163,39 +164,6 @@ public sealed class ModScannerService(
     /// </summary>
     /// <param name="dllFiles">A list of all discovered DLL files.</param>
     /// <param name="pluginsDir">The absolute path to the plugins directory.</param>
-    private static Dictionary<string, List<string>> GroupDllsByDirectory(List<string> dllFiles, string pluginsDir)
-    {
-        return dllFiles
-            .GroupBy(dllPath => GetModDirectory(dllPath, pluginsDir), StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Gets the mod's root directory (immediate child of plugins, or plugins itself for loose DLLs).
-    /// </summary>
-    /// <param name="dllPath">The absolute path to the DLL.</param>
-    /// <param name="pluginsDir">The absolute path to the plugins directory.</param>
-    private static string GetModDirectory(string dllPath, string pluginsDir)
-    {
-        var directory = Path.GetDirectoryName(dllPath);
-
-        if (directory is null || directory.Equals(pluginsDir, StringComparison.OrdinalIgnoreCase))
-        {
-            return pluginsDir;
-        }
-
-        // Walk up to find the immediate child of plugins
-        while (true)
-        {
-            var parent = Path.GetDirectoryName(directory);
-            if (parent is null || parent.Equals(pluginsDir, StringComparison.OrdinalIgnoreCase))
-            {
-                return directory;
-            }
-
-            directory = parent;
-        }
-    }
 
     /// <inheritdoc />
     public async Task<(List<Mod> ServerMods, List<Mod> ClientMods)> ScanAllModsAsync(
@@ -243,8 +211,9 @@ public sealed class ModScannerService(
         CancellationToken cancellationToken = default
     )
     {
-        return await misplacedDetector.DetectMisplacedModsAsync(sptPath, _pluginCache, cancellationToken);
+        return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
     }
 }
+
 
 

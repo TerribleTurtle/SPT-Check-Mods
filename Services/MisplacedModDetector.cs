@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using CheckModsExtended.Models;
+using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -12,6 +13,7 @@ namespace CheckModsExtended.Services;
 
 [Injectable(InjectionType.Transient)]
 public sealed class MisplacedModDetector(
+    IPluginScanCache pluginScanCache,
     IModPartitioner partitioner,
     IPluginMetadataExtractor pluginExtractor,
     IServerModExtractor serverExtractor,
@@ -22,7 +24,6 @@ public sealed class MisplacedModDetector(
     /// <inheritdoc />
     public async Task<MisplacedModReport> DetectMisplacedModsAsync(
         string sptPath,
-        IReadOnlyDictionary<string, IReadOnlyList<PluginDll>> clientPluginCache,
         CancellationToken cancellationToken = default
     )
     {
@@ -62,9 +63,9 @@ public sealed class MisplacedModDetector(
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // OPTIMIZATION: Check cache first to avoid double Mono.Cecil parses
-                var directory = GetModDirectory(dllPath, pluginsDir);
-                if (clientPluginCache.TryGetValue(directory, out var cachedPlugins) &&
-                    cachedPlugins.Any(p => string.Equals(p.DllPath, dllPath, StringComparison.OrdinalIgnoreCase)))
+                var directory = ModPathUtils.GetModDirectory(dllPath, pluginsDir);
+                if (pluginScanCache.TryGetPlugins(directory, out var cachedPlugins) &&
+                    cachedPlugins!.Any(p => string.Equals(p.DllPath, dllPath, StringComparison.OrdinalIgnoreCase)))
                 {
                     continue; // Already a verified client mod
                 }
@@ -88,7 +89,7 @@ public sealed class MisplacedModDetector(
             }
         }
 
-        var crossInstalled = await DetectCrossInstalledDirectoriesAsync(pluginsDir, clientPluginCache, cancellationToken);
+        var crossInstalled = await DetectCrossInstalledDirectoriesAsync(pluginsDir, cancellationToken);
 
         logger.LogDebug(
             "Detected {WrongFolder} misplaced mods and {CrossInstalled} cross-installed directories",
@@ -101,7 +102,6 @@ public sealed class MisplacedModDetector(
 
     private async Task<List<CrossInstalledDirectory>> DetectCrossInstalledDirectoriesAsync(
         string pluginsDir,
-        IReadOnlyDictionary<string, IReadOnlyList<PluginDll>> clientPluginCache,
         CancellationToken cancellationToken
     )
     {
@@ -112,14 +112,14 @@ public sealed class MisplacedModDetector(
             return crossInstalled;
         }
 
-        var dllsByDirectory = GroupDllsByDirectory(pluginExtractor.GetValidClientDllFiles(pluginsDir), pluginsDir);
+        var dllsByDirectory = ModPathUtils.GroupDllsByDirectory(pluginExtractor.GetValidClientDllFiles(pluginsDir), pluginsDir);
         dllsByDirectory.Remove(pluginsDir);
 
         foreach (var (directory, directoryDlls) in dllsByDirectory)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!clientPluginCache.TryGetValue(directory, out var pluginsAsReadOnly))
+            if (!pluginScanCache.TryGetPlugins(directory, out var pluginsAsReadOnly))
             {
                 var p = await Task.Run(
                     () => pluginExtractor.ReadPluginDllsAsync(directoryDlls, cancellationToken),
@@ -128,7 +128,7 @@ public sealed class MisplacedModDetector(
                 pluginsAsReadOnly = p;
             }
 
-            var plugins = pluginsAsReadOnly.ToList();
+            var plugins = pluginsAsReadOnly!.ToList();
 
             if (plugins.Count < 2)
             {
@@ -210,32 +210,8 @@ public sealed class MisplacedModDetector(
     {
         return new string(value.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
     }
-
-    private static Dictionary<string, List<string>> GroupDllsByDirectory(List<string> dllFiles, string pluginsDir)
-    {
-        return dllFiles
-            .GroupBy(dllPath => GetModDirectory(dllPath, pluginsDir), StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static string GetModDirectory(string dllPath, string pluginsDir)
-    {
-        var directory = Path.GetDirectoryName(dllPath);
-
-        if (directory is null || directory.Equals(pluginsDir, StringComparison.OrdinalIgnoreCase))
-        {
-            return pluginsDir;
-        }
-
-        while (true)
-        {
-            var parent = Path.GetDirectoryName(directory);
-            if (parent is null || parent.Equals(pluginsDir, StringComparison.OrdinalIgnoreCase))
-            {
-                return directory;
-            }
-
-            directory = parent;
-        }
-    }
 }
+
+
+
+

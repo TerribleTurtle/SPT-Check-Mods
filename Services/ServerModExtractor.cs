@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -32,7 +33,7 @@ namespace CheckModsExtended.Services;
     "IL2075",
     Justification = "We are inspecting dynamically loaded mod assemblies, not application code."
 )]
-public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, CheckModsExtended.Utils.IFileSystem fileSystem) : IServerModExtractor
+public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, CheckModsExtended.Utils.IFileSystem fileSystem, IModCheckReporter reporter) : IServerModExtractor
 {
     /// <inheritdoc />
     public Task<Mod?> ExtractServerModMetadataAsync(
@@ -75,7 +76,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
 
             var version = modVersion ?? GetAssemblyVersion(module);
 
-            var warnings = ValidateModMetadata(name ?? string.Empty, author ?? string.Empty, version, modGuid);
+            var warnings = ModMetadataValidator.ValidateModMetadata(name ?? string.Empty, author ?? string.Empty, version, modGuid);
 
             return new Mod
             {
@@ -103,6 +104,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
             )
         {
             logger.LogDebug(ex, "Could not inspect DLL as a server mod: {Path}", dllPath);
+            reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
             return null;
         }
     }
@@ -134,7 +136,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
             var sptVersion =
                 GetStringPropertyFromJson(root, "sptVersion") ?? GetStringPropertyFromJson(root, "akiVersion");
 
-            var warnings = ValidateModMetadata(name, author, version, name);
+            var warnings = ModMetadataValidator.ValidateModMetadata(name, author, version, name);
 
             return new Mod
             {
@@ -154,6 +156,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
         catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
             logger.LogDebug(ex, "Could not parse package.json as a server mod: {Path}", packagePath);
+            reporter.CouldNotReadModDll(Path.GetFileName(packagePath), ex.Message);
             return null;
         }
     }
@@ -245,42 +248,6 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
         }
 
         return $"{version.Major}.{version.Minor}.{version.Build}";
-    }
-
-    private static List<string> ValidateModMetadata(string name, string author, string version, string guid)
-    {
-        List<string> warnings = [];
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            warnings.Add("Missing mod name");
-        }
-
-        if (string.IsNullOrWhiteSpace(author))
-        {
-            warnings.Add("Missing author");
-        }
-
-        if (string.IsNullOrWhiteSpace(version))
-        {
-            warnings.Add("Missing version");
-        }
-        else if (!IsValidVersion(version))
-        {
-            warnings.Add($"Invalid version format: {version}");
-        }
-
-        if (string.IsNullOrWhiteSpace(guid))
-        {
-            warnings.Add("Missing GUID");
-        }
-
-        return warnings;
-    }
-
-    private static bool IsValidVersion(string version)
-    {
-        return SemVer.TryParse(version, "ServerModExtractor").IsT0;
     }
 }
 

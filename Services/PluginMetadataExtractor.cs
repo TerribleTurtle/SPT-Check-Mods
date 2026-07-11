@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,6 +23,7 @@ public sealed class PluginMetadataExtractor(
     IModPartitioner partitioner,
     IOptions<ModScannerOptions> options,
     ILogger<PluginMetadataExtractor> logger,
+    IModCheckReporter reporter,
     IFileSystem fileSystem
 ) : IPluginMetadataExtractor
 {
@@ -68,6 +70,7 @@ public sealed class PluginMetadataExtractor(
             foreach (var (fileName, reason) in warnings)
             {
                 logger.LogDebug("Could not extract client mod metadata from {FileName}: {Reason}", fileName, reason);
+                reporter.CouldNotReadModDll(fileName, reason);
             }
 
             var mods = results.Where(r => r is not null).Cast<Mod>().ToList();
@@ -132,6 +135,7 @@ public sealed class PluginMetadataExtractor(
                 )
             {
                 logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
+                reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
             }
 
             return null;
@@ -185,6 +189,7 @@ public sealed class PluginMetadataExtractor(
                     )
                 {
                     logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
+                    reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
                 }
             }
 
@@ -289,9 +294,9 @@ public sealed class PluginMetadataExtractor(
 
     private static Mod CreateModFromBepInPlugin(BepInPluginAttribute plugin, string dllPath)
     {
-        var (author, name) = ParseAuthorAndName(plugin.Name, plugin.Guid);
+        var (author, name) = PluginNamingStrategy.ParseAuthorAndName(plugin.Name, plugin.Guid);
 
-        var warnings = ValidateModMetadata(name, author, plugin.Version, plugin.Guid);
+        var warnings = ModMetadataValidator.ValidateModMetadata(name, author, plugin.Version, plugin.Guid);
 
         return new Mod
         {
@@ -314,7 +319,7 @@ public sealed class PluginMetadataExtractor(
         string directoryName
     )
     {
-        var normalizedDirName = NormalizeModName(directoryName);
+        var normalizedDirName = PluginNamingStrategy.NormalizeModName(directoryName);
 
         var directoryMatch = plugins
             .Where(p =>
@@ -322,7 +327,7 @@ public sealed class PluginMetadataExtractor(
                 var fileName = Path.GetFileNameWithoutExtension(p.DllPath);
                 return fileName.Equals(directoryName, StringComparison.OrdinalIgnoreCase)
                     || fileName.Contains(normalizedDirName, StringComparison.OrdinalIgnoreCase)
-                    || NormalizeModName(fileName).Equals(normalizedDirName, StringComparison.OrdinalIgnoreCase);
+                    || PluginNamingStrategy.NormalizeModName(fileName).Equals(normalizedDirName, StringComparison.OrdinalIgnoreCase);
             })
             .OrderBy(p => Path.GetFileNameWithoutExtension(p.DllPath).Length)
             .FirstOrDefault();
@@ -352,101 +357,5 @@ public sealed class PluginMetadataExtractor(
             .ThenBy(p => p.Plugin.Name, StringComparer.OrdinalIgnoreCase)
             .First();
     }
-
-    private static string NormalizeModName(string name)
-    {
-        var dashIndex = name.IndexOf('-');
-        if (dashIndex > 0 && dashIndex < name.Length - 1)
-        {
-            name = name[(dashIndex + 1)..];
-        }
-
-        string[] suffixes = ["Client", "Plugin", "Mod", "BepInEx"];
-        var matchingSuffix = suffixes.FirstOrDefault(s => name.EndsWith(s, StringComparison.OrdinalIgnoreCase));
-        if (matchingSuffix is not null)
-        {
-            name = name[..^matchingSuffix.Length];
-        }
-
-        return name.Trim();
-    }
-
-    private static (string Author, string Name) ParseAuthorAndName(string pluginName, string guid)
-    {
-        if (pluginName.Contains(" - "))
-        {
-            var parts = pluginName.Split(" - ", 2);
-            if (parts.Length == 2)
-            {
-                return (parts[0].Trim(), parts[1].Trim());
-            }
-        }
-
-        if (pluginName.Contains(" by ", StringComparison.OrdinalIgnoreCase))
-        {
-            var byIndex = pluginName.IndexOf(" by ", StringComparison.OrdinalIgnoreCase);
-            var name = pluginName[..byIndex].Trim();
-            var author = pluginName[(byIndex + 4)..].Trim();
-            return (author, name);
-        }
-
-        var guidParts = guid.Split('.');
-        if (guidParts.Length < 2)
-        {
-            return ("Unknown", pluginName);
-        }
-
-        var potentialAuthor = guidParts.Length >= 3 ? guidParts[^2] : guidParts[0];
-
-        if (
-            string.Equals(potentialAuthor, "com", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(potentialAuthor, "org", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(potentialAuthor, "spt", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(potentialAuthor, "aki", StringComparison.OrdinalIgnoreCase)
-        )
-        {
-            return ("Unknown", pluginName);
-        }
-
-        return (potentialAuthor, pluginName);
-    }
-
-    private static List<string> ValidateModMetadata(string name, string author, string version, string guid)
-    {
-        List<string> warnings = [];
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            warnings.Add("Missing mod name");
-        }
-
-        if (string.IsNullOrWhiteSpace(author))
-        {
-            warnings.Add("Missing author");
-        }
-
-        if (string.IsNullOrWhiteSpace(version))
-        {
-            warnings.Add("Missing version");
-        }
-        else if (!IsValidVersion(version))
-        {
-            warnings.Add($"Invalid version format: {version}");
-        }
-
-        if (string.IsNullOrWhiteSpace(guid))
-        {
-            warnings.Add("Missing GUID");
-        }
-
-        return warnings;
-    }
-
-    private static bool IsValidVersion(string version)
-    {
-        return SemVer.TryParse(version, "PluginMetadataExtractor").IsT0;
-    }
 }
-
-
 
