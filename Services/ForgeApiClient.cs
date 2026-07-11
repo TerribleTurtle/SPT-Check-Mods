@@ -18,7 +18,7 @@ namespace CheckModsExtended.Services;
 public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient> logger) : IForgeApiClient
 {
     /// <inheritdoc />
-    public async Task<(HttpStatusCode StatusCode, System.IO.Stream Body, bool IsSuccessStatusCode)> GetJsonAsync(
+    public async Task<HttpResponseMessage> GetJsonAsync(
         string url,
         CancellationToken cancellationToken = default
     )
@@ -26,21 +26,9 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
         logger.LogDebug("API Request: GET {Url}", url);
         var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        var response = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        try
-        {
-            var statusCode = response.StatusCode;
-            var body = await response.Content.ReadAsStreamAsync(cancellationToken);
-
-            var isSuccess = (int) statusCode is >= 200 and < 300;
-            return (statusCode, body, isSuccess);
-        }
-        catch
-        {
-            response.Dispose();
-            throw;
-        }
+        return await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
     }
+    
     public async Task<OneOf<T, NotFound, ApiError>> GetFromJsonAsync<T>(
         string url,
         JsonTypeInfo<T> jsonTypeInfo,
@@ -49,20 +37,20 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
     {
         try
         {
-            var (statusCode, body, isSuccess) = await GetJsonAsync(url, cancellationToken);
-            await using var bodyStream = body;
+            using var response = await GetJsonAsync(url, cancellationToken);
 
-            if (statusCode == HttpStatusCode.NotFound)
+            if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return new NotFound();
             }
 
-            if (!isSuccess)
+            if (!response.IsSuccessStatusCode)
             {
-                logger.LogError("API request to {Url} failed: {StatusCode}", url, statusCode);
-                return new ApiError($"API returned status {statusCode}", (int) statusCode);
+                logger.LogError("API request to {Url} failed: {StatusCode}", url, response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
+            await using var bodyStream = await response.Content.ReadAsStreamAsync(cancellationToken);
             var apiResponse = await JsonSerializer.DeserializeAsync(bodyStream, jsonTypeInfo, cancellationToken);
             if (apiResponse is null)
             {

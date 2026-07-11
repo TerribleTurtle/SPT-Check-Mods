@@ -16,7 +16,7 @@ public interface IForgeApiClient
     /// <summary>
     /// Issues a GET request and returns its status code and body.
     /// </summary>
-    Task<(HttpStatusCode StatusCode, System.IO.Stream Body, bool IsSuccessStatusCode)> GetJsonAsync(
+    Task<HttpResponseMessage> GetJsonAsync(
         string url,
         CancellationToken cancellationToken = default
     );
@@ -27,3 +27,4 @@ public interface IForgeApiClient
         CancellationToken cancellationToken = default
     );
 }
+

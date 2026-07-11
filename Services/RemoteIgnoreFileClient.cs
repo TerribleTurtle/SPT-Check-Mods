@@ -27,10 +27,7 @@ public sealed class RemoteIgnoreFileClient(
     };
 
     /// <inheritdoc />
-    public bool IsConfigured
-    {
-        get { return !string.IsNullOrWhiteSpace(_options.RemoteUrl); }
-    }
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(_options.RemoteUrl);
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<IgnoredUpdate>?> FetchAsync(CancellationToken cancellationToken = default)
@@ -84,3 +81,4 @@ public sealed class RemoteIgnoreFileClient(
         }
     }
 }
+

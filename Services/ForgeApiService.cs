@@ -111,7 +111,8 @@ public sealed partial class ForgeApiService(
     {
         logger.LogDebug("Fetching all SPT versions from Forge API");
 
-        var url = $"{_options.BaseUrl}spt/versions?sort=-version&per_page=15";
+        var query = new QueryBuilder().Add("sort", "-version").Add("per_page", "15").ToString();
+        var url = $"{_options.BaseUrl}spt/versions{query}";
 
             var result = await apiClient.GetFromJsonAsync(
                 url,
@@ -173,7 +174,8 @@ public sealed partial class ForgeApiService(
             return new InvalidInput("modId", "Mod ID must be greater than 0");
         }
 
-        var url = $"{_options.BaseUrl}mod/{modId}?include=versions,source_code_links";
+        var query = new QueryBuilder().Add("include", "versions,source_code_links").ToString();
+        var url = $"{_options.BaseUrl}mod/{modId}{query}";
 
             var result = await apiClient.GetFromJsonAsync(
                 url,
@@ -441,3 +443,4 @@ public sealed partial class ForgeApiService(
             return apiResponse.Data;
     }
 }
+
