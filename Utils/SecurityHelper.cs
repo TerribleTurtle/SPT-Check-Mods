@@ -21,31 +21,29 @@ public static class SecurityHelper
 
         try
         {
-            var fullPath = Path.GetFullPath(inputPath);
-
+            // If no base path is provided, we just resolve and return the absolute path.
+            // (Used by InitializationService when determining the raw SPT path)
             if (string.IsNullOrWhiteSpace(basePath))
             {
-                return fullPath;
+                return Path.GetFullPath(inputPath);
             }
 
             var baseFullPath = Path.GetFullPath(basePath);
-
-            if (!baseFullPath.EndsWith(Path.DirectorySeparatorChar) && !baseFullPath.EndsWith(Path.AltDirectorySeparatorChar))
-            {
-                baseFullPath += Path.DirectorySeparatorChar;
-            }
             
-            var fullPathWithSep = fullPath;
-            if (!fullPathWithSep.EndsWith(Path.DirectorySeparatorChar) && !fullPathWithSep.EndsWith(Path.AltDirectorySeparatorChar))
+            // Resolve the input path relative to the base path, not the current working directory.
+            var fullPath = Path.GetFullPath(inputPath, baseFullPath);
+
+            var relativePath = Path.GetRelativePath(baseFullPath, fullPath);
+
+            // Path.GetRelativePath returns "." if the paths are the same.
+            // If the resolved path escapes the base directory, it will start with ".."
+            // E.g., "..", "..\something", "../something"
+            if (relativePath == ".." || relativePath.StartsWith(".." + Path.DirectorySeparatorChar) || relativePath.StartsWith(".." + Path.AltDirectorySeparatorChar))
             {
-                fullPathWithSep += Path.DirectorySeparatorChar;
+                return null;
             }
 
-            var isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
-            var comparison = isWindows ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-            // Return null if a path traversal attempt is detected
-            return !fullPathWithSep.StartsWith(baseFullPath, comparison) ? null : fullPath;
+            return fullPath;
         }
         catch (ArgumentException)
         {

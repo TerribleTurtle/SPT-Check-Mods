@@ -18,19 +18,11 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
     /// <summary>
     /// Command line settings.
     /// </summary>
-    public sealed class Settings : CommandSettings
+    public sealed class Settings : GlobalSettings
     {
         [CommandArgument(0, "[SptPath]")]
         [Description("The path to your SPT installation directory. Defaults to the current directory.")]
         public string? SptPath { get; set; }
-
-        [CommandOption("-y|--no-prompt")]
-        [Description("Run in headless mode and skip interactive prompts. Also infers all defaults.")]
-        public bool NoPrompt { get; set; }
-        
-        [CommandOption("-v|--verbose")]
-        [Description("Enable verbose/debug logging output.")]
-        public bool Verbose { get; set; }
     }
 
     public CheckModsCommand(IUpdateWorkflowOrchestrator orchestrator, IIgnoredUpdateWorkflow ignoredUpdateWorkflow)

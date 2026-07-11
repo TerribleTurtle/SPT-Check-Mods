@@ -36,9 +36,6 @@ public sealed class Program
     public static async Task<int> Main(string[] args)
     {
         int exitCode = 0;
-        ILogger<Program>? logger = null;
-        ServiceProvider? serviceProvider = null;
-        string? logFilePath = null;
 
         _wasCancelled = false;
         _cts = new CancellationTokenSource();
@@ -52,16 +49,20 @@ public sealed class Program
             AnsiConsole.Profile.Capabilities.ColorSystem = ColorSystem.Standard;
         }
 
+        RuntimeConfig? runtimeConfig = null;
+
         try
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
-                .AddCommandLine(args)
                 .Build();
 
             var services = new ServiceCollection();
             services.AddCheckModsExtendedServices(configuration);
+            
+            runtimeConfig = new RuntimeConfig();
+            services.AddSingleton(runtimeConfig);
             
             var registrar = new TypeRegistrar(services);
             var app = new CommandApp<CheckModsCommand>(registrar);
@@ -70,28 +71,31 @@ public sealed class Program
             {
                 config.SetApplicationName("check-mods");
                 config.SetApplicationVersion(VersionInfo.SemVer);
+                config.SetInterceptor(new CheckModsInterceptor(runtimeConfig));
+                
+                config.AddCommand<ListModsCommand>("list")
+                    .WithDescription("List locally installed mods without checking for updates.");
+
+                config.AddBranch("ignore", ignore =>
+                {
+                    ignore.SetDescription("Manage the ignored updates list.");
+                    ignore.AddCommand<IgnoreListCommand>("list").WithDescription("List all ignored updates.");
+                    ignore.AddCommand<IgnoreAddCommand>("add").WithDescription("Manually ignore an update.");
+                    ignore.AddCommand<IgnoreRemoveCommand>("remove").WithDescription("Remove an ignored update.");
+                });
+
                 config.PropagateExceptions(); // Let the try-catch block handle exceptions
             });
 
-            // We must build the service provider manually to get the logger and log file path for the footer
-            serviceProvider = services.BuildServiceProvider();
-            logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            logFilePath = serviceProvider.GetRequiredService<IOptions<LoggingOptions>>().Value.LogFilePath;
-
-            logger.LogInformation("CheckModsExtended application starting. Args: {Args}", string.Join(", ", args));
-
             exitCode = await app.RunAsync(args);
-
-            logger.LogInformation("CheckModsExtended application completed with exit code {ExitCode}", exitCode);
         }
         catch (OperationCanceledException)
         {
-            logger?.LogInformation("Application was cancelled by user");
-            exitCode = 0; // Usually cancelled is a zero exit code
+            // Usually cancelled is a zero exit code
+            exitCode = 0; 
         }
         catch (Exception ex)
         {
-            logger?.LogCritical(ex, "Unhandled exception occurred");
             AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
             exitCode = 2;
         }
@@ -104,12 +108,12 @@ public sealed class Program
             AnsiConsole.WriteLine();
 
             AnsiConsole.MarkupLine($"[grey]Check Mods v{VersionInfo.SemVer} (build {VersionInfo.GitHash})[/]");
-            if (logFilePath != null)
+            if (LoggingOptions.CurrentLogFilePath != null)
             {
-                AnsiConsole.MarkupLine($"[grey]Log file: {logFilePath}[/]");
+                AnsiConsole.MarkupLine($"[grey]Log file: {LoggingOptions.CurrentLogFilePath}[/]");
             }
 
-            var isHeadless = Console.IsInputRedirected || args.Contains("--no-prompt") || args.Contains("-y");
+            var isHeadless = runtimeConfig?.IsHeadless ?? (Console.IsInputRedirected || args.Contains("--no-prompt") || args.Contains("-y"));
 
             if (!_wasCancelled && !isHeadless)
             {
@@ -120,11 +124,6 @@ public sealed class Program
 
                 AnsiConsole.MarkupLine("[grey]Press any key to exit...[/]");
                 Console.ReadKey();
-            }
-
-            if (serviceProvider is not null)
-            {
-                await serviceProvider.DisposeAsync();
             }
         }
 

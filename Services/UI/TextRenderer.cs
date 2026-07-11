@@ -13,6 +13,13 @@ namespace CheckModsExtended.Services.UI;
 [Injectable(InjectionType.Singleton)]
 public sealed class TextRenderer : ITextRenderer
 {
+    private readonly CheckModsExtended.Configuration.RuntimeConfig _runtimeConfig;
+
+    public TextRenderer(CheckModsExtended.Configuration.RuntimeConfig runtimeConfig)
+    {
+        _runtimeConfig = runtimeConfig;
+    }
+
     private static readonly string[] _bannerTaglines =
     [
         "Cheeki breeki, your mods are peaky!",
@@ -234,11 +241,9 @@ public sealed class TextRenderer : ITextRenderer
         AnsiConsole.WriteLine();
     }
 
-    private static bool IsHeadless()
+    private bool IsHeadless()
     {
-        return Console.IsInputRedirected || 
-               System.Environment.GetCommandLineArgs().Contains("--no-prompt") || 
-               System.Environment.GetCommandLineArgs().Contains("-y");
+        return Console.IsInputRedirected || _runtimeConfig.IsHeadless;
     }
 
     /// <inheritdoc />
