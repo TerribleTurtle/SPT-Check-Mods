@@ -31,6 +31,11 @@ public static class DependencyGraphBuilder
             return null;
         }
 
+    private static bool IsVersionOlder(string? currentVersion, string? recommendedVersion)
+    {
+        return currentVersion.ParseOrDefault() < recommendedVersion.ParseOrDefault();
+    }
+}
         if (
             dependency.Conflict
             && !conflicts.Any(c => c.ModGuid.Equals(dependency.Guid, StringComparison.OrdinalIgnoreCase))
@@ -245,16 +250,7 @@ public static class DependencyGraphBuilder
             && !string.IsNullOrWhiteSpace(recommendedVersion)
             // Fallback to 0.0.0 if SemVer parsing fails so that unparseable versions are treated as extremely old
             // instead of throwing exceptions.
-            && (
-                SemVer
-                    .TryParse(installedMod.Local.LocalVersion, "ModDependencyService")
-                    .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
-            )
-                < (
-                    SemVer
-                        .TryParse(recommendedVersion, "ModDependencyService")
-                        .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
-                )
+            && IsVersionOlder(installedMod.Local.LocalVersion, recommendedVersion)
         )
         {
             state = DependencyInstallState.InstalledOutdated;
@@ -276,5 +272,9 @@ public static class DependencyGraphBuilder
             InstalledVersion = installedMod?.Local.LocalVersion,
             Conflict = dependency.Conflict,
         };
+    }
+    private static bool IsVersionOlder(string? currentVersion, string? recommendedVersion)
+    {
+        return currentVersion.ParseOrDefault() < recommendedVersion.ParseOrDefault();
     }
 }

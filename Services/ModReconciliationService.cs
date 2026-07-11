@@ -156,6 +156,18 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         var hasServerVer = serverVersionResult.TryPickT0(out var serverVersion, out _);
         var hasClientVer = clientVersionResult.TryPickT0(out var clientVersion, out _);
 
+        if (hasClientVer && !hasServerVer)
+        {
+            notes.Add($"Server mod has invalid version: '{serverMod.Local.LocalVersion}'");
+            return (clientMod, notes);
+        }
+
+        if (hasServerVer && !hasClientVer)
+        {
+            notes.Add($"Client mod has invalid version: '{clientMod.Local.LocalVersion}'");
+            return (serverMod, notes);
+        }
+
         if (hasServerVer && hasClientVer)
         {
             if (serverVersion != clientVersion)
@@ -165,7 +177,6 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
                 );
             }
 
-            // Select the mod with the higher version
             if (clientVersion > serverVersion)
             {
                 return (clientMod, notes);
@@ -175,16 +186,6 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
             {
                 return (serverMod, notes);
             }
-        }
-        else if (hasClientVer && !hasServerVer)
-        {
-            notes.Add($"Server mod has invalid version: '{serverMod.Local.LocalVersion}'");
-            return (clientMod, notes);
-        }
-        else if (hasServerVer && !hasClientVer)
-        {
-            notes.Add($"Client mod has invalid version: '{clientMod.Local.LocalVersion}'");
-            return (serverMod, notes);
         }
 
         // Versions are equal or both invalid - prefer server mod

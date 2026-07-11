@@ -22,7 +22,12 @@ public sealed class CheckModVersionCompatibilityStep(
         reporter.Blank();
         reporter.Heading("Checking mod version compatibility...");
 
-        compatibilityValidationService.CheckModVersionCompatibility(context.Mods, context.SptVersion!);
+        var (updatedMods, events) = compatibilityValidationService.CheckModVersionCompatibility(context.Mods, context.SptVersion!);
+        foreach (var e in events)
+        {
+            reporter.Warning(e);
+        }
+        context.Mods = updatedMods;
         reporter.VersionCompatibilityResults(context.Mods, context.SptVersion!);
 
         return Task.CompletedTask;

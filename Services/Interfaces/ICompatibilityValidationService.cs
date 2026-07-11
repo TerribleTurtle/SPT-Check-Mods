@@ -14,5 +14,5 @@ public interface ICompatibilityValidationService
     /// Checks mod version compatibility with the installed SPT version,
     /// flagging any incompatibilities.
     /// </summary>
-    IReadOnlyList<Mod> CheckModVersionCompatibility(IEnumerable<Mod> mods, SemanticVersioning.Version sptVersion);
+    (IReadOnlyList<Mod> UpdatedMods, IReadOnlyList<string> ValidationEvents) CheckModVersionCompatibility(IEnumerable<Mod> mods, SemanticVersioning.Version sptVersion);
 }

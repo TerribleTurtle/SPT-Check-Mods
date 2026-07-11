@@ -37,4 +37,19 @@ public static class SemVer
             && SemanticVersioning.Range.TryParse(constraint, out var range)
             && range.IsSatisfied(version);
     }
+
+    /// <summary>
+    /// Parses a semantic version from a string, returning 0.0.0 if the string is invalid or null.
+    /// </summary>
+    /// <param name="version">The version string to parse.</param>
+    /// <returns>The parsed version or 0.0.0.</returns>
+    public static SemanticVersioning.Version ParseOrDefault(this string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version) || !SemanticVersioning.Version.TryParse(version, out var parsed))
+        {
+            return new SemanticVersioning.Version(0, 0, 0);
+        }
+
+        return parsed;
+    }
 }
