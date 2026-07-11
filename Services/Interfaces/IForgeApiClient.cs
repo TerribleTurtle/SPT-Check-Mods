@@ -1,6 +1,10 @@
 using System.Net;
 using System.Threading;
+using System.Text.Json.Serialization.Metadata;
+using System.Threading;
 using System.Threading.Tasks;
+using CheckModsExtended.Models;
+using OneOf;
 
 namespace CheckModsExtended.Services.Interfaces;
 
@@ -14,6 +18,12 @@ public interface IForgeApiClient
     /// </summary>
     Task<(HttpStatusCode StatusCode, System.IO.Stream Body, bool IsSuccessStatusCode)> GetJsonAsync(
         string url,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<OneOf<T, NotFound, ApiError>> GetFromJsonAsync<T>(
+        string url,
+        JsonTypeInfo<T> jsonTypeInfo,
         CancellationToken cancellationToken = default
     );
 }
