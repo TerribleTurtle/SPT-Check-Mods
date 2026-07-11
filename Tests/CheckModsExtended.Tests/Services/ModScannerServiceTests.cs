@@ -157,7 +157,8 @@ public sealed class ModScannerServiceTests : IDisposable
             new ModPartitioner(),
             realPluginExtractor,
             realServerExtractor,
-            NullLogger<MisplacedModDetector>.Instance
+            NullLogger<MisplacedModDetector>.Instance,
+            _fixture.FileSystem
         );
         var realService = new ModScannerService(
             realPluginExtractor,
@@ -212,6 +213,7 @@ namespace BepInEx {
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
+
 
 
 

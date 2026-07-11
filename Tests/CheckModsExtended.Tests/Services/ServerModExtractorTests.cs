@@ -145,7 +145,7 @@ public sealed class ServerModExtractorTests : IDisposable
         var dllPath = Path.Combine(modPath, "Unreadable.dll");
 
         _fixture.FileSystem.CreateDirectory(Path.Combine(_sptPath, modPath));
-        File.WriteAllBytes(Path.Combine(_sptPath, dllPath), [0x00, 0x01, 0x02]);
+        await _fixture.FileSystem.WriteAllTextAsync(Path.Combine(_sptPath, dllPath), "dummy");
 
         var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath), _sptPath);
 
@@ -157,6 +157,7 @@ public sealed class ServerModExtractorTests : IDisposable
         _fixture.Dispose();
     }
 }
+
 
 
 

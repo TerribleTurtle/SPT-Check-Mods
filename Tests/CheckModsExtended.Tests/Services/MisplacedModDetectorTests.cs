@@ -33,7 +33,8 @@ public sealed class MisplacedModDetectorTests : IDisposable
             new ModPartitioner(),
             pluginExtractor,
             serverExtractor,
-            NullLogger<MisplacedModDetector>.Instance
+            NullLogger<MisplacedModDetector>.Instance,
+            _fixture.FileSystem
         );
     }
 
@@ -145,6 +146,7 @@ public class Plugin2 {}
         _fixture.Dispose();
     }
 }
+
 
 
 

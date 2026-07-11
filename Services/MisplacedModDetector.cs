@@ -15,7 +15,8 @@ public sealed class MisplacedModDetector(
     IModPartitioner partitioner,
     IPluginMetadataExtractor pluginExtractor,
     IServerModExtractor serverExtractor,
-    ILogger<MisplacedModDetector> logger
+    ILogger<MisplacedModDetector> logger,
+    CheckModsExtended.Utils.IFileSystem fileSystem
 ) : IMisplacedModDetector
 {
     /// <inheritdoc />
@@ -28,9 +29,9 @@ public sealed class MisplacedModDetector(
         List<MisplacedMod> wrongFolder = [];
 
         var serverModsDir = Path.Combine(sptPath, "SPT", "user", "mods");
-        if (Directory.Exists(serverModsDir))
+        if (fileSystem.DirectoryExists(serverModsDir))
         {
-            foreach (var dllPath in Directory.GetFiles(serverModsDir, "*.dll", SearchOption.AllDirectories))
+            foreach (var dllPath in fileSystem.GetFiles(serverModsDir, "*.dll", SearchOption.AllDirectories))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -54,7 +55,7 @@ public sealed class MisplacedModDetector(
         }
 
         var pluginsDir = Path.Combine(sptPath, "BepInEx", "plugins");
-        if (Directory.Exists(pluginsDir))
+        if (fileSystem.DirectoryExists(pluginsDir))
         {
             foreach (var dllPath in pluginExtractor.GetValidClientDllFiles(pluginsDir))
             {
@@ -106,7 +107,7 @@ public sealed class MisplacedModDetector(
     {
         List<CrossInstalledDirectory> crossInstalled = [];
 
-        if (!Directory.Exists(pluginsDir))
+        if (!fileSystem.DirectoryExists(pluginsDir))
         {
             return crossInstalled;
         }
