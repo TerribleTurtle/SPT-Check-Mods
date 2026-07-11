@@ -56,11 +56,17 @@ public sealed record DependencyChange
 /// </summary>
 public sealed class UpdateDependencyDelta
 {
+    public UpdateDependencyDelta(IReadOnlyList<DependencyChange> added, IReadOnlyList<DependencyChange> removed)
+    {
+        Added = added;
+        Removed = removed;
+    }
+
     /// <summary>Dependencies required by the update that the installed version did not require.</summary>
-    public List<DependencyChange> Added { get; init; } = [];
+    public IReadOnlyList<DependencyChange> Added { get; }
 
     /// <summary>Dependencies the installed version required that the update no longer requires.</summary>
-    public List<DependencyChange> Removed { get; init; } = [];
+    public IReadOnlyList<DependencyChange> Removed { get; }
 
     public bool HasChanges
     {

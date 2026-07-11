@@ -144,9 +144,8 @@ public sealed class VersionTableUiRendererTests
             }
         };
 
-        var depDelta = new UpdateDependencyDelta
-        {
-            Added = new List<DependencyChange>
+        var depDelta = new UpdateDependencyDelta(
+            new List<DependencyChange>
             {
                 new DependencyChange
                 {
@@ -158,7 +157,7 @@ public sealed class VersionTableUiRendererTests
                     InstallState = DependencyInstallState.NotInstalled,
                 },
             },
-            Removed = new List<DependencyChange>
+            new List<DependencyChange>
             {
                 new DependencyChange
                 {
@@ -169,8 +168,8 @@ public sealed class VersionTableUiRendererTests
                     RecommendedVersion = "1.0.0",
                     InstallState = DependencyInstallState.NotInstalled,
                 },
-            },
-        };
+            }
+        );
         mod = mod.WithUpdateDependencyChanges(depDelta);
 
         renderer.VersionTable(new List<Mod> { mod });
@@ -183,3 +182,5 @@ public sealed class VersionTableUiRendererTests
         Assert.Contains("Old Dep no longer required", output);
     }
 }
+
+

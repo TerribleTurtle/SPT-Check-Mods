@@ -1,3 +1,4 @@
+using CheckMods.Tests.Fakes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CheckMods.Models;
@@ -227,3 +228,4 @@ public sealed class ModResolutionServiceTests
         Assert.Equal("https://github.com/outdated/mod", mod.Api.ApiSourceCodeUrl);
     }
 }
+

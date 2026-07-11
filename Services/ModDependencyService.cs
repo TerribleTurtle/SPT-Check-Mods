@@ -346,7 +346,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        return new UpdateDependencyDelta { Added = added, Removed = removed };
+        return new UpdateDependencyDelta(added, removed);
     }
 
     /// <summary>
@@ -457,3 +457,4 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         };
     }
 }
+
