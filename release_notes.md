@@ -1,4 +1,4 @@
-# Check Mods Extended v1.0.0
+# Check Mods Extended v2.0.0
 
 Welcome to the first release of **Check Mods Extended**. 
 
@@ -27,4 +27,4 @@ First, a sincere thank you to Refringe for the foundational work on the original
 - **Linux & Steam Deck Support**
   Releases continue to provide a pre-compiled Linux binary for running natively on Linux servers, WSL, and the Steam Deck.
 
-**Full Changelog**: https://github.com/TerribleTurtle/CheckModsExtended/compare/v1.2.1...v1.0.0
+**Full Changelog**: https://github.com/TerribleTurtle/CheckModsExtended/compare/v1.2.1...v2.0.0
