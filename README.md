@@ -22,11 +22,11 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- ✨ **Decoupled Architecture**: Extracted monolithic processing logic into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) resulting in a clean, strictly decoupled codebase
-- ✨ **Optimized Dependency Resolution**: Highly optimized dependency reconciliation with O(1) matching and aggressive caching for fast processing
-- ✨ **Robust Data Models**: Refactored the core domain models into strict data boundaries to separate remote API states from local filesystem states
-- ✨ **Strict Semantic Versioning**: Dropped dangerous silent-failures in version parsing, instead surfacing native Mod Load Warnings when mod authors provide invalid versions
-- ✨ **Enterprise Logging**: Replaced fragile manual file logging with Serilog, providing robust, high-concurrency log rotation
+- ✨ **Modular Architecture**: Reorganized core processing into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) for enhanced maintainability
+- ✨ **Optimized Dependency Resolution**: Introduced O(1) matching and aggressive caching to speed up the dependency reconciliation process
+- ✨ **Enhanced Data Models**: Restructured the domain models to explicitly separate remote API states from local filesystem states
+- ✨ **Strict Semantic Versioning**: Improved version parsing to explicitly capture and surface Mod Load Warnings, helping users understand exactly why a mod failed a version check
+- ✨ **Standardized Logging**: Transitioned to Serilog for the internal logging engine, providing robust, high-concurrency log rotation
 
 ## Requirements
 
