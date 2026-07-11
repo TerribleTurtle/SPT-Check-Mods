@@ -30,26 +30,47 @@ public sealed class UpdateOrchestrationServiceTests
         );
     }
 
-
-
     [Fact]
-    public void ApplyIgnoredUpdates_suppresses_update_when_ignored()
+    public async Task ApplyIgnoredUpdates_suppresses_update_when_ignored()
     {
         // Arrange
-        var mod = new Mod { Local = new LocalModIdentity { Guid = "test", FilePath = "test", LocalName = "Test Mod", LocalAuthor = "Author", IsServerMod = true, LocalVersion = "1.0.0" } };
-        
-        var apiResult = new ModSearchResult(1, null, "Test Mod", "test-mod", null, null, 0, null, "url", new ModAuthor(1, "Author", null), []);
-        mod.UpdateFromApiMatch(apiResult);
-        
+        var mod = new Mod
+        {
+            Local = new LocalModIdentity
+            {
+                Guid = "test",
+                FilePath = "test",
+                LocalName = "Test Mod",
+                LocalAuthor = "Author",
+                IsServerMod = true,
+                LocalVersion = "1.0.0",
+            },
+        };
+
+        var apiResult = new ModSearchResult(
+            1,
+            null,
+            "Test Mod",
+            "test-mod",
+            null,
+            null,
+            0,
+            null,
+            "url",
+            new ModAuthor(1, "Author", null),
+            []
+        );
+        mod = mod.WithApiMatch(apiResult);
+
         var updateVersion = new ModUpdateVersion(null, 1, "test", "Test Mod", "test-mod", "2.0.0", "url", null);
-        mod.UpdateFromSafeToUpdate(new SafeToUpdateMod(null, updateVersion, null));
+        mod = mod.WithSafeToUpdate(new SafeToUpdateMod(null, updateVersion, null));
 
         _ignoredUpdateStore.Store = [new IgnoredUpdate(1, "1.0.0", "2.0.0")];
 
         // Act
-        _sut.ApplyIgnoredUpdates([mod]);
+        var result = await _sut.ApplyIgnoredUpdatesAsync([mod]);
 
         // Assert
-        Assert.True(mod.Update.UpdateSuppressed);
+        Assert.True(result[0].Update.UpdateSuppressed);
     }
 }

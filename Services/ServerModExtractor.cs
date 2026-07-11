@@ -16,13 +16,14 @@ namespace CheckMods.Services;
 public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : IServerModExtractor
 {
     /// <inheritdoc />
-    public Mod? ExtractServerModMetadata(string dllPath)
+    public async Task<Mod?> ExtractServerModMetadataAsync(string dllPath, CancellationToken cancellationToken = default)
     {
         try
         {
-            using var stream = new MemoryStream(File.ReadAllBytes(dllPath));
+            var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
+            using var stream = new MemoryStream(bytes);
             using var assemblyDef = AssemblyDefinition.ReadAssembly(stream);
-            
+
             var metadataType = GetSptMetadataType(assemblyDef);
             if (metadataType is null)
             {
@@ -48,14 +49,22 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
                         {
                             if (instructions[j].OpCode == OpCodes.Call || instructions[j].OpCode == OpCodes.Callvirt)
                             {
-                                if (instructions[j].Operand is MethodReference methodRef && methodRef.Name.StartsWith("set_"))
+                                if (
+                                    instructions[j].Operand is MethodReference methodRef
+                                    && methodRef.Name.StartsWith("set_")
+                                )
                                 {
                                     var propName = methodRef.Name.Substring(4);
-                                    if (propName == "ModGuid") modGuid = strValue;
-                                    else if (propName == "Name") name = strValue;
-                                    else if (propName == "Author") author = strValue;
-                                    else if (propName == "Version") modVersion = strValue;
-                                    else if (propName == "SptVersion") sptVersion = strValue;
+                                    if (propName == "ModGuid")
+                                        modGuid = strValue;
+                                    else if (propName == "Name")
+                                        name = strValue;
+                                    else if (propName == "Author")
+                                        author = strValue;
+                                    else if (propName == "Version")
+                                        modVersion = strValue;
+                                    else if (propName == "SptVersion")
+                                        sptVersion = strValue;
                                     break;
                                 }
                             }
@@ -83,12 +92,19 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
                     LocalName = name,
                     LocalAuthor = author,
                     LocalVersion = version,
-                    LocalSptVersion = string.IsNullOrEmpty(sptVersion) ? null : sptVersion
+                    LocalSptVersion = string.IsNullOrEmpty(sptVersion) ? null : sptVersion,
                 },
                 LoadWarnings = warnings,
             };
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or AssemblyResolutionException or System.Security.SecurityException)
+        catch (Exception ex)
+            when (ex
+                    is IOException
+                        or UnauthorizedAccessException
+                        or BadImageFormatException
+                        or AssemblyResolutionException
+                        or System.Security.SecurityException
+            )
         {
             logger.LogDebug(ex, "Could not inspect DLL as a server mod: {DllPath}", dllPath);
             return null;
@@ -112,7 +128,9 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
 
     private static string GetAssemblyVersion(AssemblyDefinition assembly)
     {
-        var infoVersionAttr = assembly.CustomAttributes.FirstOrDefault(a => a.AttributeType.Name == "AssemblyInformationalVersionAttribute");
+        var infoVersionAttr = assembly.CustomAttributes.FirstOrDefault(a =>
+            a.AttributeType.Name == "AssemblyInformationalVersionAttribute"
+        );
 
         if (infoVersionAttr is null)
         {
@@ -182,7 +200,3 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
         return SemVer.TryParse(version, "ServerModExtractor").IsT0;
     }
 }
-
-
-
-

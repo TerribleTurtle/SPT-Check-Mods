@@ -22,14 +22,15 @@ public sealed class ModMatchingServiceTests
     {
         return new Mod
         {
-            Local = new CheckMods.Models.LocalModIdentity {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
                 Guid = guid,
                 FilePath = $"plugins/{name}.dll",
                 IsServerMod = false,
                 LocalName = name,
                 LocalAuthor = "Author",
                 LocalVersion = version,
-            }
+            },
         };
     }
 
@@ -54,14 +55,15 @@ public sealed class ModMatchingServiceTests
     {
         return new Mod
         {
-            Local = new CheckMods.Models.LocalModIdentity {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
                 Guid = guid,
                 FilePath = $"plugins/{name}.dll",
                 IsServerMod = false,
                 LocalName = name,
                 LocalAuthor = author,
                 LocalVersion = "1.0.0",
-            }
+            },
         };
     }
 
@@ -71,7 +73,8 @@ public sealed class ModMatchingServiceTests
         var api = new FakeForgeApiService { OnGetModByGuid = _ => Match(2471, "Cool Mod", "cool-mod") };
         var mod = ClientMod("com.author.coolmod", "Cool Mod");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(2471, mod.Api.ApiModId);
@@ -87,7 +90,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.author.coolmod", "Cool Mod");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(2471, mod.Api.ApiModId);
@@ -103,7 +107,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.author.coolmod", "Cool Mod");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.False(mod.IsMatched);
         Assert.Equal(ModStatus.NoMatch, mod.Status);
@@ -130,6 +135,7 @@ public sealed class ModMatchingServiceTests
         var mod = ClientMod("com.a.lonely");
 
         var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.Single(results);
         Assert.False(mod.IsMatched);
@@ -160,7 +166,10 @@ public sealed class ModMatchingServiceTests
         var bad = ClientMod("com.a.boom");
         var good2 = ClientMod("com.a.good2");
 
-        await CreateService(api).MatchModsAsync([good1, bad, good2], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([good1, bad, good2], SptVersion);
+        good1 = results[0];
+        bad = results[1];
+        good2 = results[2];
 
         Assert.True(good1.IsMatched);
         Assert.True(good2.IsMatched);
@@ -241,7 +250,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.x.super", "Super Mod");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(10, mod.Api.ApiModId);
@@ -257,7 +267,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.x.coolmod", "CoolModServer");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(20, mod.Api.ApiModId);
@@ -273,7 +284,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.x.thing", "Awesome Thing");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(30, mod.Api.ApiModId);
@@ -290,7 +302,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientModFull("com.jane.hero", "HeroMod", "JaneDoe");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(40, mod.Api.ApiModId);
@@ -307,7 +320,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.x.inventory", "Inventory Manager");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.True(mod.IsMatched);
         Assert.Equal(50, mod.Api.ApiModId);
@@ -323,7 +337,8 @@ public sealed class ModMatchingServiceTests
         };
         var mod = ClientMod("com.x.alpha", "Alpha Mod");
 
-        await CreateService(api).MatchModsAsync([mod], SptVersion);
+        var results = await CreateService(api).MatchModsAsync([mod], SptVersion);
+        mod = results[0];
 
         Assert.False(mod.IsMatched);
         Assert.Equal(ModStatus.NoMatch, mod.Status);
@@ -382,9 +397,3 @@ public sealed class ModMatchingServiceTests
         Assert.DoesNotContain(queries, q => q.Contains("Unknown"));
     }
 }
-
-
-
-
-
-

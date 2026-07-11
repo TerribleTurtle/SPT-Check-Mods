@@ -7,8 +7,8 @@ using CheckMods.Configuration;
 using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
-using SPTarkov.DI.Annotations;
 using SemanticVersioning;
+using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
 
 namespace CheckMods.Services;
@@ -18,31 +18,82 @@ namespace CheckMods.Services;
 public sealed class ModResolutionService(IForgeApiService forgeApiService) : IModResolutionService
 {
     /// <inheritdoc />
-    public async Task FetchSourceCodeUrlsForModsAsync(
-        List<Mod> mods,
+    public async Task<IReadOnlyList<Mod>> FetchSourceCodeUrlsForModsAsync(
+        IEnumerable<Mod> mods,
         Version sptVersion,
         CancellationToken cancellationToken = default
     )
     {
+        var modsList = mods.ToList();
+        var modsWithNames = modsList.Where(m => !string.IsNullOrWhiteSpace(m.Local.LocalName)).ToList();
+
+        if (modsWithNames.Count == 0)
+        {
+            return modsList;
+        }
+
         // Dispatch the lookups concurrently and let the rate limiter throttle.
-        await Task.WhenAll(mods.Select(mod => FetchSourceCodeUrlForModAsync(mod, sptVersion, cancellationToken)));
+        var updatedModsDict = modsList.ToDictionary(m => m.Local.Guid);
+
+        var tasks = modsWithNames.Select(async mod =>
+        {
+            var updatedMod = await ResolveAndFetchUrlAsync(mod, sptVersion, cancellationToken);
+            return (OriginalGuid: mod.Local.Guid, UpdatedMod: updatedMod);
+        });
+
+        var results = await Task.WhenAll(tasks);
+        foreach (var (guid, updatedMod) in results)
+        {
+            updatedModsDict[guid] = updatedMod;
+        }
+
+        return updatedModsDict.Values.ToList();
     }
 
     /// <inheritdoc />
-    public async Task FetchSourceCodeUrlsForPairedModsAsync(
-        List<ModPair> pairs,
+    public async Task<(IReadOnlyList<ModPair> UpdatedPairs, IReadOnlyList<Mod> UpdatedMods)> FetchSourceCodeUrlsForPairedModsAsync(
+        IEnumerable<ModPair> pairs,
         Version sptVersion,
         CancellationToken cancellationToken = default
     )
     {
+        var pairsList = pairs.ToList();
+        var validPairs = pairsList
+            .Where(p =>
+                !string.IsNullOrWhiteSpace(p.ServerMod?.Local.LocalName)
+                || !string.IsNullOrWhiteSpace(p.ClientMod?.Local.LocalName)
+            )
+            .ToList();
+
+        if (validPairs.Count == 0)
+        {
+            return (pairsList, []);
+        }
+
         // Dispatch the lookups concurrently and let the rate limiter throttle.
-        await Task.WhenAll(pairs.Select(pair => FetchSourceCodeUrlForPairAsync(pair, sptVersion, cancellationToken)));
+        var updatedPairsDict = pairsList.ToDictionary(p => p.SelectedMod.Local.Guid);
+        var allUpdatedMods = new List<Mod>();
+
+        var tasks = validPairs.Select(async pair =>
+        {
+            var (updatedPair, updatedMods) = await ResolveAndFetchUrlForPairAsync(pair, sptVersion, cancellationToken);
+            return (OriginalGuid: pair.SelectedMod.Local.Guid, UpdatedPair: updatedPair, UpdatedMods: updatedMods);
+        });
+
+        var results = await Task.WhenAll(tasks);
+        foreach (var (guid, updatedPair, updatedMods) in results)
+        {
+            updatedPairsDict[guid] = updatedPair;
+            allUpdatedMods.AddRange(updatedMods);
+        }
+
+        return (updatedPairsDict.Values.ToList(), allUpdatedMods);
     }
 
     /// <summary>
     /// Fetches source code URL from the API for a single mod.
     /// </summary>
-    private async Task FetchSourceCodeUrlForModAsync(
+    private async Task<Mod> ResolveAndFetchUrlAsync(
         Mod mod,
         Version sptVersion,
         CancellationToken cancellationToken = default
@@ -51,7 +102,7 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
         // Skip if already has API info
         if (mod.Api.ApiSourceCodeUrl is not null || mod.Api.ApiUrl is not null)
         {
-            return;
+            return mod;
         }
 
         ModSearchResult? apiResult = null;
@@ -71,17 +122,17 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
 
         if (apiResult is null)
         {
-            return;
+            return mod;
         }
 
-        mod.UpdateFromApiMatch(apiResult);
+        return mod.WithApiMatch(apiResult);
     }
 
     /// <summary>
     /// Fetches and applies Forge API info for a single reconciled pair, trying both the server and client GUIDs
     /// before falling back to a fuzzy name search.
     /// </summary>
-    private async Task FetchSourceCodeUrlForPairAsync(
+    private async Task<(ModPair UpdatedPair, List<Mod> UpdatedMods)> ResolveAndFetchUrlForPairAsync(
         ModPair pair,
         Version sptVersion,
         CancellationToken cancellationToken
@@ -92,20 +143,20 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
         // Skip if already has API info
         if (selectedMod.Api.ApiSourceCodeUrl is not null || selectedMod.Api.ApiUrl is not null)
         {
-            return;
+            return (pair, []);
         }
 
         ModSearchResult? apiResult = null;
 
         // Collect all unique GUIDs to try (server GUID, client GUID)
         List<string> guidsToTry = [];
-        if (!string.IsNullOrWhiteSpace(pair.ServerMod.Local.Guid))
+        if (!string.IsNullOrWhiteSpace(pair.ServerMod?.Local.Guid))
         {
             guidsToTry.Add(pair.ServerMod.Local.Guid);
         }
 
         if (
-            !string.IsNullOrWhiteSpace(pair.ClientMod.Local.Guid)
+            !string.IsNullOrWhiteSpace(pair.ClientMod?.Local.Guid)
             && !guidsToTry.Contains(pair.ClientMod.Local.Guid, StringComparer.OrdinalIgnoreCase)
         )
         {
@@ -121,8 +172,30 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
                 continue;
             }
 
-            apiResult = match;
-            break;
+            var updatedMods = new List<Mod>();
+            var updatedServerMod = pair.ServerMod;
+            var updatedClientMod = pair.ClientMod;
+
+            if (updatedServerMod != null)
+            {
+                updatedServerMod = updatedServerMod.WithApiMatch(match);
+                updatedMods.Add(updatedServerMod);
+            }
+            
+            if (updatedClientMod != null)
+            {
+                updatedClientMod = updatedClientMod.WithApiMatch(match);
+                updatedMods.Add(updatedClientMod);
+            }
+
+            var updatedPair = new ModPair
+            {
+                ServerMod = updatedServerMod,
+                ClientMod = updatedClientMod,
+                SelectedMod = pair.SelectedMod == pair.ServerMod ? updatedServerMod! : updatedClientMod!,
+                Notes = pair.Notes
+            };
+            return (updatedPair, updatedMods);
         }
 
         // If not found by any GUID, try searching by name with fuzzy matching
@@ -130,10 +203,34 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
 
         if (apiResult is null)
         {
-            return;
+            return (pair, []);
         }
 
-        selectedMod.UpdateFromApiMatch(apiResult);
+        var finalUpdatedMods = new List<Mod>();
+        var finalUpdatedServerMod = pair.ServerMod;
+        var finalUpdatedClientMod = pair.ClientMod;
+
+        if (finalUpdatedServerMod != null)
+        {
+            finalUpdatedServerMod = finalUpdatedServerMod.WithApiMatch(apiResult);
+            finalUpdatedMods.Add(finalUpdatedServerMod);
+        }
+        
+        if (finalUpdatedClientMod != null)
+        {
+            finalUpdatedClientMod = finalUpdatedClientMod.WithApiMatch(apiResult);
+            finalUpdatedMods.Add(finalUpdatedClientMod);
+        }
+
+        var finalUpdatedPair = new ModPair
+        {
+            ServerMod = finalUpdatedServerMod,
+            ClientMod = finalUpdatedClientMod,
+            SelectedMod = pair.SelectedMod == pair.ServerMod ? finalUpdatedServerMod! : finalUpdatedClientMod!,
+            Notes = pair.Notes
+        };
+
+        return (finalUpdatedPair, finalUpdatedMods);
     }
 
     /// <summary>

@@ -19,61 +19,53 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
 {
     private readonly IgnoredUpdateOptions _options = options.Value;
 
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter() },
-    };
-
     private List<IgnoredUpdate>? _cache;
     private HashSet<string> _keys = new(StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc />
-    public IReadOnlyList<IgnoredUpdate> Load()
+    public async Task<IReadOnlyList<IgnoredUpdate>> LoadAsync(CancellationToken cancellationToken = default)
     {
         if (_cache is not null)
         {
             return _cache;
         }
 
-        _cache = ReadFromDisk();
+        _cache = await ReadFromDiskAsync(cancellationToken);
         RebuildKeys();
         return _cache;
     }
 
     /// <inheritdoc />
-    public bool IsIgnored(Mod mod)
+    public async Task<bool> IsIgnoredAsync(Mod mod, CancellationToken cancellationToken = default)
     {
         if (!mod.Api.ApiModId.HasValue || mod.Update.LatestVersion is null)
         {
             return false;
         }
 
-        return IsIgnored(mod.Api.ApiModId.Value, mod.Local.LocalVersion, mod.Update.LatestVersion);
+        return await IsIgnoredAsync(mod.Api.ApiModId.Value, mod.Local.LocalVersion, mod.Update.LatestVersion, cancellationToken);
     }
 
-    /// <summary>Value-based overload of <see cref="IsIgnored(Mod)"/>.</summary>
-    internal bool IsIgnored(int apiModId, string localVersion, string latestVersion)
+    /// <summary>Value-based overload of <see cref="IsIgnoredAsync"/>.</summary>
+    internal async Task<bool> IsIgnoredAsync(int apiModId, string localVersion, string latestVersion, CancellationToken cancellationToken = default)
     {
-        Load();
+        await LoadAsync(cancellationToken);
         return _keys.Contains(MakeKey(apiModId, localVersion, latestVersion));
     }
 
     /// <inheritdoc />
-    public void Save(IReadOnlyList<IgnoredUpdate> entries)
+    public async Task SaveAsync(IReadOnlyList<IgnoredUpdate> entries, CancellationToken cancellationToken = default)
     {
         var list = entries.ToList();
-        WriteToDisk(list);
+        await WriteToDiskAsync(list, cancellationToken);
         _cache = list;
         RebuildKeys();
     }
 
     /// <inheritdoc />
-    public int MergeWithoutOverwrite(IReadOnlyList<IgnoredUpdate> incoming)
+    public async Task<int> MergeWithoutOverwriteAsync(IReadOnlyList<IgnoredUpdate> incoming, CancellationToken cancellationToken = default)
     {
-        var current = Load().ToList();
+        var current = (await LoadAsync(cancellationToken)).ToList();
         var keys = current.Select(e => e.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var added = 0;
@@ -97,13 +89,13 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
 
         if (added > 0)
         {
-            Save(current);
+            await SaveAsync(current, cancellationToken);
         }
 
         return added;
     }
 
-    private List<IgnoredUpdate> ReadFromDisk()
+    private async Task<List<IgnoredUpdate>> ReadFromDiskAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -112,8 +104,8 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
                 return [];
             }
 
-            var json = File.ReadAllText(_options.FilePath);
-            var file = JsonSerializer.Deserialize<IgnoredUpdatesFile>(json, _jsonOptions);
+            var json = await File.ReadAllTextAsync(_options.FilePath, cancellationToken);
+            var file = JsonSerializer.Deserialize(json, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.IgnoredUpdatesFile);
             if (file?.Ignored is null)
             {
                 return [];
@@ -133,7 +125,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
         }
     }
 
-    private void WriteToDisk(List<IgnoredUpdate> entries)
+    private async Task WriteToDiskAsync(List<IgnoredUpdate> entries, CancellationToken cancellationToken)
     {
         try
         {
@@ -144,11 +136,11 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             }
 
             var file = new IgnoredUpdatesFile(IgnoredUpdatesFile.CurrentSchemaVersion, entries);
-            var json = JsonSerializer.Serialize(file, _jsonOptions);
+            var json = JsonSerializer.Serialize(file, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.IgnoredUpdatesFile);
 
             // Atomic write: stage to a temp file then move into place.
             var tempPath = _options.FilePath + ".tmp";
-            File.WriteAllText(tempPath, json);
+            await File.WriteAllTextAsync(tempPath, json, cancellationToken);
             File.Move(tempPath, _options.FilePath, overwrite: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
@@ -167,5 +159,3 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
         return $"{apiModId}|{localVersion}|{latestVersion}";
     }
 }
-
-

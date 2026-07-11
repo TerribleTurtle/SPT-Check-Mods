@@ -94,7 +94,8 @@ public sealed class SptInstallationService(
             {
                 // Filter to versions newer than the current version, skipping any that can't be parsed.
                 var newerVersions = versions
-                    .Select(v => {
+                    .Select(v =>
+                    {
                         var parsed = SemVer.TryParse(v.Version, "SptUpdateCheck");
                         return (Raw: v, ParsedResult: parsed);
                     })
@@ -114,4 +115,3 @@ public sealed class SptInstallationService(
         );
     }
 }
-

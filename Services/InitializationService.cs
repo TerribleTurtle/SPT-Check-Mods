@@ -9,13 +9,11 @@ namespace CheckMods.Services;
 /// Implementation of <see cref="IInitializationService"/>.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class InitializationService(
-    IModCheckReporter reporter,
-    ILogger<InitializationService> logger
-) : IInitializationService
+public sealed class InitializationService(IModCheckReporter reporter, ILogger<InitializationService> logger)
+    : IInitializationService
 {
     /// <inheritdoc />
-    public void RemoveLegacyApiKeyFile()
+    public async Task RemoveLegacyApiKeyFileAsync()
     {
         try
         {
@@ -33,7 +31,7 @@ public sealed class InitializationService(
                 return;
             }
 
-            File.Delete(configFilePath);
+            await Task.Run(() => File.Delete(configFilePath));
             logger.LogInformation("Removed legacy API key file.");
         }
         catch (IOException ex)

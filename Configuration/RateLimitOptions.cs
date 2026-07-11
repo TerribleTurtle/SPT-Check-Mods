@@ -3,7 +3,7 @@ namespace CheckMods.Configuration;
 /// <summary>
 /// Configuration options for the rate limiting service.
 /// </summary>
-public class RateLimitOptions
+public sealed class RateLimitOptions
 {
     /// <summary>
     /// Maximum number of requests that can be dispatched back-to-back before steady-state pacing applies.

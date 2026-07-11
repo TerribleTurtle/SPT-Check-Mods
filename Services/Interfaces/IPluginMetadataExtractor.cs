@@ -18,22 +18,25 @@ public interface IPluginMetadataExtractor
     /// <summary>
     /// Processes client DLLs in parallel and returns valid mods.
     /// </summary>
-    Task<List<Mod>> ProcessClientDllsInParallelAsync(List<string> dllFiles, CancellationToken cancellationToken = default);
+    Task<List<Mod>> ProcessClientDllsInParallelAsync(
+        List<string> dllFiles,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Turns a directory's DLLs into mods. DLLs that reference each other become one mod, while unrelated DLLs stay separate.
     /// </summary>
-    List<Mod> ConsolidateDirectoryMods(string directory, List<string> dllPaths);
+    Task<List<Mod>> ConsolidateDirectoryModsAsync(string directory, List<string> dllPaths, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Attempts to read the DLL as a client (BepInEx) mod. Returns the mod if a BepInPlugin attribute is found, otherwise null.
     /// </summary>
-    Mod? TryDetectClientMod(string dllPath);
+    Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reads plugin metadata and assembly references from each BepInPlugin DLL.
     /// </summary>
-    List<PluginDll> ReadPluginDlls(List<string> dllPaths);
+    Task<List<PluginDll>> ReadPluginDllsAsync(List<string> dllPaths, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Groups plugin DLLs that belong to the same mod and separates those that don't.

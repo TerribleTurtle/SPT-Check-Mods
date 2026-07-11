@@ -26,14 +26,34 @@ public sealed class ModResolutionServiceTests
         var sptVersion = new Version("3.9.0");
         var mod = new Mod
         {
-            Local = new LocalModIdentity { Guid = "exact-guid", FilePath = "test", LocalName = "TestMod", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true }
+            Local = new LocalModIdentity
+            {
+                Guid = "exact-guid",
+                FilePath = "test",
+                LocalName = "TestMod",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true,
+            },
         };
 
-        var apiResult = new ModSearchResult(1, null, "Test Mod", "test-mod", null, null, 0, null, "url", new ModAuthor(1, "Author", null), []);
+        var apiResult = new ModSearchResult(
+            1,
+            null,
+            "Test Mod",
+            "test-mod",
+            null,
+            null,
+            0,
+            null,
+            "url",
+            new ModAuthor(1, "Author", null),
+            []
+        );
         _forgeApiService.OnGetModByGuid = _ => apiResult;
 
         // Act
-        await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion);
+        mod = (await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion))[0];
 
         // Assert
         Assert.True(mod.IsMatched);
@@ -47,17 +67,37 @@ public sealed class ModResolutionServiceTests
         var sptVersion = new Version("3.9.0");
         var mod = new Mod
         {
-            Local = new LocalModIdentity { Guid = "unknown", FilePath = "test", LocalName = "Exact Name Match", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true }
+            Local = new LocalModIdentity
+            {
+                Guid = "unknown",
+                FilePath = "test",
+                LocalName = "Exact Name Match",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true,
+            },
         };
 
         // Guid lookup fails
         _forgeApiService.OnGetModByGuid = _ => new NotFound();
 
-        var apiResult = new ModSearchResult(2, null, "Exact Name Match", "exact", null, null, 0, null, "url", new ModAuthor(1, "Author", null), []);
+        var apiResult = new ModSearchResult(
+            2,
+            null,
+            "Exact Name Match",
+            "exact",
+            null,
+            null,
+            0,
+            null,
+            "url",
+            new ModAuthor(1, "Author", null),
+            []
+        );
         _forgeApiService.OnSearch = _ => new List<ModSearchResult> { apiResult };
 
         // Act
-        await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion);
+        mod = (await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion))[0];
 
         // Assert
         Assert.True(mod.IsMatched);
@@ -71,14 +111,34 @@ public sealed class ModResolutionServiceTests
         var sptVersion = new Version("3.9.0");
         var mod = new Mod
         {
-            Local = new LocalModIdentity { Guid = "unknown", FilePath = "test", LocalName = "Some Plugin Mod", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true }
+            Local = new LocalModIdentity
+            {
+                Guid = "unknown",
+                FilePath = "test",
+                LocalName = "Some Plugin Mod",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true,
+            },
         };
 
-        var apiResult = new ModSearchResult(3, null, "Some Plugin Mdo", "some", null, null, 0, null, "url", new ModAuthor(1, "Author", null), []);
+        var apiResult = new ModSearchResult(
+            3,
+            null,
+            "Some Plugin Mdo",
+            "some",
+            null,
+            null,
+            0,
+            null,
+            "url",
+            new ModAuthor(1, "Author", null),
+            []
+        );
         _forgeApiService.OnSearch = _ => new List<ModSearchResult> { apiResult };
 
         // Act
-        await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion);
+        mod = (await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion))[0];
 
         // Assert
         Assert.True(mod.IsMatched);
@@ -92,14 +152,34 @@ public sealed class ModResolutionServiceTests
         var sptVersion = new Version("3.9.0");
         var mod = new Mod
         {
-            Local = new LocalModIdentity { Guid = "unknown", FilePath = "test", LocalName = "Short", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true }
+            Local = new LocalModIdentity
+            {
+                Guid = "unknown",
+                FilePath = "test",
+                LocalName = "Short",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true,
+            },
         };
 
-        var apiResult = new ModSearchResult(4, null, "Completely Unrelated Mod Name Here", "unrelated", null, null, 0, null, "url", new ModAuthor(1, "Author", null), []);
+        var apiResult = new ModSearchResult(
+            4,
+            null,
+            "Completely Unrelated Mod Name Here",
+            "unrelated",
+            null,
+            null,
+            0,
+            null,
+            "url",
+            new ModAuthor(1, "Author", null),
+            []
+        );
         _forgeApiService.OnSearch = _ => new List<ModSearchResult> { apiResult };
 
         // Act
-        await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion);
+        mod = (await _sut.FetchSourceCodeUrlsForModsAsync([mod], sptVersion))[0];
 
         // Assert
         Assert.False(mod.IsMatched);

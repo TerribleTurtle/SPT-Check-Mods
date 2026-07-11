@@ -23,14 +23,19 @@ public sealed class MisplacedModDetectorTests : IDisposable
         var options = Options.Create(new ModScannerOptions { MaxDllSizeBytes = 10 * 1024 * 1024 });
         var pluginExtractor = new PluginMetadataExtractor(options, NullLogger<PluginMetadataExtractor>.Instance);
         var serverExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance);
-        _detector = new MisplacedModDetector(pluginExtractor, serverExtractor, NullLogger<MisplacedModDetector>.Instance);
+        _detector = new MisplacedModDetector(
+            pluginExtractor,
+            serverExtractor,
+            NullLogger<MisplacedModDetector>.Instance
+        );
     }
 
     [Fact]
-    public void DetectMisplacedMods_IdentifiesMisplacedServerAndClientMods()
+    public async Task DetectMisplacedModsAsync_IdentifiesMisplacedServerAndClientMods()
     {
         var misplacedClientPath = Path.Combine("SPT", "user", "mods", "wrong-client", "WrongClient.dll");
-        var clientCode = @"
+        var clientCode =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.wrong.client"", ""Wrong Client"", ""1.0"")]
@@ -39,7 +44,8 @@ public class Plugin {}
         _fixture.CompileDummyDll(misplacedClientPath, clientCode);
 
         var misplacedServerPath = Path.Combine("BepInEx", "plugins", "wrong-server", "WrongServer.dll");
-        var serverCode = @"
+        var serverCode =
+            @"
 public abstract class AbstractModMetadata 
 {
     public string ModGuid { get; set; }
@@ -55,10 +61,10 @@ public class WrongServerMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(misplacedServerPath, serverCode);
 
-        var report = _detector.DetectMisplacedMods(_sptPath);
+        var report = await _detector.DetectMisplacedModsAsync(_sptPath);
 
         Assert.Equal(2, report.WrongFolder.Count);
-        
+
         var wrongClient = report.WrongFolder.Single(m => m.Guid == "com.wrong.client");
         Assert.False(wrongClient.IsServerMod);
 
@@ -67,11 +73,12 @@ public class WrongServerMod : AbstractModMetadata
     }
 
     [Fact]
-    public void DetectMisplacedMods_DetectsCrossInstalledDirectories()
+    public async Task DetectMisplacedModsAsync_DetectsCrossInstalledDirectories()
     {
         var dirPath = Path.Combine("BepInEx", "plugins", "cross-installed");
-        
-        var clientCode1 = @"
+
+        var clientCode1 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.author1.mod"", ""Author1 Mod"", ""1.0"")]
@@ -79,7 +86,8 @@ public class Plugin1 {}
 ";
         _fixture.CompileDummyDll(Path.Combine(dirPath, "Mod1.dll"), clientCode1);
 
-        var clientCode2 = @"
+        var clientCode2 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.author2.mod"", ""Author2 Mod"", ""1.0"")]
@@ -87,7 +95,7 @@ public class Plugin2 {}
 ";
         _fixture.CompileDummyDll(Path.Combine(dirPath, "Mod2.dll"), clientCode2);
 
-        var report = _detector.DetectMisplacedMods(_sptPath);
+        var report = await _detector.DetectMisplacedModsAsync(_sptPath);
 
         Assert.Single(report.CrossInstalled);
         var crossInstall = report.CrossInstalled[0];
@@ -96,11 +104,12 @@ public class Plugin2 {}
     }
 
     [Fact]
-    public void DetectMisplacedMods_DetectsCrossInstalledDirectories_Unambiguous()
+    public async Task DetectMisplacedModsAsync_DetectsCrossInstalledDirectories_Unambiguous()
     {
         var dirPath = Path.Combine("BepInEx", "plugins", "unambiguous-mod");
-        
-        var clientCode1 = @"
+
+        var clientCode1 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.author1.unambiguous"", ""Unambiguous Mod"", ""1.0"")]
@@ -108,7 +117,8 @@ public class Plugin1 {}
 ";
         _fixture.CompileDummyDll(Path.Combine(dirPath, "UnambiguousMod.dll"), clientCode1);
 
-        var clientCode2 = @"
+        var clientCode2 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.author2.other"", ""Other Mod"", ""1.0"")]
@@ -116,7 +126,7 @@ public class Plugin2 {}
 ";
         _fixture.CompileDummyDll(Path.Combine(dirPath, "Other.dll"), clientCode2);
 
-        var report = _detector.DetectMisplacedMods(_sptPath);
+        var report = await _detector.DetectMisplacedModsAsync(_sptPath);
 
         Assert.Single(report.CrossInstalled);
         var crossInstall = report.CrossInstalled[0];
@@ -131,9 +141,3 @@ public class Plugin2 {}
         _fixture.Dispose();
     }
 }
-
-
-
-
-
-

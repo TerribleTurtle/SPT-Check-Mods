@@ -14,7 +14,8 @@ public sealed class TableRenderer(
     IVersionTableUiRenderer versionTableRenderer,
     IReconciliationUiRenderer reconciliationRenderer,
     IMisplacedModUiRenderer misplacedModRenderer,
-    IDependencyUiRenderer dependencyRenderer) : ITableRenderer
+    IDependencyUiRenderer dependencyRenderer
+) : ITableRenderer
 {
     /// <inheritdoc />
     public void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion)
@@ -58,5 +59,3 @@ public sealed class TableRenderer(
         versionTableRenderer.VersionTable(mods);
     }
 }
-
-

@@ -28,10 +28,10 @@ public sealed class ReconciliationUiRendererTests
                 IsServerMod = false,
                 LocalName = "Unverified Mod",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
-            }
+                LocalVersion = "1.0.0",
+            },
         };
-        mod.MarkUnmatched();
+        mod = mod.MarkUnmatched();
 
         renderer.UnverifiedMods(new List<Mod> { mod });
 
@@ -56,9 +56,9 @@ public sealed class ReconciliationUiRendererTests
                 IsServerMod = false,
                 LocalName = "Warning Mod",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
+                LocalVersion = "1.0.0",
             },
-            LoadWarnings = new List<string> { "Mod load failed" }
+            LoadWarnings = new List<string> { "Mod load failed" },
         };
 
         renderer.LoadingWarnings(new List<Mod> { mod });
@@ -85,8 +85,8 @@ public sealed class ReconciliationUiRendererTests
                 IsServerMod = false,
                 LocalName = "Client Mod",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
-            }
+                LocalVersion = "1.0.0",
+            },
         };
 
         var serverMod = new Mod
@@ -98,8 +98,8 @@ public sealed class ReconciliationUiRendererTests
                 IsServerMod = true,
                 LocalName = "Server Mod",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
-            }
+                LocalVersion = "1.0.0",
+            },
         };
 
         var result = new ModReconciliationResult
@@ -107,7 +107,7 @@ public sealed class ReconciliationUiRendererTests
             Mods = new List<Mod>(),
             ReconciledPairs = new List<ModPair>(),
             UnmatchedClientMods = new List<Mod> { clientMod },
-            UnmatchedServerMods = new List<Mod> { serverMod }
+            UnmatchedServerMods = new List<Mod> { serverMod },
         };
 
         renderer.ReconciliationResults(result);
@@ -127,13 +127,29 @@ public sealed class ReconciliationUiRendererTests
 
         var serverMod = new Mod
         {
-            Local = new LocalModIdentity { Guid = "server.guid", IsServerMod = true, LocalName = "Test Mod", FilePath = "server.dll", LocalAuthor = "Author", LocalVersion = "1.0.0" }
+            Local = new LocalModIdentity
+            {
+                Guid = "server.guid",
+                IsServerMod = true,
+                LocalName = "Test Mod",
+                FilePath = "server.dll",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+            },
+            Api = new ForgeApiMetadata { ApiUrl = "https://forge.com/mod" },
         };
-        serverMod.Api.ApiUrl = "https://forge.com/mod";
 
         var clientMod = new Mod
         {
-            Local = new LocalModIdentity { Guid = "client.guid", IsServerMod = false, LocalName = "Test Mod", FilePath = "client.dll", LocalAuthor = "Author", LocalVersion = "1.0.0" }
+            Local = new LocalModIdentity
+            {
+                Guid = "client.guid",
+                IsServerMod = false,
+                LocalName = "Test Mod",
+                FilePath = "client.dll",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+            },
         };
 
         var pair = new ModPair
@@ -141,7 +157,7 @@ public sealed class ReconciliationUiRendererTests
             ServerMod = serverMod,
             ClientMod = clientMod,
             SelectedMod = serverMod,
-            Notes = new List<string> { "This is a warning note" }
+            Notes = new List<string> { "This is a warning note" },
         };
 
         var result = new ModReconciliationResult
@@ -149,7 +165,7 @@ public sealed class ReconciliationUiRendererTests
             Mods = new List<Mod> { serverMod },
             ReconciledPairs = new List<ModPair> { pair },
             UnmatchedServerMods = new List<Mod>(),
-            UnmatchedClientMods = new List<Mod>()
+            UnmatchedClientMods = new List<Mod>(),
         };
 
         renderer.ReconciliationResults(result);

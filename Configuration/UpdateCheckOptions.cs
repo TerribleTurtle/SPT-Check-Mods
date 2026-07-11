@@ -3,7 +3,7 @@ namespace CheckMods.Configuration;
 /// <summary>
 /// Configuration options for the Check Mods self-update check.
 /// </summary>
-public class UpdateCheckOptions
+public sealed class UpdateCheckOptions
 {
     /// <summary>
     /// The Forge mod ID for Check Mods itself.

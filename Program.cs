@@ -58,10 +58,10 @@ public sealed class Program
             var ignoredUpdateWorkflow = serviceProvider.GetRequiredService<IIgnoredUpdateWorkflow>();
 
             var mods = await applicationService.RunAsync(args, _cts.Token);
-            
+
             if (mods is not null)
             {
-                await ignoredUpdateWorkflow.RunAsync(mods);
+                await ignoredUpdateWorkflow.RunAsync(mods, _cts.Token);
             }
 
             logger.LogInformation("CheckMods application completed successfully");
@@ -69,7 +69,7 @@ public sealed class Program
         catch (OperationCanceledException)
         {
             logger?.LogInformation("Application was cancelled by user");
-            exitCode = 1;
+            throw;
         }
         catch (Exception ex)
         {

@@ -14,21 +14,20 @@ public sealed class FakeModDependencyService : IModDependencyService
     public DependencyAnalysisResult ResultToReturn { get; set; } = new DependencyAnalysisResult();
 
     /// <inheritdoc />
-    public Task<DependencyAnalysisResult> AnalyzeDependenciesAsync(IEnumerable<Mod> mods, HashSet<string> installedModGuids, Action<int, int>? progressCallback = null, CancellationToken cancellationToken = default)
+    public Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
+        IEnumerable<Mod> mods,
+        ISet<string> installedModGuids,
+        Action<int, int>? progressCallback = null,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         if (progressCallback != null)
         {
             progressCallback(1, 1);
         }
 
-        return Task.FromResult(ResultToReturn);
+        return Task.FromResult<(IReadOnlyList<Mod>, DependencyAnalysisResult)>((mods.ToList(), ResultToReturn));
     }
 }
-
-
-
-
-
-

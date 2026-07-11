@@ -4,7 +4,7 @@ namespace CheckMods.Configuration;
 /// Configuration for the ignored-updates feature: where the local list is stored and where the optional
 /// author-maintained remote base list is fetched from.
 /// </summary>
-public class IgnoredUpdateOptions
+public sealed class IgnoredUpdateOptions
 {
     /// <summary>The full path to the local ignored-updates file.</summary>
     public string FilePath { get; set; } = DefaultFilePath;

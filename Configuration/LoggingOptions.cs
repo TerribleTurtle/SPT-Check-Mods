@@ -5,7 +5,7 @@ namespace CheckMods.Configuration;
 /// <summary>
 /// Configuration options for the logging infrastructure.
 /// </summary>
-public class LoggingOptions
+public sealed class LoggingOptions
 {
     /// <summary>
     /// Whether file logging is enabled. Default is true.

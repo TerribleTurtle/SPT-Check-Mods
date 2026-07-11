@@ -51,11 +51,17 @@ public sealed class ReconciliationUiRenderer(ITextRenderer textRenderer) : IReco
                         ? pair.SelectedMod.Api.ApiSourceCodeUrl
                         : pair.SelectedMod.Api.ApiUrl;
 
-                    var guidMismatch = !string.Equals(pair.ServerMod.Local.Guid, pair.ClientMod.Local.Guid, StringComparison.OrdinalIgnoreCase);
+                    var guidMismatch = pair.ServerMod != null && pair.ClientMod != null && !string.Equals(
+                        pair.ServerMod.Local.Guid,
+                        pair.ClientMod.Local.Guid,
+                        StringComparison.OrdinalIgnoreCase
+                    );
 
                     if (guidMismatch)
                     {
-                        modNode.AddNode("[grey]Matched by name, but the GUIDs differ. This is likely a mod packaged with mismatched GUIDs.[/]");
+                        modNode.AddNode(
+                            "[grey]Matched by name, but the GUIDs differ. This is likely a mod packaged with mismatched GUIDs.[/]"
+                        );
 
                         if (!string.IsNullOrWhiteSpace(reportUrl))
                         {
@@ -73,7 +79,9 @@ public sealed class ReconciliationUiRenderer(ITextRenderer textRenderer) : IReco
             }
         }
 
-        AnsiConsole.MarkupLine($"[grey]Final mod count: {result.Mods.Count} (matched pairs: {result.ReconciledPairs.Count}, server-only: {result.UnmatchedServerMods.Count}, client-only: {result.UnmatchedClientMods.Count})[/]");
+        AnsiConsole.MarkupLine(
+            $"[grey]Final mod count: {result.Mods.Count} (matched pairs: {result.ReconciledPairs.Count}, server-only: {result.UnmatchedServerMods.Count}, client-only: {result.UnmatchedClientMods.Count})[/]"
+        );
         AnsiConsole.WriteLine();
         textRenderer.Rule();
     }
@@ -93,7 +101,9 @@ public sealed class ReconciliationUiRenderer(ITextRenderer textRenderer) : IReco
         foreach (var mod in modsWithWarnings)
         {
             var modType = mod.Local.IsServerMod ? "Server" : "Client";
-            var modName = !string.IsNullOrWhiteSpace(mod.Local.LocalName) ? mod.Local.LocalName : Path.GetFileName(mod.Local.FilePath);
+            var modName = !string.IsNullOrWhiteSpace(mod.Local.LocalName)
+                ? mod.Local.LocalName
+                : Path.GetFileName(mod.Local.FilePath);
 
             var nameDisplay = UiFormattingUtility.FormatModLink(modName, mod.Api.ApiUrl);
 
@@ -153,7 +163,9 @@ public sealed class ReconciliationUiRenderer(ITextRenderer textRenderer) : IReco
         AnsiConsole.Write(tree);
 
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[grey]These were not matched to a Forge listing. That's expected for a mod that isn't published on the Forge, or for a mod which includes multiple plugins where only one uses the GUID linked to the Forge. No action is needed unless you expected one of these to be its own mod on Forge.[/]");
+        AnsiConsole.MarkupLine(
+            "[grey]These were not matched to a Forge listing. That's expected for a mod that isn't published on the Forge, or for a mod which includes multiple plugins where only one uses the GUID linked to the Forge. No action is needed unless you expected one of these to be its own mod on Forge.[/]"
+        );
         AnsiConsole.WriteLine();
     }
 }

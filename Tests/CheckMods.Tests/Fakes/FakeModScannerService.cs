@@ -27,15 +27,15 @@ public sealed class FakeModScannerService : IModScannerService
 
     /// <summary> Gets or sets SPT version. </summary>
     public string? SptVersionToReturn { get; set; }
-    
+
     /// <summary> Gets or sets misplaced mod report. </summary>
     public MisplacedModReport MisplacedModReportToReturn { get; set; } = new([], []);
 
     /// <inheritdoc />
-    public List<Mod> ScanServerMods(string sptPath, CancellationToken cancellationToken = default)
+    public Task<List<Mod>> ScanServerModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _serverModsToReturn.ToList();
+        return Task.FromResult(_serverModsToReturn.ToList());
     }
 
     /// <inheritdoc />
@@ -46,7 +46,10 @@ public sealed class FakeModScannerService : IModScannerService
     }
 
     /// <inheritdoc />
-    public Task<(List<Mod> ServerMods, List<Mod> ClientMods)> ScanAllModsAsync(string sptPath, CancellationToken cancellationToken = default)
+    public Task<(List<Mod> ServerMods, List<Mod> ClientMods)> ScanAllModsAsync(
+        string sptPath,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult((_serverModsToReturn.ToList(), _clientModsToReturn.ToList()));
@@ -59,15 +62,9 @@ public sealed class FakeModScannerService : IModScannerService
     }
 
     /// <inheritdoc />
-    public MisplacedModReport DetectMisplacedMods(string sptPath, CancellationToken cancellationToken = default)
+    public Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return MisplacedModReportToReturn;
+        return Task.FromResult(MisplacedModReportToReturn);
     }
 }
-
-
-
-
-
-

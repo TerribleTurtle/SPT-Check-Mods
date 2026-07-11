@@ -17,7 +17,9 @@ public sealed class TableRendererTests
         public bool VersionCompatibilityResultsCalled { get; private set; }
 
         public void VersionTable(List<Mod> mods) => VersionTableCalled = true;
-        public void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion) => VersionCompatibilityResultsCalled = true;
+
+        public void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion) =>
+            VersionCompatibilityResultsCalled = true;
     }
 
     private sealed class FakeReconciliationUiRenderer : IReconciliationUiRenderer
@@ -27,7 +29,9 @@ public sealed class TableRendererTests
         public bool UnverifiedModsCalled { get; private set; }
 
         public void ReconciliationResults(ModReconciliationResult result) => ReconciliationResultsCalled = true;
+
         public void LoadingWarnings(List<Mod> modsWithWarnings) => LoadingWarningsCalled = true;
+
         public void UnverifiedMods(List<Mod> mods) => UnverifiedModsCalled = true;
     }
 
@@ -49,7 +53,12 @@ public sealed class TableRendererTests
     public void Version_compatibility_results_delegates_to_version_table_renderer()
     {
         var fakeVersion = new FakeVersionTableUiRenderer();
-        var facade = new TableRenderer(fakeVersion, new FakeReconciliationUiRenderer(), new FakeMisplacedModUiRenderer(), new FakeDependencyUiRenderer());
+        var facade = new TableRenderer(
+            fakeVersion,
+            new FakeReconciliationUiRenderer(),
+            new FakeMisplacedModUiRenderer(),
+            new FakeDependencyUiRenderer()
+        );
 
         facade.VersionCompatibilityResults(new List<Mod>(), new SemanticVersioning.Version(0, 0, 0));
 
@@ -60,7 +69,12 @@ public sealed class TableRendererTests
     public void Loading_warnings_delegates_to_reconciliation_renderer()
     {
         var fakeReconciliation = new FakeReconciliationUiRenderer();
-        var facade = new TableRenderer(new FakeVersionTableUiRenderer(), fakeReconciliation, new FakeMisplacedModUiRenderer(), new FakeDependencyUiRenderer());
+        var facade = new TableRenderer(
+            new FakeVersionTableUiRenderer(),
+            fakeReconciliation,
+            new FakeMisplacedModUiRenderer(),
+            new FakeDependencyUiRenderer()
+        );
 
         facade.LoadingWarnings(new List<Mod>());
 
@@ -71,9 +85,22 @@ public sealed class TableRendererTests
     public void Reconciliation_results_delegates_to_reconciliation_renderer()
     {
         var fakeReconciliation = new FakeReconciliationUiRenderer();
-        var facade = new TableRenderer(new FakeVersionTableUiRenderer(), fakeReconciliation, new FakeMisplacedModUiRenderer(), new FakeDependencyUiRenderer());
+        var facade = new TableRenderer(
+            new FakeVersionTableUiRenderer(),
+            fakeReconciliation,
+            new FakeMisplacedModUiRenderer(),
+            new FakeDependencyUiRenderer()
+        );
 
-        facade.ReconciliationResults(new ModReconciliationResult { Mods = new List<Mod>(), ReconciledPairs = new List<ModPair>(), UnmatchedServerMods = new List<Mod>(), UnmatchedClientMods = new List<Mod>() });
+        facade.ReconciliationResults(
+            new ModReconciliationResult
+            {
+                Mods = new List<Mod>(),
+                ReconciledPairs = new List<ModPair>(),
+                UnmatchedServerMods = new List<Mod>(),
+                UnmatchedClientMods = new List<Mod>(),
+            }
+        );
 
         Assert.True(fakeReconciliation.ReconciliationResultsCalled);
     }
@@ -82,7 +109,12 @@ public sealed class TableRendererTests
     public void Misplaced_mods_delegates_to_misplaced_mod_renderer()
     {
         var fakeMisplaced = new FakeMisplacedModUiRenderer();
-        var facade = new TableRenderer(new FakeVersionTableUiRenderer(), new FakeReconciliationUiRenderer(), fakeMisplaced, new FakeDependencyUiRenderer());
+        var facade = new TableRenderer(
+            new FakeVersionTableUiRenderer(),
+            new FakeReconciliationUiRenderer(),
+            fakeMisplaced,
+            new FakeDependencyUiRenderer()
+        );
 
         facade.MisplacedMods(new MisplacedModReport(new List<MisplacedMod>(), new List<CrossInstalledDirectory>()));
 
@@ -93,7 +125,12 @@ public sealed class TableRendererTests
     public void Unverified_mods_delegates_to_reconciliation_renderer()
     {
         var fakeReconciliation = new FakeReconciliationUiRenderer();
-        var facade = new TableRenderer(new FakeVersionTableUiRenderer(), fakeReconciliation, new FakeMisplacedModUiRenderer(), new FakeDependencyUiRenderer());
+        var facade = new TableRenderer(
+            new FakeVersionTableUiRenderer(),
+            fakeReconciliation,
+            new FakeMisplacedModUiRenderer(),
+            new FakeDependencyUiRenderer()
+        );
 
         facade.UnverifiedMods(new List<Mod>());
 
@@ -104,9 +141,21 @@ public sealed class TableRendererTests
     public void Dependency_results_delegates_to_dependency_renderer()
     {
         var fakeDependency = new FakeDependencyUiRenderer();
-        var facade = new TableRenderer(new FakeVersionTableUiRenderer(), new FakeReconciliationUiRenderer(), new FakeMisplacedModUiRenderer(), fakeDependency);
+        var facade = new TableRenderer(
+            new FakeVersionTableUiRenderer(),
+            new FakeReconciliationUiRenderer(),
+            new FakeMisplacedModUiRenderer(),
+            fakeDependency
+        );
 
-        facade.DependencyResults(new DependencyAnalysisResult { RootMods = new List<DependencyNode>(), Conflicts = new List<DependencyConflict>(), MissingDependencies = new List<MissingDependency>() });
+        facade.DependencyResults(
+            new DependencyAnalysisResult
+            {
+                RootMods = new List<DependencyNode>(),
+                Conflicts = new List<DependencyConflict>(),
+                MissingDependencies = new List<MissingDependency>(),
+            }
+        );
 
         Assert.True(fakeDependency.DependencyResultsCalled);
     }
@@ -115,7 +164,12 @@ public sealed class TableRendererTests
     public void Version_table_delegates_to_version_table_renderer()
     {
         var fakeVersion = new FakeVersionTableUiRenderer();
-        var facade = new TableRenderer(fakeVersion, new FakeReconciliationUiRenderer(), new FakeMisplacedModUiRenderer(), new FakeDependencyUiRenderer());
+        var facade = new TableRenderer(
+            fakeVersion,
+            new FakeReconciliationUiRenderer(),
+            new FakeMisplacedModUiRenderer(),
+            new FakeDependencyUiRenderer()
+        );
 
         facade.VersionTable(new List<Mod>());
 

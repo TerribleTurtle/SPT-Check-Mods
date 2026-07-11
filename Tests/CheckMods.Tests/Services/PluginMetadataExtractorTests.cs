@@ -30,7 +30,8 @@ public sealed class PluginMetadataExtractorTests : IDisposable
     {
         var dllPath = Path.Combine("BepInEx", "plugins", "test-client-mod", "TestClient.dll");
 
-        var code = @"
+        var code =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute 
 {
@@ -54,10 +55,11 @@ public class MyClientPlugin {}
     }
 
     [Fact]
-    public void TryDetectClientMod_ReturnsMod_WhenValidDll()
+    public async Task TryDetectClientModAsync_ReturnsMod_WhenValidDll()
     {
         var dllPath = Path.Combine("BepInEx", "plugins", "trydetect-client-mod", "TestClient.dll");
-        var code = @"
+        var code =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.trydetect.test"", ""Try Detect Client Mod"", ""1.0.0"")]
@@ -65,17 +67,18 @@ public class TryDetectClientPlugin {}
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.TryDetectClientMod(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.TryDetectClientModAsync(Path.Combine(_sptPath, dllPath));
 
         Assert.NotNull(mod);
         Assert.Equal("com.trydetect.test", mod!.Local.Guid);
     }
 
     [Fact]
-    public void ReadPluginDlls_ReturnsPluginDlls()
+    public async Task ReadPluginDllsAsync_ReturnsPluginDlls()
     {
         var dllPath = Path.Combine("BepInEx", "plugins", "readplugins-client-mod", "TestClient.dll");
-        var code = @"
+        var code =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.readplugins.test"", ""Read Plugins Mod"", ""1.0.0"")]
@@ -83,17 +86,18 @@ public class ReadPluginsPlugin {}
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var plugins = _extractor.ReadPluginDlls([Path.Combine(_sptPath, dllPath)]);
+        var plugins = await _extractor.ReadPluginDllsAsync([Path.Combine(_sptPath, dllPath)]);
 
         Assert.Single(plugins);
         Assert.Equal("com.readplugins.test", plugins[0].Plugin.Guid);
     }
 
     [Fact]
-    public void PartitionByRelatedness_PartitionsCorrectly()
+    public async Task PartitionByRelatedness_PartitionsCorrectly()
     {
         var dllPath1 = Path.Combine("BepInEx", "plugins", "partition-client-mod", "Core.dll");
-        var code1 = @"
+        var code1 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.partition.core"", ""Partition Core Mod"", ""1.0.0"")]
@@ -102,7 +106,8 @@ public class CorePlugin {}
         _fixture.CompileDummyDll(dllPath1, code1);
 
         var dllPath2 = Path.Combine("BepInEx", "plugins", "partition-client-mod", "Module.dll");
-        var code2 = @"
+        var code2 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.partition.module"", ""Partition Module Mod"", ""1.0.0"")]
@@ -110,7 +115,7 @@ public class ModulePlugin {}
 ";
         _fixture.CompileDummyDll(dllPath2, code2);
 
-        var plugins = _extractor.ReadPluginDlls([Path.Combine(_sptPath, dllPath1), Path.Combine(_sptPath, dllPath2)]);
+        var plugins = await _extractor.ReadPluginDllsAsync([Path.Combine(_sptPath, dllPath1), Path.Combine(_sptPath, dllPath2)]);
         var partitioned = _extractor.PartitionByRelatedness(plugins);
 
         Assert.Single(partitioned); // Same author namespace 'com.partition'
@@ -118,12 +123,13 @@ public class ModulePlugin {}
     }
 
     [Fact]
-    public void ConsolidateDirectoryMods_ReturnsConsolidatedMods()
+    public async Task ConsolidateDirectoryModsAsync_ReturnsConsolidatedMods()
     {
         var dirName = "consolidate-client-mod";
         var dirPath = Path.Combine(_sptPath, "BepInEx", "plugins", dirName);
         var dllPath1 = Path.Combine("BepInEx", "plugins", dirName, "Core.dll");
-        var code1 = @"
+        var code1 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.consolidate.core"", ""Consolidate Core Mod"", ""1.0.0"")]
@@ -132,7 +138,8 @@ public class CorePlugin {}
         _fixture.CompileDummyDll(dllPath1, code1);
 
         var dllPath2 = Path.Combine("BepInEx", "plugins", dirName, "Module.dll");
-        var code2 = @"
+        var code2 =
+            @"
 using System;
 public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
 [BepInPlugin(""com.consolidate.module"", ""Consolidate Module Mod"", ""1.0.0"")]
@@ -140,7 +147,10 @@ public class ModulePlugin {}
 ";
         _fixture.CompileDummyDll(dllPath2, code2);
 
-        var consolidated = _extractor.ConsolidateDirectoryMods(dirPath, [Path.Combine(_sptPath, dllPath1), Path.Combine(_sptPath, dllPath2)]);
+        var consolidated = await _extractor.ConsolidateDirectoryModsAsync(
+            dirPath,
+            [Path.Combine(_sptPath, dllPath1), Path.Combine(_sptPath, dllPath2)]
+        );
 
         Assert.Single(consolidated);
         var mod = consolidated[0];
@@ -154,7 +164,7 @@ public class ModulePlugin {}
     {
         var pluginsPath = Path.Combine(_sptPath, "BepInEx", "plugins");
         Directory.CreateDirectory(pluginsPath);
-        
+
         var validDll = Path.Combine(pluginsPath, "Valid.dll");
         File.WriteAllBytes(validDll, new byte[100]);
 
@@ -173,13 +183,13 @@ public class ModulePlugin {}
     }
 
     [Fact]
-    public void TryDetectClientMod_ReturnsNull_WhenInvalidDll()
+    public async Task TryDetectClientModAsync_ReturnsNull_WhenInvalidDll()
     {
         var dllPath = Path.Combine(_sptPath, "BepInEx", "plugins", "Invalid.dll");
         Directory.CreateDirectory(Path.GetDirectoryName(dllPath)!);
         File.WriteAllBytes(dllPath, [0x00, 0x01, 0x02]);
 
-        var mod = _extractor.TryDetectClientMod(dllPath);
+        var mod = await _extractor.TryDetectClientModAsync(dllPath);
 
         Assert.Null(mod);
     }
@@ -189,9 +199,3 @@ public class ModulePlugin {}
         _fixture.Dispose();
     }
 }
-
-
-
-
-
-

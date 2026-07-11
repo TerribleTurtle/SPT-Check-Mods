@@ -10,7 +10,7 @@ public sealed class FakeRemoteIgnoreFileClient : IRemoteIgnoreFileClient
 {
     /// <summary> Gets or sets whether it is configured. </summary>
     public bool IsConfigured { get; set; } = true;
-    
+
     /// <summary> Gets or sets result to return. </summary>
     public IReadOnlyList<IgnoredUpdate>? ResultToReturn { get; set; }
 
@@ -21,9 +21,3 @@ public sealed class FakeRemoteIgnoreFileClient : IRemoteIgnoreFileClient
         return Task.FromResult(ResultToReturn);
     }
 }
-
-
-
-
-
-

@@ -12,14 +12,15 @@ public sealed class ModUpdateMethodsTests
     {
         return new Mod
         {
-            Local = new CheckMods.Models.LocalModIdentity {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
                 Guid = "com.author.coolmod",
                 FilePath = $"mods/{name}.dll",
                 IsServerMod = true,
                 LocalName = name,
                 LocalAuthor = author,
                 LocalVersion = version,
-            }
+            },
         };
     }
 
@@ -88,7 +89,7 @@ public sealed class ModUpdateMethodsTests
             versions: [ApiVersion("1.0.0"), ApiVersion("1.1.0")]
         );
 
-        mod.UpdateFromApiMatch(result);
+        mod = mod.WithApiMatch(result);
 
         Assert.Equal(2471, mod.Api.ApiModId);
         Assert.Equal("Cool Mod", mod.Api.ApiName);
@@ -107,7 +108,7 @@ public sealed class ModUpdateMethodsTests
         var mod = NewMod();
         var result = ApiResult(owner: null, detailUrl: null, sourceLinks: null, versions: null);
 
-        mod.UpdateFromApiMatch(result);
+        mod = mod.WithApiMatch(result);
 
         Assert.Null(mod.Api.ApiAuthor);
         Assert.Null(mod.Api.ApiUrl);
@@ -122,10 +123,10 @@ public sealed class ModUpdateMethodsTests
     public void MarkUnmatched_resets_status_after_a_match()
     {
         var mod = NewMod();
-        mod.UpdateFromApiMatch(ApiResult());
+        mod = mod.WithApiMatch(ApiResult());
         Assert.True(mod.IsMatched);
 
-        mod.MarkUnmatched();
+        mod = mod.MarkUnmatched();
 
         Assert.Equal(ModStatus.NoMatch, mod.Status);
         Assert.False(mod.IsMatched);
@@ -141,7 +142,7 @@ public sealed class ModUpdateMethodsTests
             UpdateReason: "newer_version_available"
         );
 
-        mod.UpdateFromSafeToUpdate(update);
+        mod = mod.WithSafeToUpdate(update);
 
         Assert.Equal("1.1.0", mod.Update.LatestVersion);
         Assert.Equal("https://forge.sp-tarkov.com/mod/download/2471/cool-mod/1.1.0", mod.Update.DownloadLink);
@@ -154,7 +155,7 @@ public sealed class ModUpdateMethodsTests
         var mod = NewMod();
         var update = new SafeToUpdateMod(UpdateVersion("1.0.0"), RecommendedVersion: null, UpdateReason: null);
 
-        mod.UpdateFromSafeToUpdate(update);
+        mod = mod.WithSafeToUpdate(update);
 
         Assert.Null(mod.Update.LatestVersion);
         Assert.Null(mod.Update.DownloadLink);
@@ -173,7 +174,7 @@ public sealed class ModUpdateMethodsTests
             BlockingMods: [blocking]
         );
 
-        mod.UpdateFromBlocked(blocked);
+        mod = mod.WithBlocked(blocked);
 
         Assert.Equal("2.0.0", mod.Update.LatestVersion);
         Assert.Equal("dependency_constraint_violation", mod.Update.BlockReason);
@@ -192,7 +193,7 @@ public sealed class ModUpdateMethodsTests
             BlockingMods: null
         );
 
-        mod.UpdateFromBlocked(blocked);
+        mod = mod.WithBlocked(blocked);
 
         Assert.Null(mod.Update.LatestVersion);
         Assert.Equal(UpdateStatus.UpdateBlocked, mod.Update.UpdateStatus);
@@ -203,7 +204,7 @@ public sealed class ModUpdateMethodsTests
     {
         var mod = NewMod();
 
-        mod.UpdateFromUpToDate(new UpToDateMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", null));
+        mod = mod.WithUpToDate(new UpToDateMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", null));
 
         Assert.Equal("1.0.0", mod.Update.LatestVersion);
         Assert.Equal(UpdateStatus.UpToDate, mod.Update.UpdateStatus);
@@ -214,7 +215,7 @@ public sealed class ModUpdateMethodsTests
     {
         var mod = NewMod();
 
-        mod.UpdateFromIncompatible(
+        mod = mod.WithIncompatible(
             new IncompatibleMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", "no_version_for_spt", null)
         );
 
@@ -227,7 +228,7 @@ public sealed class ModUpdateMethodsTests
     {
         var mod = NewMod();
 
-        mod.SetLocalSptIncompatible("Version 1.0.0 requires SPT ~3.0.0", "1.2.0");
+        mod = mod.WithLocalSptIncompatible("Version 1.0.0 requires SPT ~3.0.0", "1.2.0");
 
         Assert.True(mod.Update.IsLocalSptIncompatible);
         Assert.Equal("Version 1.0.0 requires SPT ~3.0.0", mod.Update.IncompatibilityReason);
@@ -239,7 +240,7 @@ public sealed class ModUpdateMethodsTests
     {
         var mod = NewMod();
 
-        mod.SetLocalSptIncompatible("No compatible version available");
+        mod = mod.WithLocalSptIncompatible("No compatible version available");
 
         Assert.True(mod.Update.IsLocalSptIncompatible);
         Assert.Null(mod.Update.CompatibleVersionString);
@@ -257,7 +258,7 @@ public sealed class ModUpdateMethodsTests
         var mod = NewMod(name: "LocalName");
         Assert.Equal("LocalName", mod.DisplayName);
 
-        mod.UpdateFromApiMatch(ApiResult(name: "Forge Name"));
+        mod = mod.WithApiMatch(ApiResult(name: "Forge Name"));
         Assert.Equal("Forge Name", mod.DisplayName);
     }
 
@@ -267,7 +268,7 @@ public sealed class ModUpdateMethodsTests
         var mod = NewMod(author: "LocalAuthor");
         Assert.Equal("LocalAuthor", mod.DisplayAuthor);
 
-        mod.UpdateFromApiMatch(ApiResult(owner: null));
+        mod = mod.WithApiMatch(ApiResult(owner: null));
         Assert.Equal("LocalAuthor", mod.DisplayAuthor);
     }
 
@@ -276,7 +277,7 @@ public sealed class ModUpdateMethodsTests
     {
         var mod = NewMod(author: "LocalAuthor");
 
-        mod.UpdateFromApiMatch(ApiResult(owner: new ModAuthor(7, "ForgeAuthor", null)));
+        mod = mod.WithApiMatch(ApiResult(owner: new ModAuthor(7, "ForgeAuthor", null)));
 
         Assert.Equal("ForgeAuthor", mod.DisplayAuthor);
     }
@@ -287,13 +288,7 @@ public sealed class ModUpdateMethodsTests
         var mod = NewMod();
         Assert.False(mod.HasWarnings);
 
-        mod.LoadWarnings.Add("something went wrong");
+        mod = mod with { LoadWarnings = ["alt"] };
         Assert.True(mod.HasWarnings);
     }
 }
-
-
-
-
-
-

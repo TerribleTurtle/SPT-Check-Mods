@@ -16,10 +16,10 @@ public sealed class InitializationServiceTests
     }
 
     [Fact]
-    public void Remove_legacy_api_key_file_does_not_throw_if_file_missing()
+    public async Task Remove_legacy_api_key_file_does_not_throw_if_file_missing()
     {
         // Act
-        var exception = Record.Exception(() => _sut.RemoveLegacyApiKeyFile());
+        var exception = await Record.ExceptionAsync(() => _sut.RemoveLegacyApiKeyFileAsync());
 
         // Assert
         Assert.Null(exception);
@@ -83,9 +83,3 @@ public sealed class InitializationServiceTests
         }
     }
 }
-
-
-
-
-
-

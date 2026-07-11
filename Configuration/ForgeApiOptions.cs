@@ -3,7 +3,7 @@ namespace CheckMods.Configuration;
 /// <summary>
 /// Configuration options for the Forge API service.
 /// </summary>
-public class ForgeApiOptions
+public sealed class ForgeApiOptions
 {
     /// <summary>
     /// The base URL for the Forge API (e.g., https://forge.sp-tarkov.com/api/v0/).

@@ -13,7 +13,7 @@ public interface IModScannerService
     /// <param name="sptPath">Path to the SPT installation directory.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>List of server mods with any validation warnings populated.</returns>
-    List<Mod> ScanServerMods(string sptPath, CancellationToken cancellationToken = default);
+    Task<List<Mod>> ScanServerModsAsync(string sptPath, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Scans the BepInEx plugins directory for client mods.
@@ -49,5 +49,5 @@ public interface IModScannerService
     /// A report of misplaced and cross-installed mods; <see cref="MisplacedModReport.Any"/> is false when every mod is
     /// correctly placed.
     /// </returns>
-    MisplacedModReport DetectMisplacedMods(string sptPath, CancellationToken cancellationToken = default);
+    Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default);
 }

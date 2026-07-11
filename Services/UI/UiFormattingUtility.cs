@@ -13,10 +13,12 @@ public static class UiFormattingUtility
     /// </summary>
     public static (string displayName, string displayAuthor) FormatModDisplayStrings(string modName, string author)
     {
-        var displayName = modName.Length > MatchingConstants.MaxDisplayNameLength
+        var displayName =
+            modName.Length > MatchingConstants.MaxDisplayNameLength
                 ? modName[..(MatchingConstants.MaxDisplayNameLength - 3)] + "..."
                 : modName;
-        var displayAuthor = author.Length > MatchingConstants.MaxDisplayAuthorLength
+        var displayAuthor =
+            author.Length > MatchingConstants.MaxDisplayAuthorLength
                 ? author[..(MatchingConstants.MaxDisplayAuthorLength - 3)] + "..."
                 : author;
 

@@ -23,7 +23,7 @@ public sealed class RemoteIgnoreFileClient(
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() },
+        TypeInfoResolver = CheckMods.Configuration.CheckModsJsonSerializerContext.Default,
     };
 
     /// <inheritdoc />
@@ -51,7 +51,7 @@ public sealed class RemoteIgnoreFileClient(
             }
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            var file = JsonSerializer.Deserialize<IgnoredUpdatesFile>(json, _jsonOptions);
+            var file = JsonSerializer.Deserialize(json, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.IgnoredUpdatesFile);
             if (file?.Ignored is null)
             {
                 return null;

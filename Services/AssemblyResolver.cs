@@ -36,7 +36,7 @@ public sealed class AssemblyResolver(string dllPath) : MetadataAssemblyResolver
     /// <param name="dllPath">Path to the DLL being analyzed.</param>
     private static IEnumerable<string> BuildMinimalAssemblySearchPaths(string dllPath)
     {
-        List<string> assemblyPaths = [dllPath];
+        var assemblyPaths = new List<string> { dllPath };
 
         // Add .NET runtime assemblies.
         var runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();

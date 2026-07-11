@@ -18,7 +18,9 @@ public sealed class MisplacedModUiRenderer(ITextRenderer textRenderer) : IMispla
         textRenderer.Rule();
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[red bold]Improperly installed mods detected.[/]");
-        AnsiConsole.MarkupLine("[grey]It appears that the following mods are installed incorrectly. Review the mod pages for install instructions and ensure they are correctly installed.[/]");
+        AnsiConsole.MarkupLine(
+            "[grey]It appears that the following mods are installed incorrectly. Review the mod pages for install instructions and ensure they are correctly installed.[/]"
+        );
         AnsiConsole.WriteLine();
 
         var serverInClient = report.WrongFolder.Where(m => m.IsServerMod).ToList();
@@ -26,7 +28,9 @@ public sealed class MisplacedModUiRenderer(ITextRenderer textRenderer) : IMispla
 
         if (serverInClient.Count > 0)
         {
-            var tree = new Tree("[yellow]Server mods found in the client folder[/] [grey](BepInEx/plugins)[/][yellow]. Move them into[/] [grey]SPT/user/mods[/]");
+            var tree = new Tree(
+                "[yellow]Server mods found in the client folder[/] [grey](BepInEx/plugins)[/][yellow]. Move them into[/] [grey]SPT/user/mods[/]"
+            );
             foreach (var mod in serverInClient)
             {
                 AddMisplacedModNode(tree, mod);
@@ -37,7 +41,9 @@ public sealed class MisplacedModUiRenderer(ITextRenderer textRenderer) : IMispla
 
         if (clientInServer.Count > 0)
         {
-            var tree = new Tree("[yellow]Client mods found in the server folder[/] [grey](SPT/user/mods)[/][yellow]. Move them into[/] [grey]BepInEx/plugins[/]");
+            var tree = new Tree(
+                "[yellow]Client mods found in the server folder[/] [grey](SPT/user/mods)[/][yellow]. Move them into[/] [grey]BepInEx/plugins[/]"
+            );
             foreach (var mod in clientInServer)
             {
                 AddMisplacedModNode(tree, mod);
@@ -51,7 +57,9 @@ public sealed class MisplacedModUiRenderer(ITextRenderer textRenderer) : IMispla
             PrintCrossInstalledDirectory(directory);
         }
 
-        AnsiConsole.MarkupLine("[red]These mods are being skipped for the rest of this check. Move them to the correct location and run this tool again to have them included.[/]");
+        AnsiConsole.MarkupLine(
+            "[red]These mods are being skipped for the rest of this check. Move them to the correct location and run this tool again to have them included.[/]"
+        );
         AnsiConsole.MarkupLine("[grey]If this incorrect, please create a Github issue and provide logs.[/]");
         AnsiConsole.WriteLine();
         textRenderer.Rule();
@@ -64,7 +72,9 @@ public sealed class MisplacedModUiRenderer(ITextRenderer textRenderer) : IMispla
 
         if (directory.Ambiguous)
         {
-            tree = new Tree("[yellow]Unrelated mods share one folder under[/] [grey](BepInEx/plugins)[/][yellow]. One is likely in the wrong place. Review the install instructions for each[/]");
+            tree = new Tree(
+                "[yellow]Unrelated mods share one folder under[/] [grey](BepInEx/plugins)[/][yellow]. One is likely in the wrong place. Review the install instructions for each[/]"
+            );
             directoryNode = tree.AddNode($"[grey]{directory.Directory.EscapeMarkup()}[/]");
             foreach (var mod in directory.Mods)
             {
@@ -73,7 +83,9 @@ public sealed class MisplacedModUiRenderer(ITextRenderer textRenderer) : IMispla
         }
         else
         {
-            tree = new Tree("[yellow]Mods found inside another mod's folder under[/] [grey](BepInEx/plugins)[/][yellow]. Review the mod's installation instructions[/]");
+            tree = new Tree(
+                "[yellow]Mods found inside another mod's folder under[/] [grey](BepInEx/plugins)[/][yellow]. Review the mod's installation instructions[/]"
+            );
             directoryNode = tree.AddNode($"[grey]{directory.Directory.EscapeMarkup()}[/]");
             foreach (var mod in directory.Misplaced)
             {

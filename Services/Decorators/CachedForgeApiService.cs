@@ -20,7 +20,8 @@ public sealed class CachedForgeApiService(
         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
     };
 
-    private async Task<T> GetCachedAsync<T>(string key, Func<Task<T>> factory) where T : IOneOf
+    private async Task<T> GetCachedAsync<T>(string key, Func<Task<T>> factory)
+        where T : IOneOf
     {
         if (cache.TryGetValue(key, out T? cachedValue) && cachedValue is not null)
         {
@@ -29,7 +30,7 @@ public sealed class CachedForgeApiService(
         }
 
         var result = await factory();
-        
+
         if (result.Value is not ApiError)
         {
             cache.Set(key, result, _cacheEntryOptions);
@@ -110,7 +111,7 @@ public sealed class CachedForgeApiService(
         var updatesList = modUpdates.ToList();
         var updatesKey = string.Join(",", updatesList.Select(m => $"{m.ModId}_{m.CurrentVersion}").OrderBy(x => x));
         var key = $"ForgeApi_GetModUpdates_{updatesKey}_{sptVersion}";
-        
+
         return GetCachedAsync(key, () => inner.GetModUpdatesAsync(updatesList, sptVersion, cancellationToken));
     }
 

@@ -11,8 +11,11 @@ namespace CheckMods.Services.Interfaces;
 public interface ICompatibilityValidationService
 {
     /// <summary>
-    /// Checks mod version compatibility with the installed SPT version, 
+    /// Checks mod version compatibility with the installed SPT version,
     /// flagging any incompatibilities.
     /// </summary>
-    void CheckModVersionCompatibility(List<Mod> mods, Version sptVersion);
+    IReadOnlyList<Mod> CheckModVersionCompatibility(
+        IEnumerable<Mod> mods,
+        SemanticVersioning.Version sptVersion
+    );
 }

@@ -8,7 +8,7 @@ namespace CheckMods.Tests.Fakes;
 public sealed class FakeInitializationService : IInitializationService
 {
     /// <summary>
-    /// Gets a value indicating whether <see cref="RemoveLegacyApiKeyFile"/> was called.
+    /// Gets a value indicating whether <see cref="RemoveLegacyApiKeyFileAsync"/> was called.
     /// </summary>
     public bool RemoveLegacyApiKeyFileCalled { get; private set; }
 
@@ -23,16 +23,17 @@ public sealed class FakeInitializationService : IInitializationService
     public string? ValidatedSptPathToReturn { get; set; } = Directory.GetCurrentDirectory();
 
     /// <inheritdoc />
-    public void RemoveLegacyApiKeyFile()
+    public Task RemoveLegacyApiKeyFileAsync()
     {
         RemoveLegacyApiKeyFileCalled = true;
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
     public string? GetValidatedSptPath(string[] args)
     {
         GetValidatedSptPathCalled = true;
-        
+
         if (args.Length > 0 && args[0].Contains("invalid"))
         {
             return null;
@@ -41,9 +42,3 @@ public sealed class FakeInitializationService : IInitializationService
         return ValidatedSptPathToReturn;
     }
 }
-
-
-
-
-
-

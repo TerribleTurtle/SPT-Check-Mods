@@ -50,12 +50,12 @@ public sealed class ModPair
     /// <summary>
     /// The server mod component.
     /// </summary>
-    public required Mod ServerMod { get; init; }
+    public required Mod? ServerMod { get; init; }
 
     /// <summary>
     /// The client mod component.
     /// </summary>
-    public required Mod ClientMod { get; init; }
+    public required Mod? ClientMod { get; init; }
 
     /// <summary>
     /// The mod that was selected (with the higher version or more complete metadata).

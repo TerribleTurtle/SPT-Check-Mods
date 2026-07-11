@@ -14,7 +14,7 @@ public sealed class FakeSptInstallationService : ISptInstallationService
 
     /// <summary> Gets or sets validated version. </summary>
     public Version? ValidatedVersion { get; set; }
-    
+
     /// <summary> Gets or sets updates. </summary>
     public List<SptVersionResult> Updates
     {
@@ -30,15 +30,12 @@ public sealed class FakeSptInstallationService : ISptInstallationService
     }
 
     /// <inheritdoc />
-    public Task<List<SptVersionResult>> CheckForSptUpdatesAsync(Version currentVersion, CancellationToken cancellationToken = default)
+    public Task<List<SptVersionResult>> CheckForSptUpdatesAsync(
+        Version currentVersion,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(_updates.ToList());
     }
 }
-
-
-
-
-
-

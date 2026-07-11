@@ -40,8 +40,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             if (guidResult.TryPickT0(out var guidMatch, out _))
             {
                 logger.LogDebug("Mod matched by GUID: {ModName} -> {ApiName}", mod.Local.LocalName, guidMatch.Name);
-                mod.UpdateFromApiMatch(guidMatch);
-                return mod;
+                return mod.WithApiMatch(guidMatch);
             }
 
             if (guidResult.TryPickT2(out var guidNoCompat, out _))
@@ -59,8 +58,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
 
             if (altGuidResult.TryPickT0(out var altGuidMatch, out _))
             {
-                mod.UpdateFromApiMatch(altGuidMatch);
-                return mod;
+                return mod.WithApiMatch(altGuidMatch);
             }
 
             if (altGuidResult.TryPickT2(out var altNoCompat, out _))
@@ -98,8 +96,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                 continue;
             }
 
-            mod.UpdateFromApiMatch(bestMatch);
-            return mod;
+            return mod.WithApiMatch(bestMatch);
         }
 
         // Nothing compatible turned up. If a GUID matched a mod that has no SPT-compatible version, keep it as a match.
@@ -110,13 +107,11 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                 mod.Local.LocalName,
                 incompatibleMatch.Name
             );
-            mod.UpdateFromApiMatch(incompatibleMatch);
-            return mod;
+            return mod.WithApiMatch(incompatibleMatch);
         }
 
         logger.LogDebug("No match found for mod: {ModName}", mod.Local.LocalName);
-        mod.MarkUnmatched();
-        return mod;
+        return mod.MarkUnmatched();
     }
 
     /// <summary>
@@ -216,17 +211,18 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         {
             try
             {
-                await MatchModAsync(mod, sptVersion, cancellationToken);
+                mod = await MatchModAsync(mod, sptVersion, cancellationToken);
             }
             catch (OperationCanceledException)
             {
                 throw;
             }
-            catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException or InvalidOperationException)
+            catch (Exception ex)
+                when (ex is HttpRequestException or System.Text.Json.JsonException or InvalidOperationException)
             {
                 // Isolate per-mod failures: mark this mod unmatched and record the failure.
                 logger.LogWarning(ex, "Failed to match mod: {ModName}", mod.Local.LocalName);
-                mod.MarkUnmatched();
+                mod = mod.MarkUnmatched();
                 Interlocked.Increment(ref failureCount);
                 Interlocked.CompareExchange(ref firstFailure, ex, null);
             }
@@ -338,4 +334,3 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         return bestFuzzyMatch?.Result;
     }
 }
-

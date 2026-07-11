@@ -11,5 +11,5 @@ public interface IMisplacedModDetector
     /// <summary>
     /// Detects misplaced mods (client mods in server folder and vice-versa) and cross-installed directories.
     /// </summary>
-    MisplacedModReport DetectMisplacedMods(string sptPath, CancellationToken cancellationToken = default);
+    Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default);
 }

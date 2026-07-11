@@ -107,20 +107,23 @@ public sealed class IgnoredUpdateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        var preIgnoredIds = candidates.Where(m => m.Update.UpdateSuppressed).Select(m => m.Api.ApiModId!.Value).ToHashSet();
+        var preIgnoredIds = candidates
+            .Where(m => m.Update.UpdateSuppressed)
+            .Select(m => m.Api.ApiModId!.Value)
+            .ToHashSet();
         var selected = reporter.SelectUpdatesToIgnore(candidates, preIgnoredIds);
         var chosen = selected.Select(ToIgnoredUpdate).ToList();
 
-        PersistSelection(mods, chosen);
+        await PersistSelectionAsync(mods, chosen, cancellationToken);
 
         await OfferReportAsync(chosen, cancellationToken);
     }
 
-    private void PersistSelection(IReadOnlyList<Mod> mods, IReadOnlyList<IgnoredUpdate> chosen)
+    private async Task PersistSelectionAsync(IReadOnlyList<Mod> mods, IReadOnlyList<IgnoredUpdate> chosen, CancellationToken cancellationToken)
     {
         var evaluatedIds = mods.Where(m => m.IsMatched).Select(m => m.Api.ApiModId!.Value).ToHashSet();
-        var newSet = BuildNewSet(store.Load(), evaluatedIds, chosen);
-        store.Save(newSet);
+        var newSet = BuildNewSet(await store.LoadAsync(cancellationToken), evaluatedIds, chosen);
+        await store.SaveAsync(newSet, cancellationToken);
     }
 
     /// <summary>
@@ -220,11 +223,3 @@ public sealed class IgnoredUpdateWorkflow(
         );
     }
 }
-
-
-
-
-
-
-
-

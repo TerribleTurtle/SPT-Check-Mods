@@ -5,7 +5,7 @@ namespace CheckMods.Models;
 /// <summary>
 /// Response from the Forge API SPT versions endpoint.
 /// </summary>
-public class SptVersionApiResponse
+public sealed class SptVersionApiResponse
 {
     [JsonPropertyName("success")]
     public bool Success { get; set; }
@@ -20,7 +20,7 @@ public class SptVersionApiResponse
 /// <summary>
 /// Represents an SPT version from the Forge API.
 /// </summary>
-public class SptVersionResult
+public sealed class SptVersionResult
 {
     /// <summary>
     /// The unique numeric identifier for this SPT version on the Forge API.

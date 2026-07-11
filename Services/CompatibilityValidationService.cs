@@ -4,8 +4,8 @@ using System.Linq;
 using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
-using SPTarkov.DI.Annotations;
 using SemanticVersioning;
+using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
 
 namespace CheckMods.Services;
@@ -15,25 +15,39 @@ namespace CheckMods.Services;
 public sealed class CompatibilityValidationService(IModCheckReporter reporter) : ICompatibilityValidationService
 {
     /// <inheritdoc />
-    public void CheckModVersionCompatibility(List<Mod> mods, Version sptVersion)
+    public IReadOnlyList<Mod> CheckModVersionCompatibility(
+        IEnumerable<Mod> mods,
+        Version sptVersion
+    )
     {
-        // Only check mods that are matched with the API and have versions stored, skipping those whose update was
-        // dismissed as a false positive.
-        var matchedMods = mods.Where(m => m.IsMatched && m.Api.ApiVersions is { Count: > 0 } && !m.Update.UpdateSuppressed)
-            .ToList();
-
-        foreach (var mod in matchedMods)
+        var updatedMods = new List<Mod>();
+        foreach (var mod in mods)
         {
-            CheckModSptCompatibility(mod, sptVersion);
+            var updatedMod = mod;
+            var isCompatible = IsCompatibleWithSpt(updatedMod, sptVersion, out var reason, out var compatibleVersion);
+            if (!isCompatible)
+            {
+                updatedMod = updatedMod.WithLocalSptIncompatible(reason, compatibleVersion);
+            }
+            updatedMods.Add(updatedMod);
         }
+        return updatedMods;
     }
 
     /// <summary>
     /// Evaluates a single matched mod's installed version against the installed SPT version, flagging it when the
     /// constraint can't be parsed or isn't satisfied.
     /// </summary>
-    private void CheckModSptCompatibility(Mod mod, Version sptVersion)
+    private bool IsCompatibleWithSpt(Mod mod, Version sptVersion, out string reason, out string? compatibleVersion)
     {
+        reason = string.Empty;
+        compatibleVersion = null;
+
+        if (!mod.IsMatched || mod.Api.ApiVersions is not { Count: > 0 } || mod.Update.UpdateSuppressed)
+        {
+            return true;
+        }
+
         // Find the version that matches the installed local version.
         var installedApiVersion = mod.Api.ApiVersions!.FirstOrDefault(v =>
             string.Equals(v.Version, mod.Local.LocalVersion, StringComparison.OrdinalIgnoreCase)
@@ -42,13 +56,13 @@ public sealed class CompatibilityValidationService(IModCheckReporter reporter) :
         if (installedApiVersion == null)
         {
             // Couldn't find the installed version in the API versions
-            return;
+            return true;
         }
 
         // Check if the installed version's SPT constraint is compatible with the installed SPT version
         if (string.IsNullOrWhiteSpace(installedApiVersion.SptVersionConstraint))
         {
-            return;
+            return true;
         }
 
         if (!SemanticVersioning.Range.TryParse(installedApiVersion.SptVersionConstraint, out var range))
@@ -57,25 +71,30 @@ public sealed class CompatibilityValidationService(IModCheckReporter reporter) :
             reporter.Warning(
                 $"Could not verify SPT compatibility for {mod.DisplayName}: Forge reported an invalid version constraint ({installedApiVersion.SptVersionConstraint})."
             );
-            return;
+            return true;
         }
 
         if (range.IsSatisfied(sptVersion))
         {
             // The installed version is compatible - no issue
-            return;
+            return true;
         }
 
         // The installed version is NOT compatible with the installed SPT version
-        var reason = $"Version {mod.Local.LocalVersion} requires SPT {installedApiVersion.SptVersionConstraint}";
+        reason = $"Version {mod.Local.LocalVersion} requires SPT {installedApiVersion.SptVersionConstraint}";
 
         // Find the latest compatible version to suggest
-        var compatibleApiVersion = mod.Api.ApiVersions!.Where(v =>
-                SemVer.SatisfiesRange(v.SptVersionConstraint, sptVersion)
+        compatibleVersion = mod
+            .Api.ApiVersions!.Where(v => SemVer.SatisfiesRange(v.SptVersionConstraint, sptVersion))
+            .OrderByDescending(v =>
+                (
+                    SemVer
+                        .TryParse(v.Version, "CompatibilityValidationService")
+                        .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
+                )
             )
-            .OrderByDescending(v => (SemVer.TryParse(v.Version, "CompatibilityValidationService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))))
-            .FirstOrDefault();
+            .FirstOrDefault()?.Version;
 
-        mod.SetLocalSptIncompatible(reason, compatibleApiVersion?.Version);
+        return false;
     }
 }

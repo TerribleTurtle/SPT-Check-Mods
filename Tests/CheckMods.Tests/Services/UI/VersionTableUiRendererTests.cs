@@ -27,11 +27,13 @@ public sealed class VersionTableUiRendererTests
                 IsServerMod = false,
                 LocalName = "Test Mod",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
-            }
+                LocalVersion = "1.0.0",
+            },
         };
-        mod.UpdateFromUpToDate(new UpToDateMod(null, 123, null, null, "1.0.0", null));
-        mod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
+        mod = mod.WithUpToDate(new UpToDateMod(null, 123, null, null, "1.0.0", null));
+        mod = mod.WithApiMatch(
+            new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null)
+        );
 
         renderer.VersionTable(new List<Mod> { mod });
 
@@ -57,11 +59,15 @@ public sealed class VersionTableUiRendererTests
                 IsServerMod = false,
                 LocalName = "Test Mod Update",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
-            }
+                LocalVersion = "1.0.0",
+            },
         };
-        mod.UpdateFromSafeToUpdate(new SafeToUpdateMod(null, new ModUpdateVersion(null, 123, null, null, null, "2.0.0", null, null), null));
-        mod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod Update", "test-mod", null, null, 0, null, null, null, null));
+        mod = mod.WithSafeToUpdate(
+            new SafeToUpdateMod(null, new ModUpdateVersion(null, 123, null, null, null, "2.0.0", null, null), null)
+        );
+        mod = mod.WithApiMatch(
+            new ModSearchResult(123, null, "Test Mod Update", "test-mod", null, null, 0, null, null, null, null)
+        );
 
         renderer.VersionTable(new List<Mod> { mod });
 
@@ -87,10 +93,10 @@ public sealed class VersionTableUiRendererTests
                 IsServerMod = false,
                 LocalName = "Incompatible Mod",
                 LocalAuthor = "Author",
-                LocalVersion = "1.0.0"
-            }
+                LocalVersion = "1.0.0",
+            },
         };
-        mod.SetLocalSptIncompatible("Requires SPT 4.0.0", "1.1.0");
+        mod = mod.WithLocalSptIncompatible("Requires SPT 4.0.0", "1.1.0");
 
         renderer.VersionCompatibilityResults(new List<Mod> { mod }, new SemanticVersioning.Version(3, 9, 0));
 
@@ -111,30 +117,61 @@ public sealed class VersionTableUiRendererTests
         {
             Local = new LocalModIdentity
             {
-                Guid = "test.mod", IsServerMod = false, LocalName = "Test Mod Update", LocalAuthor = "Author", LocalVersion = "1.0.0", FilePath = "test.dll"
-            }
+                Guid = "test.mod",
+                IsServerMod = false,
+                LocalName = "Test Mod Update",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                FilePath = "test.dll",
+            },
         };
 
-        var safeMod = new SafeToUpdateMod(
+        mod = mod.WithApiMatch(new ModSearchResult(123, null, "Test Mod Update", "test-mod", null, null, 0, null, null, null, null));
+        mod = mod.WithSafeToUpdate(new SafeToUpdateMod(
             new ModUpdateVersion(null, 123, null, null, null, "1.0.0", null, null),
             new ModUpdateVersion(null, 123, null, null, null, "2.0.0", null, null),
             "Major update"
-        );
-        var searchResult = new ModSearchResult(123, null, "Test Mod Update", "test-mod", null, null, 0, null, null, null, null);
-
-        mod.UpdateFromSafeToUpdate(safeMod);
-        mod.UpdateFromApiMatch(searchResult);
-
-        mod.Update.UpdateStatus = UpdateStatus.UpdateBlocked;
-        mod.Update.BlockReason = "Blocked by dependency";
-        mod.Update.UpdateSuppressed = true;
+        ));
+        
+        mod = mod with
+        {
+            Update = mod.Update with
+            {
+                UpdateStatus = UpdateStatus.UpdateBlocked,
+                BlockReason = "Blocked by dependency",
+                BlockingMods = [new BlockingModInfo(123, "dep", "dependency", "1.0.0", "1.0.0", null)],
+                UpdateSuppressed = true
+            }
+        };
 
         var depDelta = new UpdateDependencyDelta
         {
-            Added = new List<DependencyChange> { new DependencyChange { Name = "New Dep", Guid = "new.dep", ModId = 1, Slug = "new-dep", RecommendedVersion = "1.0.0", InstallState = DependencyInstallState.NotInstalled } },
-            Removed = new List<DependencyChange> { new DependencyChange { Name = "Old Dep", Guid = "old.dep", ModId = 2, Slug = "old-dep", RecommendedVersion = "1.0.0", InstallState = DependencyInstallState.NotInstalled } }
+            Added = new List<DependencyChange>
+            {
+                new DependencyChange
+                {
+                    Name = "New Dep",
+                    Guid = "new.dep",
+                    ModId = 1,
+                    Slug = "new-dep",
+                    RecommendedVersion = "1.0.0",
+                    InstallState = DependencyInstallState.NotInstalled,
+                },
+            },
+            Removed = new List<DependencyChange>
+            {
+                new DependencyChange
+                {
+                    Name = "Old Dep",
+                    Guid = "old.dep",
+                    ModId = 2,
+                    Slug = "old-dep",
+                    RecommendedVersion = "1.0.0",
+                    InstallState = DependencyInstallState.NotInstalled,
+                },
+            },
         };
-        mod.Update.UpdateDependencyChanges = depDelta;
+        mod = mod.WithUpdateDependencyChanges(depDelta);
 
         renderer.VersionTable(new List<Mod> { mod });
 

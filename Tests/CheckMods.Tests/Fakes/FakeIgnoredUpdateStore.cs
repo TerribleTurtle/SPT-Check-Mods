@@ -15,10 +15,7 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
     /// </summary>
     public List<IgnoredUpdate> Store
     {
-        get
-        {
-            return _store.ToList();
-        }
+        get { return _store.ToList(); }
         set
         {
             _store.Clear();
@@ -27,50 +24,52 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<IgnoredUpdate> Load()
+    public Task<IReadOnlyList<IgnoredUpdate>> LoadAsync(CancellationToken cancellationToken = default)
     {
-        return _store.ToList();
+        return Task.FromResult<IReadOnlyList<IgnoredUpdate>>(_store.ToList());
     }
 
     /// <inheritdoc />
-    public bool IsIgnored(Mod mod)
+    public Task<bool> IsIgnoredAsync(Mod mod, CancellationToken cancellationToken = default)
     {
         if (mod.Api.ApiModId <= 0)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        return _store.Any(x => 
-            x.ApiModId == mod.Api.ApiModId && 
-            x.LocalVersion == mod.Local.LocalVersion && 
-            x.IgnoredLatestVersion == mod.Update.LatestVersion);
+        return Task.FromResult(_store.Any(x =>
+            x.ApiModId == mod.Api.ApiModId
+            && x.LocalVersion == mod.Local.LocalVersion
+            && x.IgnoredLatestVersion == mod.Update.LatestVersion
+        ));
     }
 
     /// <inheritdoc />
-    public void Save(IReadOnlyList<IgnoredUpdate> entries)
+    public Task SaveAsync(IReadOnlyList<IgnoredUpdate> entries, CancellationToken cancellationToken = default)
     {
         _store.Clear();
         _store.AddRange(entries);
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public int MergeWithoutOverwrite(IReadOnlyList<IgnoredUpdate> incoming)
+    public Task<int> MergeWithoutOverwriteAsync(IReadOnlyList<IgnoredUpdate> incoming, CancellationToken cancellationToken = default)
     {
         int added = 0;
         foreach (var entry in incoming)
         {
-            if (!_store.Any(x => x.ApiModId == entry.ApiModId && x.LocalVersion == entry.LocalVersion && x.IgnoredLatestVersion == entry.IgnoredLatestVersion))
+            if (
+                !_store.Any(x =>
+                    x.ApiModId == entry.ApiModId
+                    && x.LocalVersion == entry.LocalVersion
+                    && x.IgnoredLatestVersion == entry.IgnoredLatestVersion
+                )
+            )
             {
                 _store.Add(entry);
                 added++;
             }
         }
-        return added;
+        return Task.FromResult(added);
     }
 }
-
-
-
-
-
-

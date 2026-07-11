@@ -22,24 +22,27 @@ public sealed class FakePluginMetadataExtractor : IPluginMetadataExtractor
         return ValidClientDllFilesToReturn.ToList();
     }
 
-    public Task<List<Mod>> ProcessClientDllsInParallelAsync(List<string> dllFiles, CancellationToken cancellationToken = default)
+    public Task<List<Mod>> ProcessClientDllsInParallelAsync(
+        List<string> dllFiles,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.FromResult(ProcessedClientMods.ToList());
     }
 
-    public List<Mod> ConsolidateDirectoryMods(string directory, List<string> dllPaths)
+    public Task<List<Mod>> ConsolidateDirectoryModsAsync(string directory, List<string> dllPaths, CancellationToken cancellationToken = default)
     {
-        return ConsolidatedMods.ToList();
+        return Task.FromResult(ConsolidatedMods.ToList());
     }
 
-    public Mod? TryDetectClientMod(string dllPath)
+    public Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default)
     {
-        return DetectedClientMod;
+        return Task.FromResult(DetectedClientMod);
     }
 
-    public List<PluginDll> ReadPluginDlls(List<string> dllPaths)
+    public Task<List<PluginDll>> ReadPluginDllsAsync(List<string> dllPaths, CancellationToken cancellationToken = default)
     {
-        return PluginDlls.ToList();
+        return Task.FromResult(PluginDlls.ToList());
     }
 
     public List<List<PluginDll>> PartitionByRelatedness(List<PluginDll> plugins)
@@ -52,9 +55,3 @@ public sealed class FakePluginMetadataExtractor : IPluginMetadataExtractor
         return MisplacedModToReturn!;
     }
 }
-
-
-
-
-
-

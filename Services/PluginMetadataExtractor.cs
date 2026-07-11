@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -44,7 +45,7 @@ public sealed class PluginMetadataExtractor(
     {
         var warnings = new ConcurrentBag<(string FileName, string Reason)>();
         var tasks = dllFiles.Select(dllPath =>
-            Task.Run(() => ExtractClientModMetadata(dllPath, warnings), cancellationToken)
+            ExtractClientModMetadataAsync(dllPath, warnings, cancellationToken)
         );
 
         var results = await Task.WhenAll(tasks);
@@ -60,13 +61,14 @@ public sealed class PluginMetadataExtractor(
 
     private static List<Mod> FilterDuplicateClientMods(List<Mod> mods)
     {
-        return mods.DistinctBy(m => (m.Local.LocalName.ToLowerInvariant(), m.Local.LocalAuthor.ToLowerInvariant())).ToList();
+        return mods.DistinctBy(m => (m.Local.LocalName.ToLowerInvariant(), m.Local.LocalAuthor.ToLowerInvariant()))
+            .ToList();
     }
 
     /// <inheritdoc />
-    public List<Mod> ConsolidateDirectoryMods(string directory, List<string> dllPaths)
+    public async Task<List<Mod>> ConsolidateDirectoryModsAsync(string directory, List<string> dllPaths, CancellationToken cancellationToken = default)
     {
-        var allPlugins = ReadPluginDlls(dllPaths);
+        var allPlugins = await ReadPluginDllsAsync(dllPaths, cancellationToken);
 
         if (allPlugins.Count == 0)
         {
@@ -79,12 +81,13 @@ public sealed class PluginMetadataExtractor(
     }
 
     /// <inheritdoc />
-    public Mod? TryDetectClientMod(string dllPath)
+    public async Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default)
     {
         try
         {
+            var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
             using var loadContext = CreateMetadataLoadContext(dllPath);
-            var assembly = loadContext.LoadFromByteArray(File.ReadAllBytes(dllPath));
+            var assembly = loadContext.LoadFromByteArray(bytes);
 
             foreach (var type in GetLoadableTypes(assembly))
             {
@@ -102,7 +105,13 @@ public sealed class PluginMetadataExtractor(
                 }
             }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
+        catch (Exception ex)
+            when (ex
+                    is IOException
+                        or UnauthorizedAccessException
+                        or BadImageFormatException
+                        or System.Security.SecurityException
+            )
         {
             logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
         }
@@ -111,7 +120,8 @@ public sealed class PluginMetadataExtractor(
     }
 
     /// <inheritdoc />
-    public List<PluginDll> ReadPluginDlls(List<string> dllPaths)
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
+    public async Task<List<PluginDll>> ReadPluginDllsAsync(List<string> dllPaths, CancellationToken cancellationToken = default)
     {
         List<PluginDll> plugins = [];
 
@@ -119,8 +129,9 @@ public sealed class PluginMetadataExtractor(
         {
             try
             {
+                var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
                 using var loadContext = CreateMetadataLoadContext(dllPath);
-                var assembly = loadContext.LoadFromByteArray(File.ReadAllBytes(dllPath));
+                var assembly = loadContext.LoadFromByteArray(bytes);
                 var plugin = ScanAssemblyForBepInPluginAttribute(assembly);
 
                 if (plugin is null)
@@ -136,7 +147,13 @@ public sealed class PluginMetadataExtractor(
 
                 plugins.Add(new PluginDll(dllPath, plugin, assembly.GetName().Name, referencedNames));
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
+            catch (Exception ex)
+                when (ex
+                        is IOException
+                            or UnauthorizedAccessException
+                            or BadImageFormatException
+                            or System.Security.SecurityException
+                )
             {
                 logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
             }
@@ -191,16 +208,23 @@ public sealed class PluginMetadataExtractor(
         return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
-    private Mod? ExtractClientModMetadata(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings)
+    private async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
     {
         try
         {
+            var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
             using var loadContext = CreateMetadataLoadContext(dllPath);
-            var assembly = loadContext.LoadFromByteArray(File.ReadAllBytes(dllPath));
+            var assembly = loadContext.LoadFromByteArray(bytes);
 
             return ScanAssemblyForBepInPlugin(assembly, dllPath);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
+        catch (Exception ex)
+            when (ex
+                    is IOException
+                        or UnauthorizedAccessException
+                        or BadImageFormatException
+                        or System.Security.SecurityException
+            )
         {
             warnings.Add((Path.GetFileName(dllPath), ex.Message));
             return null;
@@ -213,6 +237,7 @@ public sealed class PluginMetadataExtractor(
         return new MetadataLoadContext(resolver);
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
     private Mod? ScanAssemblyForBepInPlugin(Assembly assembly, string dllPath)
     {
         foreach (var type in assembly.GetTypes())
@@ -236,6 +261,7 @@ public sealed class PluginMetadataExtractor(
         return null;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
     private static BepInPluginAttribute? ScanAssemblyForBepInPluginAttribute(Assembly assembly)
     {
         foreach (var type in assembly.GetTypes())
@@ -258,6 +284,7 @@ public sealed class PluginMetadataExtractor(
         return null;
     }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
     private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
     {
         try
@@ -309,10 +336,7 @@ public sealed class PluginMetadataExtractor(
             .Where(guid => !guid.Equals(primaryPlugin.Guid, StringComparison.OrdinalIgnoreCase))
             .Except(mod.Local.AlternateGuids, StringComparer.OrdinalIgnoreCase);
 
-        foreach (var guid in alternateGuids)
-        {
-            mod.Local.AlternateGuids.Add(guid);
-        }
+        mod = mod with { Local = mod.Local with { AlternateGuids = [.. mod.Local.AlternateGuids, .. alternateGuids] } };
 
         return mod;
     }
@@ -351,7 +375,19 @@ public sealed class PluginMetadataExtractor(
 
     private static readonly HashSet<string> _genericGuidSegments = new(StringComparer.OrdinalIgnoreCase)
     {
-        "com", "org", "net", "io", "dev", "co", "app", "me", "gg", "xyz", "github", "gitlab", "gitee"
+        "com",
+        "org",
+        "net",
+        "io",
+        "dev",
+        "co",
+        "app",
+        "me",
+        "gg",
+        "xyz",
+        "github",
+        "gitlab",
+        "gitee",
     };
 
     private static bool SameAuthorNamespace(string guidA, string guidB)
@@ -530,10 +566,3 @@ public sealed class PluginMetadataExtractor(
         return SemVer.TryParse(version, "PluginMetadataExtractor").IsT0;
     }
 }
-
-
-
-
-
-
-

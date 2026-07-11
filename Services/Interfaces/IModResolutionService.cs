@@ -16,18 +16,18 @@ public interface IModResolutionService
     /// <summary>
     /// Fetches source code URLs from the API for mods that have warnings, mutating the mods in place.
     /// </summary>
-    Task FetchSourceCodeUrlsForModsAsync(
-        List<Mod> mods,
-        Version sptVersion,
+    Task<IReadOnlyList<Mod>> FetchSourceCodeUrlsForModsAsync(
+        IEnumerable<Mod> mods,
+        SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Fetches source code URLs from the API for paired mods with reconciliation warnings.
     /// </summary>
-    Task FetchSourceCodeUrlsForPairedModsAsync(
-        List<ModPair> pairs,
-        Version sptVersion,
+    Task<(IReadOnlyList<ModPair> UpdatedPairs, IReadOnlyList<Mod> UpdatedMods)> FetchSourceCodeUrlsForPairedModsAsync(
+        IEnumerable<ModPair> pairs,
+        SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
     );
 }

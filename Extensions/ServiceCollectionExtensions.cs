@@ -1,16 +1,16 @@
 using System.Net.Http.Headers;
 using System.Reflection;
-using Serilog;
-using Serilog.Events;
-using Microsoft.Extensions.Configuration;
 using CheckMods.Configuration;
 using CheckMods.Services;
 using CheckMods.Services.Decorators;
 using CheckMods.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog;
+using Serilog.Events;
 using SPTarkov.DI;
 
 namespace CheckMods.Extensions;
@@ -25,7 +25,10 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configuration">The application configuration.</param>
-    public static IServiceCollection AddCheckModsServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCheckModsServices(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         services.Configure<ForgeApiOptions>(configuration.GetSection("ForgeApiOptions"));
         services.Configure<RateLimitOptions>(configuration.GetSection("RateLimitOptions"));
@@ -41,8 +44,9 @@ public static class ServiceCollectionExtensions
             // Suppress verbose HttpClient logging.
             builder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
 
-            var loggingOptions = configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
-            
+            var loggingOptions =
+                configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
+
             if (loggingOptions.EnableFileLogging)
             {
                 LogEventLevel serilogLevel = loggingOptions.MinimumLogLevel switch
@@ -53,7 +57,7 @@ public static class ServiceCollectionExtensions
                     LogLevel.Warning => LogEventLevel.Warning,
                     LogLevel.Error => LogEventLevel.Error,
                     LogLevel.Critical => LogEventLevel.Fatal,
-                    _ => LogEventLevel.Information
+                    _ => LogEventLevel.Information,
                 };
 
                 var serilogLogger = new Serilog.LoggerConfiguration()
@@ -76,29 +80,40 @@ public static class ServiceCollectionExtensions
         diHandler.InjectAll();
 
         // Register the named HttpClient for ForgeApi
-        services.AddHttpClient("ForgeApi", (serviceProvider, client) =>
-        {
-            var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
-            client.Timeout = TimeSpan.FromSeconds(rateLimitOptions.RequestTimeoutSeconds);
+        services.AddHttpClient(
+            "ForgeApi",
+            (serviceProvider, client) =>
+            {
+                var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+                client.Timeout = TimeSpan.FromSeconds(rateLimitOptions.RequestTimeoutSeconds);
 
-            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
-            client.DefaultRequestHeaders.UserAgent.Add(
-                new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
-            );
-        });
+                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
+                client.DefaultRequestHeaders.UserAgent.Add(
+                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
+                );
+            }
+        );
 
         services.AddTransient<IForgeApiService, CachedForgeApiService>(sp =>
         {
             var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ForgeApi");
             var inner = ActivatorUtilities.CreateInstance<ForgeApiService>(sp, httpClient);
-            return new CachedForgeApiService(inner, sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ILogger<CachedForgeApiService>>());
+            return new CachedForgeApiService(
+                inner,
+                sp.GetRequiredService<IMemoryCache>(),
+                sp.GetRequiredService<ILogger<CachedForgeApiService>>()
+            );
         });
 
         services.AddTransient<IModDependencyService, CachedModDependencyService>(sp =>
         {
             var inner = ActivatorUtilities.CreateInstance<ModDependencyService>(sp);
-            return new CachedModDependencyService(inner, sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ILogger<CachedModDependencyService>>());
+            return new CachedModDependencyService(
+                inner,
+                sp.GetRequiredService<IMemoryCache>(),
+                sp.GetRequiredService<ILogger<CachedModDependencyService>>()
+            );
         });
 
         // Register the remote ignore-list client as a typed HttpClient.

@@ -8,7 +8,7 @@ public interface IInitializationService
     /// <summary>
     /// Removes the legacy API key file written by previous versions. Best-effort: any failure is logged and ignored.
     /// </summary>
-    void RemoveLegacyApiKeyFile();
+    Task RemoveLegacyApiKeyFileAsync();
 
     /// <summary>
     /// Validates and returns the SPT installation path from arguments or current directory.

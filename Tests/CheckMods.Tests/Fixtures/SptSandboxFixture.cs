@@ -36,7 +36,8 @@ public sealed class SptSandboxFixture : IDisposable
         var syntaxTree = CSharpSyntaxTree.ParseText(code);
         var assemblyName = Path.GetFileNameWithoutExtension(relativePath);
 
-        var references = AppDomain.CurrentDomain.GetAssemblies()
+        var references = AppDomain
+            .CurrentDomain.GetAssemblies()
             .Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
             .Select(a => MetadataReference.CreateFromFile(a.Location))
             .ToArray();
@@ -45,7 +46,8 @@ public sealed class SptSandboxFixture : IDisposable
             assemblyName,
             [syntaxTree],
             references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
 
         var fullPath = Path.Combine(SandboxPath, relativePath);
         var dir = Path.GetDirectoryName(fullPath);
@@ -75,9 +77,3 @@ public sealed class SptSandboxFixture : IDisposable
         }
     }
 }
-
-
-
-
-
-

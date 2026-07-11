@@ -134,3 +134,14 @@ DocumentLayout.json
 .agents/
 findings.md
 progress.md
+
+# Local Environments & IDEs
+appsettings.Development.json
+appsettings.*.json
+.env
+.env.*
+.vs/
+.vscode/
+
+# Test Results
+TestResults/

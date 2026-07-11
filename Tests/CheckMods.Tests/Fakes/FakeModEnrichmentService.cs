@@ -12,16 +12,13 @@ public sealed class FakeModEnrichmentService : IModEnrichmentService
     public bool WasCalled { get; set; }
 
     /// <inheritdoc />
-    public Task EnrichAllWithVersionDataAsync(IEnumerable<Mod> mods, SemanticVersioning.Version sptVersion, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<Mod>> EnrichAllWithVersionDataAsync(
+        IEnumerable<Mod> mods,
+        SemanticVersioning.Version sptVersion,
+        CancellationToken cancellationToken = default
+    )
     {
-        cancellationToken.ThrowIfCancellationRequested();
         WasCalled = true;
-        return Task.CompletedTask;
+        return Task.FromResult<IReadOnlyList<Mod>>(mods.ToList());
     }
 }
-
-
-
-
-
-

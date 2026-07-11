@@ -112,7 +112,11 @@ public sealed class DependencyUiRenderer(ITextRenderer textRenderer) : IDependen
         {
             linkUrl = node.Mod.Api.ApiUrl;
         }
-        else if (node.DependencyInfo != null && node.DependencyInfo.Id > 0 && !string.IsNullOrWhiteSpace(node.DependencyInfo.Slug))
+        else if (
+            node.DependencyInfo != null
+            && node.DependencyInfo.Id > 0
+            && !string.IsNullOrWhiteSpace(node.DependencyInfo.Slug)
+        )
         {
             linkUrl = ForgeUrls.ModPage(node.DependencyInfo.Id, node.DependencyInfo.Slug);
         }
@@ -153,7 +157,8 @@ public sealed class DependencyUiRenderer(ITextRenderer textRenderer) : IDependen
 
         foreach (var dep in missingDeps)
         {
-            var url = dep.ModId > 0 && !string.IsNullOrWhiteSpace(dep.Slug) ? ForgeUrls.ModPage(dep.ModId, dep.Slug) : null;
+            var url =
+                dep.ModId > 0 && !string.IsNullOrWhiteSpace(dep.Slug) ? ForgeUrls.ModPage(dep.ModId, dep.Slug) : null;
             var nameDisplay = UiFormattingUtility.IsLinkUrlSafe(url)
                 ? $"[white link={url}]{dep.Name.EscapeMarkup()}[/]"
                 : $"[white]{dep.Name.EscapeMarkup()}[/]";

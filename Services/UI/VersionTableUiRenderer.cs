@@ -42,11 +42,17 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                 continue;
             }
 
-            modNode.AddNode($"[grey]Latest compatible version:[/] [green]{mod.Update.CompatibleVersionString.EscapeMarkup()}[/]");
+            modNode.AddNode(
+                $"[grey]Latest compatible version:[/] [green]{mod.Update.CompatibleVersionString.EscapeMarkup()}[/]"
+            );
 
             if (mod.Api.ApiModId.HasValue && !string.IsNullOrWhiteSpace(mod.Api.ApiSlug))
             {
-                var forgeDownloadUrl = ForgeUrls.Download(mod.Api.ApiModId.Value, mod.Api.ApiSlug, mod.Update.CompatibleVersionString);
+                var forgeDownloadUrl = ForgeUrls.Download(
+                    mod.Api.ApiModId.Value,
+                    mod.Api.ApiSlug,
+                    mod.Update.CompatibleVersionString
+                );
                 modNode.AddNode($"[grey]Download:[/] [link]{forgeDownloadUrl.EscapeMarkup()}[/]");
             }
         }
@@ -68,7 +74,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Checking for mod updates...[/]");
-        AnsiConsole.MarkupLine("[white]This tool depends on mod authors to use and update valid version numbers. If you notice a version number in the Current Version column that is incorrect, please contact the author of the mod to have it updated. Additionally, these updates can be ignored by selecting the \"Manage ignored updates\" option at the end of the check.[/]");
+        AnsiConsole.MarkupLine(
+            "[white]This tool depends on mod authors to use and update valid version numbers. If you notice a version number in the Current Version column that is incorrect, please contact the author of the mod to have it updated. Additionally, these updates can be ignored by selecting the \"Manage ignored updates\" option at the end of the check.[/]"
+        );
         AnsiConsole.WriteLine();
 
         var table = new Table()
@@ -81,7 +89,10 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
 
         foreach (var mod in verifiedMods)
         {
-            var (displayName, displayAuthor) = UiFormattingUtility.FormatModDisplayStrings(mod.DisplayName, mod.DisplayAuthor);
+            var (displayName, displayAuthor) = UiFormattingUtility.FormatModDisplayStrings(
+                mod.DisplayName,
+                mod.DisplayAuthor
+            );
             var latestVersionDisplay = FormatVersionDisplay(mod);
             var nameDisplay = UiFormattingUtility.FormatModLink(displayName, mod.Api.ApiUrl);
 
@@ -95,9 +106,13 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
 
         AnsiConsole.Write(table);
 
-        AnsiConsole.MarkupLine("[grey]Version colors: [green]Up to date[/] | [red]Update available[/] | [darkorange]Update blocked[/] | [blue]Newer than latest[/] | [grey]Ignored[/][/]");
+        AnsiConsole.MarkupLine(
+            "[grey]Version colors: [green]Up to date[/] | [red]Update available[/] | [darkorange]Update blocked[/] | [blue]Newer than latest[/] | [grey]Ignored[/][/]"
+        );
 
-        var modsWithUpdates = verifiedMods.Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateAvailable && !m.Update.UpdateSuppressed).ToList();
+        var modsWithUpdates = verifiedMods
+            .Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateAvailable && !m.Update.UpdateSuppressed)
+            .ToList();
         if (modsWithUpdates.Count > 0)
         {
             AnsiConsole.WriteLine();
@@ -109,7 +124,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                 var nameDisplay = UiFormattingUtility.FormatModLink(mod.DisplayName, mod.Api.ApiUrl);
 
                 var modNode = updatesTree.AddNode(nameDisplay);
-                modNode.AddNode($"[grey]{mod.Local.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [green]{mod.Update.LatestVersion!.EscapeMarkup()}[/]");
+                modNode.AddNode(
+                    $"[grey]{mod.Local.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [green]{mod.Update.LatestVersion!.EscapeMarkup()}[/]"
+                );
 
                 if (!string.IsNullOrWhiteSpace(mod.Update.DownloadLink))
                 {
@@ -125,7 +142,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
             AnsiConsole.Write(updatesTree);
         }
 
-        var modsWithBlockedUpdates = verifiedMods.Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateBlocked).ToList();
+        var modsWithBlockedUpdates = verifiedMods
+            .Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateBlocked)
+            .ToList();
         if (modsWithBlockedUpdates.Count > 0)
         {
             AnsiConsole.WriteLine();
@@ -137,7 +156,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                 var nameDisplay = UiFormattingUtility.FormatModLink(mod.DisplayName, mod.Api.ApiUrl);
 
                 var modNode = blockedTree.AddNode(nameDisplay);
-                modNode.AddNode($"[grey]{mod.Local.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [darkorange]{mod.Update.LatestVersion!.EscapeMarkup()}[/]");
+                modNode.AddNode(
+                    $"[grey]{mod.Local.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [darkorange]{mod.Update.LatestVersion!.EscapeMarkup()}[/]"
+                );
 
                 if (!string.IsNullOrWhiteSpace(mod.Update.BlockReason))
                 {
@@ -148,7 +169,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                 {
                     foreach (var blocker in mod.Update.BlockingMods)
                     {
-                        modNode.AddNode($"[grey]Blocked by:[/] {blocker.Name.EscapeMarkup()} [grey]({blocker.Constraint.EscapeMarkup()})[/]");
+                        modNode.AddNode(
+                            $"[grey]Blocked by:[/] {blocker.Name.EscapeMarkup()} [grey]({blocker.Constraint.EscapeMarkup()})[/]"
+                        );
                     }
                 }
 
@@ -171,7 +194,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
         AnsiConsole.MarkupLine("[grey]Pro tip:    Mod names are clickable.[/]");
         AnsiConsole.MarkupLine("[grey]Expert tip: Read the mod page before installing or updating mods.[/]");
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[white]Find an issue [italic]with this tool[/]? Submit a bug report on the [link=https://github.com/TerribleTurtle/SPT-Check-Mods/issues/new]TerribleTurtle fork[/].[/]");
+        AnsiConsole.MarkupLine(
+            "[white]Find an issue [italic]with this tool[/]? Submit a bug report on the [link=https://github.com/TerribleTurtle/SPT-Check-Mods/issues/new]TerribleTurtle fork[/].[/]"
+        );
         AnsiConsole.WriteLine();
     }
 
@@ -210,15 +235,18 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
 
         foreach (var dep in delta.Added)
         {
-            var url = dep.ModId > 0 && !string.IsNullOrWhiteSpace(dep.Slug) ? ForgeUrls.ModPage(dep.ModId, dep.Slug) : null;
+            var url =
+                dep.ModId > 0 && !string.IsNullOrWhiteSpace(dep.Slug) ? ForgeUrls.ModPage(dep.ModId, dep.Slug) : null;
             var nameDisplay = UiFormattingUtility.IsLinkUrlSafe(url)
                 ? $"[white link={url}]{dep.Name.EscapeMarkup()}[/]"
                 : $"[white]{dep.Name.EscapeMarkup()}[/]";
 
             var annotation = dep.InstallState switch
             {
-                DependencyInstallState.NotInstalled => $"[red]new - download v{dep.RecommendedVersion.EscapeMarkup()}[/]",
-                DependencyInstallState.InstalledOutdated => $"[yellow]installed v{(dep.InstalledVersion ?? "?").EscapeMarkup()}, update needs v{dep.RecommendedVersion.EscapeMarkup()}[/]",
+                DependencyInstallState.NotInstalled =>
+                    $"[red]new - download v{dep.RecommendedVersion.EscapeMarkup()}[/]",
+                DependencyInstallState.InstalledOutdated =>
+                    $"[yellow]installed v{(dep.InstalledVersion ?? "?").EscapeMarkup()}, update needs v{dep.RecommendedVersion.EscapeMarkup()}[/]",
                 _ => $"[grey]already satisfied (v{(dep.InstalledVersion ?? dep.RecommendedVersion).EscapeMarkup()})[/]",
             };
 
@@ -238,7 +266,9 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
         foreach (var dep in delta.Removed)
         {
             var wasVersion = dep.InstalledVersion ?? dep.RecommendedVersion;
-            changesNode.AddNode($"[grey]-[/] [grey]{dep.Name.EscapeMarkup()} no longer required (was v{wasVersion.EscapeMarkup()})[/]");
+            changesNode.AddNode(
+                $"[grey]-[/] [grey]{dep.Name.EscapeMarkup()} no longer required (was v{wasVersion.EscapeMarkup()})[/]"
+            );
         }
     }
 
@@ -246,8 +276,14 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
     {
         return mods.Where(m => m.IsMatched && m.Update.LatestVersion is not null)
             .GroupBy(m => m.Api.ApiModId!.Value)
-            .Select(g => g.OrderByDescending(m => SemVer.TryParse(m.Local.LocalVersion, nameof(VersionTableUiRenderer))
-                .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))).First())
+            .Select(g =>
+                g.OrderByDescending(m =>
+                        SemVer
+                            .TryParse(m.Local.LocalVersion, nameof(VersionTableUiRenderer))
+                            .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
+                    )
+                    .First()
+            )
             .ToList();
     }
 }

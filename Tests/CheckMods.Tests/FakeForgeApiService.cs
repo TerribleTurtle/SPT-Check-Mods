@@ -144,9 +144,3 @@ internal sealed class FakeForgeApiService : IForgeApiService
         return Task.FromResult(OnGetModDependencies(identifier));
     }
 }
-
-
-
-
-
-

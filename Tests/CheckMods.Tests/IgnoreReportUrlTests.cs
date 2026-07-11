@@ -44,9 +44,3 @@ public sealed class IgnoreReportUrlTests
         Assert.Equal(BareUrl, url);
     }
 }
-
-
-
-
-
-

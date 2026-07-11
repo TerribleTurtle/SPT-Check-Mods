@@ -24,6 +24,7 @@ internal static class IgnoreReportUrl
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        TypeInfoResolver = CheckMods.Configuration.CheckModsJsonSerializerContext.Default,
     };
 
     /// <summary>
@@ -34,7 +35,7 @@ internal static class IgnoreReportUrl
     /// <param name="prefilled">True when the returned URL carries the pre-filled entries.</param>
     public static string Build(IReadOnlyList<IgnoredUpdate> entries, out bool prefilled)
     {
-        var json = JsonSerializer.Serialize(entries.Select(ToReportEntry).ToList(), _jsonOptions);
+        var json = JsonSerializer.Serialize(entries.Select(ToReportEntry).ToList(), CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ListReportEntry);
 
         // Wrap in a fenced JSON code block.
         var field = $"```json\n{json}\n```";
@@ -56,7 +57,7 @@ internal static class IgnoreReportUrl
         return new ReportEntry(entry.ApiModId, entry.Name, entry.Guid, entry.LocalVersion, entry.IgnoredLatestVersion);
     }
 
-    private sealed record ReportEntry(
+    internal sealed record ReportEntry(
         [property: JsonPropertyName("apiModId")] int ApiModId,
         [property: JsonPropertyName("name")] string? Name,
         [property: JsonPropertyName("guid")] string? Guid,

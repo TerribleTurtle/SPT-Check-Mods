@@ -7,7 +7,7 @@ public static class MatchingConstants
 {
     /// <summary>
     /// Minimum fuzzy match score (0-100) required to consider an exact plugin/server match valid.
-    /// This was selected as 70 to allow for minor spelling variations or version suffixes 
+    /// This was selected as 70 to allow for minor spelling variations or version suffixes
     /// while rejecting completely distinct mods that share common keywords.
     /// </summary>
     public const int MinimumFuzzyMatchScore = 70;

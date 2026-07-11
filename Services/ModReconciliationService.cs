@@ -34,7 +34,7 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         for (int i = 0; i < serverMods.Count; i++)
         {
             var serverMod = serverMods[i];
-            
+
             if (!string.IsNullOrWhiteSpace(serverMod.Local.Guid))
             {
                 if (!serverByGuid.TryGetValue(serverMod.Local.Guid, out var list))
@@ -79,7 +79,8 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
             var clientMod = clientMods[clientIdx];
             var (selectedMod, notes) = SelectBestMod(serverMod, clientMod);
 
-            selectedMod.Local.PairedComponentPath = selectedMod == serverMod ? clientMod.Local.FilePath : serverMod.Local.FilePath;
+            serverMod = serverMod with { Local = serverMod.Local with { PairedComponentPath = clientMod.Local.FilePath } };
+            clientMod = clientMod with { Local = clientMod.Local with { PairedComponentPath = serverMod.Local.FilePath } };
 
             reconciledPairs.Add(
                 new ModPair
@@ -130,7 +131,9 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
             var normName = ModNameNormalizer.Normalize(clientMod.Local.LocalName, removeComponentSuffixes: true);
             var guidName = ModNameNormalizer.ExtractNameFromGuid(clientMod.Local.Guid);
             var hasGuidName = !string.IsNullOrEmpty(guidName);
-            var normGuidName = hasGuidName ? ModNameNormalizer.Normalize(guidName, removeComponentSuffixes: true) : null;
+            var normGuidName = hasGuidName
+                ? ModNameNormalizer.Normalize(guidName, removeComponentSuffixes: true)
+                : null;
 
             candidateIndices.Clear();
 
@@ -141,17 +144,26 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
 
             if (hasGuidName)
             {
-                if (!string.IsNullOrEmpty(normGuidName) && serverByNormGuidName.TryGetValue(normGuidName, out var guidNameMatches))
+                if (
+                    !string.IsNullOrEmpty(normGuidName)
+                    && serverByNormGuidName.TryGetValue(normGuidName, out var guidNameMatches)
+                )
                 {
                     candidateIndices.UnionWith(guidNameMatches);
                 }
 
-                if (!string.IsNullOrEmpty(normName) && serverByNormGuidName.TryGetValue(normName, out var guidNameToNameMatches))
+                if (
+                    !string.IsNullOrEmpty(normName)
+                    && serverByNormGuidName.TryGetValue(normName, out var guidNameToNameMatches)
+                )
                 {
                     candidateIndices.UnionWith(guidNameToNameMatches);
                 }
 
-                if (!string.IsNullOrEmpty(normGuidName) && serverByNormName.TryGetValue(normGuidName, out var nameToGuidNameMatches))
+                if (
+                    !string.IsNullOrEmpty(normGuidName)
+                    && serverByNormName.TryGetValue(normGuidName, out var nameToGuidNameMatches)
+                )
                 {
                     foreach (var idx in nameToGuidNameMatches)
                     {
@@ -229,7 +241,9 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         {
             if (serverVersion != clientVersion)
             {
-                notes.Add($"Version mismatch: server '{serverMod.Local.LocalVersion}' vs client '{clientMod.Local.LocalVersion}'");
+                notes.Add(
+                    $"Version mismatch: server '{serverMod.Local.LocalVersion}' vs client '{clientMod.Local.LocalVersion}'"
+                );
             }
 
             // Select the mod with the higher version
@@ -258,4 +272,3 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         return (serverMod, notes);
     }
 }
-

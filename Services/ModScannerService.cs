@@ -24,7 +24,7 @@ public sealed class ModScannerService(
 ) : IModScannerService
 {
     /// <inheritdoc />
-    public List<Mod> ScanServerMods(string sptPath, CancellationToken cancellationToken = default)
+    public async Task<List<Mod>> ScanServerModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
         logger.LogDebug("Scanning server mods at: {SptPath}", sptPath);
 
@@ -53,7 +53,7 @@ public sealed class ModScannerService(
             {
                 try
                 {
-                    var mod = serverExtractor.ExtractServerModMetadata(dllPath);
+                    var mod = await serverExtractor.ExtractServerModMetadataAsync(dllPath, cancellationToken);
                     if (mod is null)
                     {
                         continue;
@@ -62,7 +62,13 @@ public sealed class ModScannerService(
                     mods.Add(mod);
                     break; // Only one mod per directory
                 }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
+                catch (Exception ex)
+                    when (ex
+                            is IOException
+                                or UnauthorizedAccessException
+                                or BadImageFormatException
+                                or System.Security.SecurityException
+                    )
                 {
                     reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
                 }
@@ -108,11 +114,10 @@ public sealed class ModScannerService(
             dllsByDirectory.Remove(pluginsDir);
         }
 
-        // Group each subdirectory's DLLs into the mods they belong to
         foreach (var (directory, directoryDlls) in dllsByDirectory)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            mods.AddRange(pluginExtractor.ConsolidateDirectoryMods(directory, directoryDlls));
+            mods.AddRange(await pluginExtractor.ConsolidateDirectoryModsAsync(directory, directoryDlls, cancellationToken));
         }
 
         logger.LogInformation("Found {ModCount} client mods", mods.Count);
@@ -165,7 +170,7 @@ public sealed class ModScannerService(
         CancellationToken cancellationToken = default
     )
     {
-        var serverMods = ScanServerMods(sptPath, cancellationToken);
+        var serverMods = await ScanServerModsAsync(sptPath, cancellationToken);
         var clientMods = await ScanClientModsAsync(sptPath, cancellationToken);
         return (serverMods, clientMods);
     }
@@ -185,7 +190,13 @@ public sealed class ModScannerService(
             var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(coreDllPath);
             return versionInfo.FileVersion;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or FileNotFoundException or System.ComponentModel.Win32Exception)
+        catch (Exception ex)
+            when (ex
+                    is IOException
+                        or UnauthorizedAccessException
+                        or FileNotFoundException
+                        or System.ComponentModel.Win32Exception
+            )
         {
             reporter.CouldNotReadSptVersion(ex.Message);
         }
@@ -194,8 +205,8 @@ public sealed class ModScannerService(
     }
 
     /// <inheritdoc />
-    public MisplacedModReport DetectMisplacedMods(string sptPath, CancellationToken cancellationToken = default)
+    public async Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
-        return misplacedDetector.DetectMisplacedMods(sptPath, cancellationToken);
+        return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
     }
 }

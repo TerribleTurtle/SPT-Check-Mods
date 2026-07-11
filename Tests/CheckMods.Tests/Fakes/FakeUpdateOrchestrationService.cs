@@ -14,26 +14,24 @@ public sealed class FakeUpdateOrchestrationService : IUpdateOrchestrationService
     public bool CheckForCheckModsUpdateCalled { get; private set; }
     public bool ApplyIgnoredUpdatesCalled { get; private set; }
 
-    public Task CheckForSptUpdatesAsync(
-        Version currentVersion,
-        CancellationToken cancellationToken = default
-    )
+    public Task CheckForSptUpdatesAsync(Version currentVersion, CancellationToken cancellationToken = default)
     {
         CheckForSptUpdatesCalled = true;
         return Task.CompletedTask;
     }
 
-    public Task CheckForCheckModsUpdateAsync(
-        Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
+    public Task CheckForCheckModsUpdateAsync(Version sptVersion, CancellationToken cancellationToken = default)
     {
         CheckForCheckModsUpdateCalled = true;
         return Task.CompletedTask;
     }
 
-    public void ApplyIgnoredUpdates(List<Mod> mods)
+    public Task<IReadOnlyList<Mod>> ApplyIgnoredUpdatesAsync(
+        IEnumerable<Mod> mods,
+        CancellationToken cancellationToken = default
+    )
     {
         ApplyIgnoredUpdatesCalled = true;
+        return Task.FromResult<IReadOnlyList<Mod>>(mods.ToList());
     }
 }

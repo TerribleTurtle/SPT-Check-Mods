@@ -13,7 +13,7 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
     : IModEnrichmentService
 {
     /// <inheritdoc />
-    public async Task EnrichAllWithVersionDataAsync(
+    public async Task<IReadOnlyList<Mod>> EnrichAllWithVersionDataAsync(
         IEnumerable<Mod> mods,
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
@@ -29,7 +29,7 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
         if (uniqueModsById.Count == 0)
         {
             logger.LogDebug("No matched mods to enrich");
-            return;
+            return mods.ToList();
         }
 
         logger.LogDebug("Enriching {ModCount} unique mods", uniqueModsById.Count);
@@ -42,10 +42,12 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
 
         if (!updatesResult.TryPickT0(out var updatesData, out _))
         {
-            return;
+            return mods.ToList();
         }
 
-        void ProcessUpdates<T>(IEnumerable<T>? updates, Func<T, int> getModId, Action<Mod, T> updateAction)
+        var modsDict = mods.ToDictionary(m => m.Local.Guid);
+
+        void ProcessUpdates<T>(IEnumerable<T>? updates, Func<T, int> getModId, Func<Mod, T, Mod> updateAction)
         {
             if (updates is null)
             {
@@ -58,14 +60,16 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
 
             foreach (var (mod, update) in modsToUpdate)
             {
-                updateAction(mod, update);
+                var originalMod = modsDict[mod.Local.Guid];
+                modsDict[mod.Local.Guid] = updateAction(originalMod, update);
             }
         }
 
-        ProcessUpdates(updatesData.SafeToUpdate, u => u.ModId, (m, u) => m.UpdateFromSafeToUpdate(u));
-        ProcessUpdates(updatesData.Blocked, b => b.ModId, (m, b) => m.UpdateFromBlocked(b));
-        ProcessUpdates(updatesData.UpToDate, u => u.ModId, (m, u) => m.UpdateFromUpToDate(u));
-        ProcessUpdates(updatesData.Incompatible, i => i.ModId, (m, i) => m.UpdateFromIncompatible(i));
+        ProcessUpdates(updatesData.SafeToUpdate, u => u.ModId, (m, u) => m.WithSafeToUpdate(u));
+        ProcessUpdates(updatesData.Blocked, b => b.ModId, (m, b) => m.WithBlocked(b));
+        ProcessUpdates(updatesData.UpToDate, u => u.ModId, (m, u) => m.WithUpToDate(u));
+        ProcessUpdates(updatesData.Incompatible, i => i.ModId, (m, i) => m.WithIncompatible(i));
+
+        return modsDict.Values.ToList();
     }
 }
-

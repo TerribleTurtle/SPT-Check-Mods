@@ -78,9 +78,3 @@ public sealed class MisplacedModReportTests
         Assert.DoesNotContain(modB.FilePath, report.ExcludedFilePaths);
     }
 }
-
-
-
-
-
-

@@ -25,9 +25,3 @@ public sealed class FakeUpdateCheckService : IUpdateCheckService
         throw CheckAsyncThrows;
     }
 }
-
-
-
-
-
-

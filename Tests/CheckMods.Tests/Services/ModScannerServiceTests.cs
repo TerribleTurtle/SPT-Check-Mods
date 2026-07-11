@@ -25,7 +25,7 @@ public sealed class ModScannerServiceTests : IDisposable
         _fixture = new SptSandboxFixture();
         _sptPath = _fixture.SandboxPath;
         _reporter = new FakeModCheckReporter();
-        
+
         _pluginExtractor = new FakePluginMetadataExtractor();
         _serverExtractor = new FakeServerModExtractor();
         _misplacedDetector = new FakeMisplacedModDetector();
@@ -40,16 +40,28 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public void ScanServerMods_ReturnsValidMods()
+    public async Task ScanServerModsAsync_ReturnsValidMods()
     {
         var modPath = Path.Combine(_sptPath, "SPT", "user", "mods", "test-server-mod");
         Directory.CreateDirectory(modPath);
         File.WriteAllText(Path.Combine(modPath, "TestMod.dll"), "dummy");
 
-        var fakeMod = new Mod { Local = new CheckMods.Models.LocalModIdentity { Guid = "com.server.test", FilePath = "test", LocalName = "Test Server Mod", LocalAuthor = "ServerAuthor", LocalVersion = "1.0.0", LocalSptVersion = "3.8.0", IsServerMod = true } };
+        var fakeMod = new Mod
+        {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
+                Guid = "com.server.test",
+                FilePath = "test",
+                LocalName = "Test Server Mod",
+                LocalAuthor = "ServerAuthor",
+                LocalVersion = "1.0.0",
+                LocalSptVersion = "3.8.0",
+                IsServerMod = true,
+            },
+        };
         _serverExtractor.ExtractedMod = fakeMod;
 
-        var mods = _service.ScanServerMods(_sptPath);
+        var mods = await _service.ScanServerModsAsync(_sptPath);
 
         Assert.Single(mods);
         Assert.Same(fakeMod, mods[0]);
@@ -66,7 +78,18 @@ public sealed class ModScannerServiceTests : IDisposable
 
         _pluginExtractor.ValidClientDllFilesToReturn = [dllPath];
 
-        var fakeMod = new Mod { Local = new CheckMods.Models.LocalModIdentity { Guid = "com.client.test", FilePath = "test", LocalName = "Test Client Mod", LocalAuthor = "client", LocalVersion = "1.0.0", IsServerMod = false } };
+        var fakeMod = new Mod
+        {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
+                Guid = "com.client.test",
+                FilePath = "test",
+                LocalName = "Test Client Mod",
+                LocalAuthor = "client",
+                LocalVersion = "1.0.0",
+                IsServerMod = false,
+            },
+        };
         _pluginExtractor.ProcessedClientMods = [fakeMod];
 
         var mods = await _service.ScanClientModsAsync(_sptPath);
@@ -85,12 +108,12 @@ public sealed class ModScannerServiceTests : IDisposable
     }
 
     [Fact]
-    public void DetectMisplacedMods_CallsDetector()
+    public async Task DetectMisplacedModsAsync_CallsDetector()
     {
         var expectedReport = new MisplacedModReport([], []);
         _misplacedDetector.ReportToReturn = expectedReport;
 
-        var report = _service.DetectMisplacedMods(_sptPath);
+        var report = await _service.DetectMisplacedModsAsync(_sptPath);
 
         Assert.Same(expectedReport, report);
     }
@@ -107,7 +130,11 @@ public sealed class ModScannerServiceTests : IDisposable
         var options = Microsoft.Extensions.Options.Options.Create(new CheckMods.Configuration.ModScannerOptions());
         var realPluginExtractor = new PluginMetadataExtractor(options, NullLogger<PluginMetadataExtractor>.Instance);
         var realServerExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance);
-        var realMisplacedDetector = new MisplacedModDetector(realPluginExtractor, realServerExtractor, NullLogger<MisplacedModDetector>.Instance);
+        var realMisplacedDetector = new MisplacedModDetector(
+            realPluginExtractor,
+            realServerExtractor,
+            NullLogger<MisplacedModDetector>.Instance
+        );
         var realService = new ModScannerService(
             realPluginExtractor,
             realServerExtractor,
@@ -117,7 +144,8 @@ public sealed class ModScannerServiceTests : IDisposable
         );
 
         // Generate dummy client mod (BepInEx Plugin)
-        var clientModCode = @"
+        var clientModCode =
+            @"
 using BepInEx;
 [BepInPlugin(""com.client.test"", ""Test Client Mod"", ""1.0.0"")]
 public class TestClientPlugin : BaseUnityPlugin {}
@@ -130,7 +158,8 @@ namespace BepInEx {
         _fixture.CompileDummyDll(Path.Combine("BepInEx", "plugins", "TestClient.dll"), clientModCode);
 
         // Generate dummy server mod
-        var serverModCode = @"
+        var serverModCode =
+            @"
 public abstract class AbstractModMetadata {
     public string ModGuid { get; set; }
     public string Name { get; set; }
@@ -156,15 +185,9 @@ public class TestServerMod : AbstractModMetadata {
         Assert.Single(clientMods);
         Assert.Equal("com.client.test", clientMods[0].Local.Guid);
         Assert.Equal("Test Client Mod", clientMods[0].Local.LocalName);
-        
+
         Assert.Single(serverMods);
         Assert.Equal("com.server.test", serverMods[0].Local.Guid);
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
-
-
-
-
-
-

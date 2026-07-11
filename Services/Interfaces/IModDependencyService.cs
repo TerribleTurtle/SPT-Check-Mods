@@ -15,9 +15,9 @@ public interface IModDependencyService
     /// <param name="progressCallback">Optional callback for progress updates (current, total).</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>Dependency analysis result containing tree structure and any issues.</returns>
-    Task<DependencyAnalysisResult> AnalyzeDependenciesAsync(
+    Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
-        HashSet<string> installedModGuids,
+        ISet<string> installedModGuids,
         Action<int, int>? progressCallback = null,
         CancellationToken cancellationToken = default
     );
@@ -26,7 +26,7 @@ public interface IModDependencyService
 /// <summary>
 /// Result of dependency analysis containing the tree structure and any detected issues.
 /// </summary>
-public class DependencyAnalysisResult
+public sealed class DependencyAnalysisResult
 {
     /// <summary>
     /// Root mods that are not dependencies of any other installed mod.
@@ -55,7 +55,7 @@ public class DependencyAnalysisResult
 /// <summary>
 /// Represents a node in the dependency tree.
 /// </summary>
-public class DependencyNode
+public sealed class DependencyNode
 {
     /// <summary>
     /// The mod at this node.
@@ -81,7 +81,7 @@ public class DependencyNode
 /// <summary>
 /// Represents a version conflict between dependencies.
 /// </summary>
-public class DependencyConflict
+public sealed class DependencyConflict
 {
     /// <summary>
     /// The mod that has the conflict.
@@ -107,7 +107,7 @@ public class DependencyConflict
 /// <summary>
 /// Represents a missing dependency.
 /// </summary>
-public class MissingDependency
+public sealed class MissingDependency
 {
     /// <summary>
     /// The name of the missing dependency.

@@ -34,11 +34,11 @@ public sealed class DependencyUiRendererTests
                             IsServerMod = false,
                             LocalName = "Test Mod",
                             LocalAuthor = "Author",
-                            LocalVersion = "1.0.0"
-                        }
+                            LocalVersion = "1.0.0",
+                        },
                     },
-                    IsInstalled = true
-                }
+                    IsInstalled = true,
+                },
             },
             Conflicts = new List<DependencyConflict>(),
             MissingDependencies = new List<MissingDependency>
@@ -49,9 +49,9 @@ public sealed class DependencyUiRendererTests
                     Guid = "missing.mod",
                     ModId = 123,
                     Slug = "missing-mod",
-                    RecommendedVersion = "1.0.0"
-                }
-            }
+                    RecommendedVersion = "1.0.0",
+                },
+            },
         };
 
         renderer.DependencyResults(result);
@@ -83,11 +83,11 @@ public sealed class DependencyUiRendererTests
                             IsServerMod = false,
                             LocalName = "Test Mod",
                             LocalAuthor = "Author",
-                            LocalVersion = "1.0.0"
-                        }
+                            LocalVersion = "1.0.0",
+                        },
                     },
-                    IsInstalled = true
-                }
+                    IsInstalled = true,
+                },
             },
             Conflicts = new List<DependencyConflict>
             {
@@ -96,10 +96,18 @@ public sealed class DependencyUiRendererTests
                     ModName = "Conflicted Mod",
                     ModGuid = "conflict.mod",
                     Description = "Version 1.0.0 conflicts with 2.0.0",
-                    DependencyInfo = new ModDependency(123, "conflict.mod", "Dependency", "dependency", null, true, null)
-                }
+                    DependencyInfo = new ModDependency(
+                        123,
+                        "conflict.mod",
+                        "Dependency",
+                        "dependency",
+                        null,
+                        true,
+                        null
+                    ),
+                },
             },
-            MissingDependencies = new List<MissingDependency>()
+            MissingDependencies = new List<MissingDependency>(),
         };
 
         renderer.DependencyResults(result);
@@ -142,12 +150,17 @@ public sealed class DependencyUiRendererTests
                     {
                         Local = new LocalModIdentity
                         {
-                            Guid = "test.mod", FilePath = "test.dll", IsServerMod = false, LocalName = "Test Mod", LocalAuthor = "Author", LocalVersion = "1.0.0"
-                        }
+                            Guid = "test.mod",
+                            FilePath = "test.dll",
+                            IsServerMod = false,
+                            LocalName = "Test Mod",
+                            LocalAuthor = "Author",
+                            LocalVersion = "1.0.0",
+                        },
                     },
-                    IsInstalled = true
-                }
-            }
+                    IsInstalled = true,
+                },
+            },
         };
 
         renderer.DependencyResults(result);

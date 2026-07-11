@@ -14,14 +14,12 @@ public sealed class FakeLogger<T> : ILogger<T>
     /// </summary>
     public List<string> LoggedMessages
     {
-        get
-        {
-            return _loggedMessages.ToList();
-        }
+        get { return _loggedMessages.ToList(); }
     }
 
     /// <inheritdoc />
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    public IDisposable? BeginScope<TState>(TState state)
+        where TState : notnull
     {
         return null;
     }
@@ -33,14 +31,14 @@ public sealed class FakeLogger<T> : ILogger<T>
     }
 
     /// <inheritdoc />
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter
+    )
     {
         _loggedMessages.Add(formatter(state, exception));
     }
 }
-
-
-
-
-
-

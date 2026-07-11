@@ -1,5 +1,5 @@
-using OneOf;
 using CheckMods.Models;
+using OneOf;
 
 namespace CheckMods.Utils;
 

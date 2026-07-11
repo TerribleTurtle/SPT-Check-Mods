@@ -13,7 +13,7 @@ public interface IModEnrichmentService
     /// <param name="mods">The mods to enrich.</param>
     /// <param name="sptVersion">The SPT version for compatibility filtering.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    Task EnrichAllWithVersionDataAsync(
+    Task<IReadOnlyList<Mod>> EnrichAllWithVersionDataAsync(
         IEnumerable<Mod> mods,
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default

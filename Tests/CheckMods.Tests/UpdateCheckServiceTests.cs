@@ -314,9 +314,3 @@ public sealed class UpdateCheckServiceTests
         Assert.Equal(CheckModsUpdateStatus.Unavailable, result.Status);
     }
 }
-
-
-
-
-
-

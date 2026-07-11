@@ -69,18 +69,29 @@ public sealed class ApplicationServiceTests
         var currentDir = Directory.GetCurrentDirectory();
         var sptVersion = new Version("3.9.0");
         _sptInstallationService.ValidatedVersion = sptVersion;
-        
-        var serverMod = new Mod { Local = new CheckMods.Models.LocalModIdentity { Guid = "test", FilePath = "test", LocalName = "TestMod", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true } };
+
+        var serverMod = new Mod
+        {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
+                Guid = "test",
+                FilePath = "test",
+                LocalName = "TestMod",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true,
+            },
+        };
         _modScannerService.ServerModsToReturn = [serverMod];
-        
+
         _modReconciliationService.ResultToReturn = new ModReconciliationResult
         {
             Mods = [serverMod],
             ReconciledPairs = [],
             UnmatchedServerMods = [serverMod],
-            UnmatchedClientMods = []
+            UnmatchedClientMods = [],
         };
-        
+
         _modMatchingService.MatchModAction = _ => throw new InvalidOperationException("Simulated failure");
 
         // Act
@@ -98,7 +109,7 @@ public sealed class ApplicationServiceTests
         // Arrange
         var currentDir = Directory.GetCurrentDirectory();
         _sptInstallationService.ValidatedVersion = new Version("3.9.0");
-        
+
         var apiResult = new ModSearchResult(
             Id: 1,
             HubId: null,
@@ -113,28 +124,29 @@ public sealed class ApplicationServiceTests
             Versions: []
         );
 
-        var mod = new Mod 
-        { 
-            Local = new CheckMods.Models.LocalModIdentity {
+        var mod = new Mod
+        {
+            Local = new CheckMods.Models.LocalModIdentity
+            {
                 Guid = "test",
-                FilePath = "test", 
-                LocalName = "TestMod", 
+                FilePath = "test",
+                LocalName = "TestMod",
                 LocalAuthor = "Author",
                 LocalVersion = "1.0.0",
-                IsServerMod = true
+                IsServerMod = true,
             },
-            LoadWarnings = ["Warning!"]
+            LoadWarnings = ["Warning!"],
         };
-        mod.UpdateFromApiMatch(apiResult);
+        mod = mod.WithApiMatch(apiResult);
 
         _modScannerService.ServerModsToReturn = [mod];
-        
+
         _modReconciliationService.ResultToReturn = new ModReconciliationResult
         {
             Mods = [mod],
             ReconciledPairs = [],
             UnmatchedServerMods = [mod],
-            UnmatchedClientMods = []
+            UnmatchedClientMods = [],
         };
 
         // Act

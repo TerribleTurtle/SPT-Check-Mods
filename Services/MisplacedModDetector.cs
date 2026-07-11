@@ -18,7 +18,7 @@ public sealed class MisplacedModDetector(
 ) : IMisplacedModDetector
 {
     /// <inheritdoc />
-    public MisplacedModReport DetectMisplacedMods(string sptPath, CancellationToken cancellationToken = default)
+    public async Task<MisplacedModReport> DetectMisplacedModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
         List<MisplacedMod> wrongFolder = [];
 
@@ -29,11 +29,17 @@ public sealed class MisplacedModDetector(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var clientMod = pluginExtractor.TryDetectClientMod(dllPath);
+                var clientMod = await pluginExtractor.TryDetectClientModAsync(dllPath, cancellationToken);
                 if (clientMod is not null)
                 {
                     wrongFolder.Add(
-                        new MisplacedMod(false, clientMod.Local.Guid, clientMod.Local.LocalName, clientMod.Local.LocalVersion, dllPath)
+                        new MisplacedMod(
+                            false,
+                            clientMod.Local.Guid,
+                            clientMod.Local.LocalName,
+                            clientMod.Local.LocalVersion,
+                            dllPath
+                        )
                     );
                 }
             }
@@ -46,17 +52,23 @@ public sealed class MisplacedModDetector(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var serverMod = serverExtractor.ExtractServerModMetadata(dllPath);
+                var serverMod = await serverExtractor.ExtractServerModMetadataAsync(dllPath, cancellationToken);
                 if (serverMod is not null)
                 {
                     wrongFolder.Add(
-                        new MisplacedMod(true, serverMod.Local.Guid, serverMod.Local.LocalName, serverMod.Local.LocalVersion, dllPath)
+                        new MisplacedMod(
+                            true,
+                            serverMod.Local.Guid,
+                            serverMod.Local.LocalName,
+                            serverMod.Local.LocalVersion,
+                            dllPath
+                        )
                     );
                 }
             }
         }
 
-        var crossInstalled = DetectCrossInstalledDirectories(pluginsDir, cancellationToken);
+        var crossInstalled = await DetectCrossInstalledDirectoriesAsync(pluginsDir, cancellationToken);
 
         logger.LogDebug(
             "Detected {WrongFolder} misplaced mods and {CrossInstalled} cross-installed directories",
@@ -67,7 +79,7 @@ public sealed class MisplacedModDetector(
         return new MisplacedModReport(wrongFolder, crossInstalled);
     }
 
-    private List<CrossInstalledDirectory> DetectCrossInstalledDirectories(
+    private async Task<List<CrossInstalledDirectory>> DetectCrossInstalledDirectoriesAsync(
         string pluginsDir,
         CancellationToken cancellationToken
     )
@@ -86,7 +98,7 @@ public sealed class MisplacedModDetector(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var plugins = pluginExtractor.ReadPluginDlls(directoryDlls);
+            var plugins = await pluginExtractor.ReadPluginDllsAsync(directoryDlls, cancellationToken);
             if (plugins.Count < 2)
             {
                 continue;
@@ -196,4 +208,3 @@ public sealed class MisplacedModDetector(
         }
     }
 }
-

@@ -20,7 +20,10 @@ public sealed class MisplacedModUiRendererTests
 
         var misplacedMod = new MisplacedMod(false, "misplaced.mod", "Misplaced Mod", "1.0.0", "wrong_folder/mod.dll");
 
-        var report = new MisplacedModReport(new List<MisplacedMod> { misplacedMod }, new List<CrossInstalledDirectory>());
+        var report = new MisplacedModReport(
+            new List<MisplacedMod> { misplacedMod },
+            new List<CrossInstalledDirectory>()
+        );
 
         renderer.MisplacedMods(report);
 
@@ -36,8 +39,16 @@ public sealed class MisplacedModUiRendererTests
         AnsiConsole.Console = console;
         var renderer = new MisplacedModUiRenderer(new FakeTextRenderer());
 
-        var crossInstalled = new CrossInstalledDirectory("user/mods/cross_installed_mod", new List<MisplacedMod>(), new List<MisplacedMod>(), true);
-        var report = new MisplacedModReport(new List<MisplacedMod>(), new List<CrossInstalledDirectory> { crossInstalled });
+        var crossInstalled = new CrossInstalledDirectory(
+            "user/mods/cross_installed_mod",
+            new List<MisplacedMod>(),
+            new List<MisplacedMod>(),
+            true
+        );
+        var report = new MisplacedModReport(
+            new List<MisplacedMod>(),
+            new List<CrossInstalledDirectory> { crossInstalled }
+        );
 
         renderer.MisplacedMods(report);
 
@@ -53,9 +64,18 @@ public sealed class MisplacedModUiRendererTests
         AnsiConsole.Console = console;
         var renderer = new MisplacedModUiRenderer(new FakeTextRenderer());
 
-        var misplacedMod = new MisplacedMod(true, "misplaced.mod", "Misplaced Server Mod", "1.0.0", "BepInEx/plugins/mod.dll");
+        var misplacedMod = new MisplacedMod(
+            true,
+            "misplaced.mod",
+            "Misplaced Server Mod",
+            "1.0.0",
+            "BepInEx/plugins/mod.dll"
+        );
 
-        var report = new MisplacedModReport(new List<MisplacedMod> { misplacedMod }, new List<CrossInstalledDirectory>());
+        var report = new MisplacedModReport(
+            new List<MisplacedMod> { misplacedMod },
+            new List<CrossInstalledDirectory>()
+        );
 
         renderer.MisplacedMods(report);
 
@@ -71,10 +91,24 @@ public sealed class MisplacedModUiRendererTests
         AnsiConsole.Console = console;
         var renderer = new MisplacedModUiRenderer(new FakeTextRenderer());
 
-        var misplacedMod = new MisplacedMod(false, "misplaced.mod", "Intruder Mod", "1.0.0", "user/mods/cross_installed_mod/mod.dll");
-        var crossInstalled = new CrossInstalledDirectory("user/mods/cross_installed_mod", new List<MisplacedMod> { misplacedMod }, new List<MisplacedMod>(), false);
-        
-        var report = new MisplacedModReport(new List<MisplacedMod>(), new List<CrossInstalledDirectory> { crossInstalled });
+        var misplacedMod = new MisplacedMod(
+            false,
+            "misplaced.mod",
+            "Intruder Mod",
+            "1.0.0",
+            "user/mods/cross_installed_mod/mod.dll"
+        );
+        var crossInstalled = new CrossInstalledDirectory(
+            "user/mods/cross_installed_mod",
+            new List<MisplacedMod> { misplacedMod },
+            new List<MisplacedMod>(),
+            false
+        );
+
+        var report = new MisplacedModReport(
+            new List<MisplacedMod>(),
+            new List<CrossInstalledDirectory> { crossInstalled }
+        );
 
         renderer.MisplacedMods(report);
 

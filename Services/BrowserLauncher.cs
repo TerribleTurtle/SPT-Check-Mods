@@ -8,7 +8,7 @@ namespace CheckMods.Services;
 /// <summary>
 /// Default <see cref="IBrowserLauncher"/>. Opens URLs via the OS shell.
 /// </summary>
-[Injectable(InjectionType.Singleton)]
+[Injectable(InjectionType.Transient)]
 public sealed class BrowserLauncher(ILogger<BrowserLauncher> logger) : IBrowserLauncher
 {
     /// <inheritdoc />
@@ -30,7 +30,8 @@ public sealed class BrowserLauncher(ILogger<BrowserLauncher> logger) : IBrowserL
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             return true;
         }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or ObjectDisposedException or FileNotFoundException)
+        catch (Exception ex)
+            when (ex is System.ComponentModel.Win32Exception or ObjectDisposedException or FileNotFoundException)
         {
             logger.LogWarning(ex, "Could not open the browser");
             return false;

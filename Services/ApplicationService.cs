@@ -33,11 +33,7 @@ public sealed class ApplicationService(
     IUpdateOrchestrationService updateOrchestrationService
 ) : IApplicationService
 {
-    /// <summary>
-    /// Main entry point for the application. Runs the mod checking workflow.
-    /// </summary>
-    /// <param name="args">Command line arguments. The first argument can be the SPT installation path.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Mod>> RunAsync(string[] args, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Starting mod check workflow");
@@ -46,7 +42,7 @@ public sealed class ApplicationService(
         try
         {
             // Remove any legacy API key file from previous versions.
-            initializationService.RemoveLegacyApiKeyFile();
+            await initializationService.RemoveLegacyApiKeyFileAsync();
 
             logger.LogDebug("Validating SPT path");
             var sptPath = initializationService.GetValidatedSptPath(args);
@@ -81,7 +77,7 @@ public sealed class ApplicationService(
 
             logger.LogDebug("Checking for improperly installed mods");
             reporter.Status("Checking mod installation locations...");
-            var misplacedReport = modScannerService.DetectMisplacedMods(sptPath, cancellationToken);
+            var misplacedReport = await modScannerService.DetectMisplacedModsAsync(sptPath, cancellationToken);
             if (misplacedReport.Any)
             {
                 logger.LogWarning(
@@ -113,7 +109,7 @@ public sealed class ApplicationService(
             await EnrichModsWithVersionDataAsync(mods, sptVersion, cancellationToken);
 
             logger.LogDebug("Applying ignored updates");
-            updateOrchestrationService.ApplyIgnoredUpdates(mods);
+            await updateOrchestrationService.ApplyIgnoredUpdatesAsync(mods, cancellationToken);
 
             // Suppressed false positives are skipped.
             logger.LogDebug("Checking mod version compatibility");
@@ -172,7 +168,7 @@ public sealed class ApplicationService(
             }
             else
             {
-                reporter.RemoteIgnoresMerged(ignoredUpdateStore.MergeWithoutOverwrite(remote));
+                reporter.RemoteIgnoresMerged(await ignoredUpdateStore.MergeWithoutOverwriteAsync(remote, cancellationToken));
             }
         }
 
@@ -259,7 +255,11 @@ public sealed class ApplicationService(
         var pairsWithNotes = result.ReconciledPairs.Where(p => p.Notes.Count > 0).ToList();
         if (pairsWithNotes.Count > 0)
         {
-            await modResolutionService.FetchSourceCodeUrlsForPairedModsAsync(pairsWithNotes, sptVersion, cancellationToken);
+            await modResolutionService.FetchSourceCodeUrlsForPairedModsAsync(
+                pairsWithNotes,
+                sptVersion,
+                cancellationToken
+            );
         }
 
         reporter.ReconciliationResults(result);
@@ -370,11 +370,11 @@ public sealed class ApplicationService(
     /// </summary>
     /// <param name="mods">Mods to check dependencies for.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task CheckModDependenciesAsync(List<Mod> mods, CancellationToken cancellationToken = default)
+    private async Task<List<Mod>> CheckModDependenciesAsync(List<Mod> mods, CancellationToken cancellationToken = default)
     {
         if (!mods.Any(m => m.IsMatched))
         {
-            return;
+            return mods;
         }
 
         reporter.Blank();
@@ -401,7 +401,7 @@ public sealed class ApplicationService(
 
         reporter.Heading($"Checking mod dependencies for {matchedCount} mods...");
 
-        var result = await reporter.RunForgeQueryProgressAsync(
+        var (updatedMods, result) = await reporter.RunForgeQueryProgressAsync(
             matchedCount + updatableCount,
             setValue =>
                 modDependencyService.AnalyzeDependenciesAsync(
@@ -412,6 +412,10 @@ public sealed class ApplicationService(
                 )
         );
 
+        // Merge updated mods back into the main list if needed, or reassign mods:
+        mods = updatedMods.ToList();
+
         reporter.DependencyResults(result);
+        return mods;
     }
 }

@@ -12,9 +12,9 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
     : IModDependencyService
 {
     /// <inheritdoc />
-    public async Task<DependencyAnalysisResult> AnalyzeDependenciesAsync(
+    public async Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
-        HashSet<string> installedModGuids,
+        ISet<string> installedModGuids,
         Action<int, int>? progressCallback = null,
         CancellationToken cancellationToken = default
     )
@@ -31,7 +31,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             logger.LogDebug("No matched mods to analyze for dependencies");
             // No matched mods, return all as roots with no children
             result.RootMods.AddRange(modList.Select(m => new DependencyNode { Mod = m }));
-            return result;
+            return (modList, result);
         }
         logger.LogDebug("Analyzing dependencies for {ModCount} matched mods", matchedMods.Count);
 
@@ -137,9 +137,14 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
                 continue;
             }
 
-            foreach (var mod in group)
+            for (int i = 0; i < group.Count(); i++)
             {
-                mod.SetUpdateDependencyChanges(delta);
+                var mod = group.ElementAt(i);
+                var idx = modList.IndexOf(mod);
+                if (idx >= 0)
+                {
+                    modList[idx] = mod.WithUpdateDependencyChanges(delta);
+                }
             }
         }
 
@@ -183,7 +188,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             missingDeps.Count
         );
 
-        return result;
+        return (modList, result);
     }
 
     /// <summary>
@@ -193,7 +198,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         ModDependency dependency,
         Dictionary<string, Mod> modByGuid,
         Dictionary<int, Mod> modById,
-        HashSet<string> installedGuids,
+        ISet<string> installedGuids,
         Dictionary<string, MissingDependency> missingDeps,
         List<DependencyConflict> conflicts,
         HashSet<string> visited
@@ -302,7 +307,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
                     LocalName = dependency.Name,
                     LocalAuthor = string.Empty,
                     LocalVersion = dependency.LatestCompatibleVersion?.Version ?? "unknown",
-                }
+                },
             };
 
         return new DependencyNode
@@ -323,7 +328,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         List<ModDependency> targetDeps,
         Dictionary<string, Mod> modByGuid,
         Dictionary<int, Mod> modById,
-        HashSet<string> installedGuids
+        ISet<string> installedGuids
     )
     {
         var installedFlat = FlattenDependencies(installedDeps);
@@ -379,7 +384,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         ModDependency dependency,
         Dictionary<string, Mod> modByGuid,
         Dictionary<int, Mod> modById,
-        HashSet<string> installedGuids
+        ISet<string> installedGuids
     )
     {
         Mod? installedMod = null;
@@ -419,7 +424,16 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             && !string.IsNullOrWhiteSpace(recommendedVersion)
             // Fallback to 0.0.0 if SemVer parsing fails so that unparseable versions are treated as extremely old
             // instead of throwing exceptions.
-            && (SemVer.TryParse(installedMod.Local.LocalVersion, "ModDependencyService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))) < (SemVer.TryParse(recommendedVersion, "ModDependencyService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0)))
+            && (
+                SemVer
+                    .TryParse(installedMod.Local.LocalVersion, "ModDependencyService")
+                    .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
+            )
+                < (
+                    SemVer
+                        .TryParse(recommendedVersion, "ModDependencyService")
+                        .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
+                )
         )
         {
             state = DependencyInstallState.InstalledOutdated;
@@ -443,7 +457,3 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         };
     }
 }
-
-
-
-

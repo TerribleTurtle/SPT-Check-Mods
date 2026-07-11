@@ -21,10 +21,7 @@ public sealed class UpdateOrchestrationService(
 ) : IUpdateOrchestrationService
 {
     /// <inheritdoc />
-    public async Task CheckForSptUpdatesAsync(
-        Version currentVersion,
-        CancellationToken cancellationToken = default
-    )
+    public async Task CheckForSptUpdatesAsync(Version currentVersion, CancellationToken cancellationToken = default)
     {
         reporter.Blank();
         reporter.Status("Checking for SPT updates...");
@@ -42,10 +39,7 @@ public sealed class UpdateOrchestrationService(
     }
 
     /// <inheritdoc />
-    public async Task CheckForCheckModsUpdateAsync(
-        Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
+    public async Task CheckForCheckModsUpdateAsync(Version sptVersion, CancellationToken cancellationToken = default)
     {
         reporter.Heading("Checking for Check Mods updates...");
 
@@ -54,14 +48,22 @@ public sealed class UpdateOrchestrationService(
     }
 
     /// <inheritdoc />
-    public void ApplyIgnoredUpdates(List<Mod> mods)
+    public async Task<IReadOnlyList<Mod>> ApplyIgnoredUpdatesAsync(
+        IEnumerable<Mod> mods,
+        CancellationToken cancellationToken = default
+    )
     {
-        foreach (var mod in mods)
+        var modsList = mods.ToList();
+        var updatedMods = new List<Mod>();
+        foreach (var mod in modsList)
         {
-            if (mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable && ignoredUpdateStore.IsIgnored(mod))
+            var updatedMod = mod;
+            if (mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable && await ignoredUpdateStore.IsIgnoredAsync(mod, cancellationToken))
             {
-                mod.SetUpdateSuppressed(true);
+                updatedMod = updatedMod.WithUpdateSuppressed(true);
             }
+            updatedMods.Add(updatedMod);
         }
+        return updatedMods;
     }
 }

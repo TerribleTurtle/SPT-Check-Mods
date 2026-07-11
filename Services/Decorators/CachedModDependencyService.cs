@@ -20,9 +20,9 @@ public sealed class CachedModDependencyService(
     };
 
     /// <inheritdoc />
-    public async Task<DependencyAnalysisResult> AnalyzeDependenciesAsync(
+    public async Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
-        HashSet<string> installedModGuids,
+        ISet<string> installedModGuids,
         Action<int, int>? progressCallback = null,
         CancellationToken cancellationToken = default
     )
@@ -32,19 +32,18 @@ public sealed class CachedModDependencyService(
         var installedKey = string.Join(",", installedModGuids.OrderBy(x => x));
         var key = $"ModDeps_{modKey}_{installedKey}";
 
-        if (cache.TryGetValue(key, out DependencyAnalysisResult? cachedValue) && cachedValue is not null)
+        if (cache.TryGetValue(key, out (IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)? cachedValue) && cachedValue is not null)
         {
             logger.LogDebug("Cache hit for dependency analysis");
             progressCallback?.Invoke(1, 1);
-            return cachedValue;
+            return cachedValue.Value;
         }
 
         logger.LogDebug("Cache miss for dependency analysis");
         var result = await inner.AnalyzeDependenciesAsync(mods, installedModGuids, progressCallback, cancellationToken);
-        
+
         cache.Set(key, result, _cacheEntryOptions);
-        
+
         return result;
     }
 }
-

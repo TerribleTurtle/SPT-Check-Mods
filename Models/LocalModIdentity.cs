@@ -3,7 +3,7 @@ namespace CheckMods.Models;
 /// <summary>
 /// Contains metadata extracted locally from the physical mod files installed by the user.
 /// </summary>
-public sealed class LocalModIdentity
+public sealed record LocalModIdentity
 {
     /// <summary>
     /// A unique identifier for the local mod.
@@ -23,12 +23,12 @@ public sealed class LocalModIdentity
     /// <summary>
     /// If this mod has an associated server/client component, stores its path.
     /// </summary>
-    public string? PairedComponentPath { get; set; }
+    public string? PairedComponentPath { get; init; }
 
     /// <summary>
     /// Other known GUIDs associated with this mod (used for cross-referencing).
     /// </summary>
-    public List<string> AlternateGuids { get; init; } = [];
+    public IReadOnlyList<string> AlternateGuids { get; init; } = [];
 
     /// <summary>
     /// The mod name read from the local file metadata.

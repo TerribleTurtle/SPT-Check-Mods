@@ -41,7 +41,6 @@ public sealed class TextRenderer : ITextRenderer
     ];
 
     /// <inheritdoc />
-
     public void Banner()
     {
         var tagline = _bannerTaglines[Random.Shared.Next(_bannerTaglines.Length)];
@@ -56,112 +55,102 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-
     public void Rule()
     {
         AnsiConsole.Write(new Rule().RuleStyle("grey"));
     }
 
     /// <inheritdoc />
-
     public void Blank()
     {
         AnsiConsole.WriteLine();
     }
 
     /// <inheritdoc />
-
     public void Heading(string text)
     {
         AnsiConsole.MarkupLine($"[bold blue]{text.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void Status(string text)
     {
         AnsiConsole.MarkupLine($"[grey]{text.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void Success(string text)
     {
         AnsiConsole.MarkupLine($"[green]{text.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void Warning(string text)
     {
         AnsiConsole.MarkupLine($"[yellow]{text.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void Error(string text)
     {
         AnsiConsole.MarkupLine($"[red]{text.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void Exception(Exception ex)
     {
         AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
     }
 
     /// <inheritdoc />
-
     public void CouldNotReadModDll(string fileName, string reason)
     {
-        AnsiConsole.MarkupLine($"[orange1]Warning:[/] Could not read mod DLL [grey]{fileName.EscapeMarkup()}[/]. Reason: {reason.EscapeMarkup()}");
+        AnsiConsole.MarkupLine(
+            $"[orange1]Warning:[/] Could not read mod DLL [grey]{fileName.EscapeMarkup()}[/]. Reason: {reason.EscapeMarkup()}"
+        );
     }
 
     /// <inheritdoc />
-
     public void CouldNotReadSptVersion(string reason)
     {
         AnsiConsole.MarkupLine($"[orange1]Warning:[/] Could not read SPT version. Reason: {reason.EscapeMarkup()}");
     }
 
     /// <inheritdoc />
-
     public void PluginsDirectoryNotFound(string path)
     {
-        AnsiConsole.MarkupLine($"[orange1]Warning:[/] BepInEx plugins directory not found: [grey]{path.EscapeMarkup()}[/]");
+        AnsiConsole.MarkupLine(
+            $"[orange1]Warning:[/] BepInEx plugins directory not found: [grey]{path.EscapeMarkup()}[/]"
+        );
     }
 
     /// <inheritdoc />
-
     public void UsingPath(string path)
     {
         AnsiConsole.MarkupLine($"[grey]Using Path:[/] {path.EscapeMarkup()}");
     }
 
     /// <inheritdoc />
-
     public void DirectoryDoesNotExist(string path)
     {
         AnsiConsole.MarkupLine($"[red]Error: Directory does not exist: {path.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void ValidatingSptVersion(string version)
     {
-        AnsiConsole.Markup($"Found local SPT version [bold blue]{version.EscapeMarkup()}[/]. Validating with Forge API... ");
+        AnsiConsole.Markup(
+            $"Found local SPT version [bold blue]{version.EscapeMarkup()}[/]. Validating with Forge API... "
+        );
     }
 
     /// <inheritdoc />
-
     public void SptVersionValidated(string version)
     {
         AnsiConsole.MarkupLine($"[green]Successfully validated SPT Version:[/] [bold]{version.EscapeMarkup()}[/]");
     }
 
     /// <inheritdoc />
-
     public void SptUpdateAvailable(SptVersionResult latest)
     {
         var versionDisplay = $"[bold]{latest.Version.EscapeMarkup()}[/]";
@@ -180,13 +169,14 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-
     public void CheckModsUpdate(CheckModsUpdateResult result, SemanticVersioning.Version sptVersion)
     {
         switch (result.Status)
         {
             case CheckModsUpdateStatus.UpdateAvailable:
-                AnsiConsole.MarkupLine($"[yellow]A new version of Check Mods is available:[/] [bold]v{(result.LatestVersion ?? "?").EscapeMarkup()}[/] [grey](you have v{result.CurrentVersion.EscapeMarkup()})[/]");
+                AnsiConsole.MarkupLine(
+                    $"[yellow]A new version of Check Mods is available:[/] [bold]v{(result.LatestVersion ?? "?").EscapeMarkup()}[/] [grey](you have v{result.CurrentVersion.EscapeMarkup()})[/]"
+                );
                 if (!string.IsNullOrWhiteSpace(result.DownloadLink))
                 {
                     AnsiConsole.MarkupLine($"[grey]Download:[/] [link]{result.DownloadLink.EscapeMarkup()}[/]");
@@ -194,15 +184,21 @@ public sealed class TextRenderer : ITextRenderer
                 break;
 
             case CheckModsUpdateStatus.UpToDate:
-                AnsiConsole.MarkupLine($"[green]Check Mods is up to date (v{result.CurrentVersion.EscapeMarkup()}).[/]");
+                AnsiConsole.MarkupLine(
+                    $"[green]Check Mods is up to date (v{result.CurrentVersion.EscapeMarkup()}).[/]"
+                );
                 break;
 
             case CheckModsUpdateStatus.IncompatibleWithSpt:
-                AnsiConsole.MarkupLine($"[grey]A newer version of Check Mods exists but isn't compatible with SPT {sptVersion.ToString().EscapeMarkup()}.[/]");
+                AnsiConsole.MarkupLine(
+                    $"[grey]A newer version of Check Mods exists but isn't compatible with SPT {sptVersion.ToString().EscapeMarkup()}.[/]"
+                );
                 break;
 
             case CheckModsUpdateStatus.UnrecognizedBuild:
-                AnsiConsole.MarkupLine($"[grey]You're running an unrecognized Check Mods build (v{result.CurrentVersion.EscapeMarkup()}). Consider the stable version on the Forge: v{(result.LatestVersion ?? "?").EscapeMarkup()}.[/]");
+                AnsiConsole.MarkupLine(
+                    $"[grey]You're running an unrecognized Check Mods build (v{result.CurrentVersion.EscapeMarkup()}). Consider the stable version on the Forge: v{(result.LatestVersion ?? "?").EscapeMarkup()}.[/]"
+                );
                 if (!string.IsNullOrWhiteSpace(result.DownloadLink))
                 {
                     AnsiConsole.MarkupLine($"[grey]Download:[/] [link]{result.DownloadLink.EscapeMarkup()}[/]");
@@ -219,7 +215,6 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-
     public void NoModsFound()
     {
         AnsiConsole.WriteLine();
@@ -230,28 +225,30 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-
     public bool PromptFetchRemoteIgnores()
     {
-        return AnsiConsole.Prompt(new ConfirmationPrompt("Fetch the latest community ignore list from the Forge?") { DefaultValue = false });
+        return AnsiConsole.Prompt(
+            new ConfirmationPrompt("Fetch the latest community ignore list from the Forge?") { DefaultValue = false }
+        );
     }
 
     /// <inheritdoc />
-
     public void RemoteIgnoresMerged(int added)
     {
-        AnsiConsole.MarkupLine(added > 0 ? $"[green]Added {added} ignored version(s) from the community list.[/]" : "[grey]Your ignore list is already up to date.[/]");
+        AnsiConsole.MarkupLine(
+            added > 0
+                ? $"[green]Added {added} ignored version(s) from the community list.[/]"
+                : "[grey]Your ignore list is already up to date.[/]"
+        );
     }
 
     /// <inheritdoc />
-
     public void RemoteIgnoresUnavailable()
     {
         AnsiConsole.MarkupLine("[red]Couldn't fetch the community ignore list; your local entries are unchanged.[/]");
     }
 
     /// <inheritdoc />
-
     public EndOfRunChoice PromptEndOfRun(int openableUpdateCount, bool canManageIgnoredUpdates)
     {
         DrainBufferedKeys();
@@ -278,7 +275,6 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-
     public IReadOnlyList<Mod> SelectUpdatesToIgnore(IReadOnlyList<Mod> candidates, ISet<int> preIgnoredApiModIds)
     {
         AnsiConsole.WriteLine();
@@ -304,10 +300,10 @@ public sealed class TextRenderer : ITextRenderer
     }
 
     /// <inheritdoc />
-
     public void UpdatePagesOpened(int opened, int total)
     {
-        if (total == 0) return;
+        if (total == 0)
+            return;
 
         if (opened == total)
         {
@@ -319,19 +315,21 @@ public sealed class TextRenderer : ITextRenderer
         }
         else
         {
-            Warning($"Opened {opened} of {total} mod pages; couldn't open the rest. The remaining pages are listed as clickable links above.");
+            Warning(
+                $"Opened {opened} of {total} mod pages; couldn't open the rest. The remaining pages are listed as clickable links above."
+            );
         }
     }
 
     /// <inheritdoc />
-
     public bool PromptReportIgnores()
     {
-        return AnsiConsole.Prompt(new ConfirmationPrompt("Report these ignored versions so other users benefit?") { DefaultValue = false });
+        return AnsiConsole.Prompt(
+            new ConfirmationPrompt("Report these ignored versions so other users benefit?") { DefaultValue = false }
+        );
     }
 
     /// <inheritdoc />
-
     public void IgnoreReportOpened(string url, bool browserOpened, bool prefilled)
     {
         if (browserOpened)
@@ -340,13 +338,17 @@ public sealed class TextRenderer : ITextRenderer
         }
         else
         {
-            AnsiConsole.MarkupLine("[yellow]Couldn't open your browser automatically. Use this link to file the report:[/]");
+            AnsiConsole.MarkupLine(
+                "[yellow]Couldn't open your browser automatically. Use this link to file the report:[/]"
+            );
             AnsiConsole.MarkupLine($"[grey]{url.EscapeMarkup()}[/]");
         }
 
         if (!prefilled)
         {
-            AnsiConsole.MarkupLine("[grey]Your list was too large to pre-fill; paste the contents of your ignored-updates.json into the issue.[/]");
+            AnsiConsole.MarkupLine(
+                "[grey]Your list was too large to pre-fill; paste the contents of your ignored-updates.json into the issue.[/]"
+            );
         }
     }
 
@@ -354,7 +356,8 @@ public sealed class TextRenderer : ITextRenderer
     {
         return choice switch
         {
-            EndOfRunChoice.OpenUpdatePages => $"Open {openableUpdateCount} mod page{Plural(openableUpdateCount)} with updates in your browser",
+            EndOfRunChoice.OpenUpdatePages =>
+                $"Open {openableUpdateCount} mod page{Plural(openableUpdateCount)} with updates in your browser",
             EndOfRunChoice.ManageIgnoredUpdates => "Manage ignored updates",
             EndOfRunChoice.Exit => "Close Check Mods",
             _ => choice.ToString(),
@@ -382,11 +385,3 @@ public sealed class TextRenderer : ITextRenderer
         }
     }
 }
-
-
-
-
-
-
-
-

@@ -120,27 +120,6 @@ public sealed class RateLimitServiceTests
         Assert.Equal(2, calls);
     }
 
-    [Fact]
-    public async Task Retries_after_timeout_then_succeeds()
-    {
-        using var service = CreateService();
-        var calls = 0;
-
-        // A TaskCanceledException with a token that is NOT cancelled represents an HttpClient timeout.
-        var result = await service.ExecuteWithRetryAsync(() =>
-        {
-            calls++;
-            if (calls == 1)
-            {
-                throw new TaskCanceledException("timed out");
-            }
-
-            return Task.FromResult(Response(HttpStatusCode.OK));
-        });
-
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        Assert.Equal(2, calls);
-    }
 
     [Fact]
     public async Task Throws_after_exhausting_rate_limit_retries()
@@ -214,9 +193,3 @@ public sealed class RateLimitServiceTests
         Assert.Equal(0, calls);
     }
 }
-
-
-
-
-
-

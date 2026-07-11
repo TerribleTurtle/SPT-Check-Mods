@@ -22,12 +22,13 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
-    public void ExtractServerModMetadata_ReturnsValidMod()
+    public async Task ExtractServerModMetadataAsync_ReturnsValidMod()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod");
         var dllPath = Path.Combine(modPath, "TestMod.dll");
 
-        var code = @"
+        var code =
+            @"
 using System;
 public abstract class AbstractModMetadata 
 {
@@ -52,7 +53,7 @@ public class MySptMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
 
         Assert.NotNull(mod);
         Assert.True(mod!.Local.IsServerMod);
@@ -64,12 +65,13 @@ public class MySptMod : AbstractModMetadata
     }
 
     [Fact]
-    public void ExtractServerModMetadata_ReturnsNull_ForMissingProperties()
+    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForMissingProperties()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod");
         var dllPath = Path.Combine(modPath, "MissingProps.dll");
 
-        var code = @"
+        var code =
+            @"
 public abstract class AbstractModMetadata 
 {
     public string ModGuid { get; set; }
@@ -85,32 +87,33 @@ public class MySptMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
 
     [Fact]
-    public void ExtractServerModMetadata_ReturnsNull_ForUnreadableDll()
+    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForUnreadableDll()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "unreadable-mod");
         var dllPath = Path.Combine(modPath, "Unreadable.dll");
-        
+
         Directory.CreateDirectory(Path.Combine(_sptPath, modPath));
         File.WriteAllBytes(Path.Combine(_sptPath, dllPath), [0x00, 0x01, 0x02]);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
 
     [Fact]
-    public void ExtractServerModMetadata_ReturnsNull_ForMalformedIL()
+    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForMalformedIL()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "malformed-il-mod");
         var dllPath = Path.Combine(modPath, "MalformedIL.dll");
 
-        var code = @"
+        var code =
+            @"
 public abstract class AbstractModMetadata 
 {
     public string ModGuid { get; set; }
@@ -126,18 +129,19 @@ public class MySptMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
 
     [Fact]
-    public void ExtractServerModMetadata_ReturnsNull_ForNoSptMetadata()
+    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForNoSptMetadata()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "no-metadata-mod");
         var dllPath = Path.Combine(modPath, "NoMetadata.dll");
 
-        var code = @"
+        var code =
+            @"
 public class SomeClass 
 {
     public string SomeProperty { get; set; }
@@ -145,7 +149,7 @@ public class SomeClass
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
@@ -155,9 +159,3 @@ public class SomeClass
         _fixture.Dispose();
     }
 }
-
-
-
-
-
-

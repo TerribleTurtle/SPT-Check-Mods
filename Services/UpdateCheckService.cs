@@ -137,5 +137,3 @@ public sealed class UpdateCheckService(
         );
     }
 }
-
-
