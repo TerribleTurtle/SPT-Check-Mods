@@ -1,5 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
@@ -16,10 +21,11 @@ namespace CheckModsExtended.Services;
 /// </summary>
 [Injectable(InjectionType.Singleton)]
 public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, ILogger<IgnoredUpdateStore> logger, IFileSystem fileSystem)
-    : IIgnoredUpdateStore
+    : IIgnoredUpdateStore, IDisposable
 {
     private readonly IgnoredUpdateOptions _options = options.Value;
     private readonly IFileSystem _fileSystem = fileSystem;
+    private readonly SemaphoreSlim _lock = new(1, 1);
 
     private List<IgnoredUpdate>? _cache;
     private HashSet<string> _keys = new(StringComparer.OrdinalIgnoreCase);
@@ -32,9 +38,22 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             return _cache;
         }
 
-        _cache = await ReadFromDiskAsync(cancellationToken);
-        RebuildKeys();
-        return _cache;
+        await _lock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_cache is not null)
+            {
+                return _cache;
+            }
+
+            _cache = await ReadFromDiskAsync(cancellationToken);
+            RebuildKeys();
+            return _cache;
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     /// <inheritdoc />
@@ -69,9 +88,18 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     public async Task SaveAsync(IReadOnlyList<IgnoredUpdate> entries, CancellationToken cancellationToken = default)
     {
         var list = entries.ToList();
-        await WriteToDiskAsync(list, cancellationToken);
-        _cache = list;
-        RebuildKeys();
+        
+        await _lock.WaitAsync(cancellationToken);
+        try
+        {
+            await WriteToDiskAsync(list, cancellationToken);
+            _cache = list;
+            RebuildKeys();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     /// <inheritdoc />
@@ -80,34 +108,50 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
         CancellationToken cancellationToken = default
     )
     {
-        var current = (await LoadAsync(cancellationToken)).ToList();
-        var keys = current.Select(e => e.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        var added = 0;
-        foreach (var entry in incoming)
+        await _lock.WaitAsync(cancellationToken);
+        try
         {
-            // Skip entries already present by key.
-            if (!keys.Add(entry.Key))
+            if (_cache is null)
             {
-                continue;
+                _cache = await ReadFromDiskAsync(cancellationToken);
+                RebuildKeys();
             }
 
-            current.Add(
-                entry with
+            var current = _cache.ToList();
+            var keys = current.Select(e => e.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var added = 0;
+            foreach (var entry in incoming)
+            {
+                // Skip entries already present by key.
+                if (!keys.Add(entry.Key))
                 {
-                    Source = IgnoreSource.Remote,
-                    DismissedUtc = entry.DismissedUtc ?? DateTimeOffset.UtcNow,
+                    continue;
                 }
-            );
-            added++;
-        }
 
-        if (added > 0)
+                current.Add(
+                    entry with
+                    {
+                        Source = IgnoreSource.Remote,
+                        DismissedUtc = entry.DismissedUtc ?? DateTimeOffset.UtcNow,
+                    }
+                );
+                added++;
+            }
+
+            if (added > 0)
+            {
+                await WriteToDiskAsync(current, cancellationToken);
+                _cache = current;
+                RebuildKeys();
+            }
+
+            return added;
+        }
+        finally
         {
-            await SaveAsync(current, cancellationToken);
+            _lock.Release();
         }
-
-        return added;
     }
 
     private async Task<List<IgnoredUpdate>> ReadFromDiskAsync(CancellationToken cancellationToken)
@@ -179,5 +223,9 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     {
         return $"{apiModId}|{localVersion}|{latestVersion}";
     }
-}
 
+    public void Dispose()
+    {
+        _lock.Dispose();
+    }
+}
