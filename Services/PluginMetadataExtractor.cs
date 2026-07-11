@@ -31,10 +31,11 @@ public sealed class PluginMetadataExtractor(
     {
         var sptDir = Path.Combine(pluginsPath, "spt");
 
-        return Directory
-            .GetFiles(pluginsPath, "*.dll", SearchOption.AllDirectories)
-            .Where(file => !file.StartsWith(sptDir, StringComparison.OrdinalIgnoreCase))
-            .Where(file => new FileInfo(file).Length <= _options.MaxDllSizeBytes)
+        return new DirectoryInfo(pluginsPath)
+            .EnumerateFiles("*.dll", SearchOption.AllDirectories)
+            .Where(file => !file.FullName.StartsWith(sptDir, StringComparison.OrdinalIgnoreCase))
+            .Where(file => file.Length <= _options.MaxDllSizeBytes)
+            .Select(file => file.FullName)
             .ToList();
     }
 
@@ -95,8 +96,7 @@ public sealed class PluginMetadataExtractor(
     {
         try
         {
-            var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-            using var stream = new MemoryStream(bytes);
+            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using var module = ModuleDefinition.ReadModule(stream);
 
             foreach (var type in module.Types)
@@ -131,8 +131,7 @@ public sealed class PluginMetadataExtractor(
         {
             try
             {
-                var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-                using var stream = new MemoryStream(bytes);
+                using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 using var module = ModuleDefinition.ReadModule(stream);
                 
                 BepInPluginAttribute? plugin = null;
@@ -187,8 +186,7 @@ public sealed class PluginMetadataExtractor(
     {
         try
         {
-            var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-            using var stream = new MemoryStream(bytes);
+            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using var module = ModuleDefinition.ReadModule(stream);
 
             foreach (var type in module.Types)
