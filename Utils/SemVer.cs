@@ -1,3 +1,6 @@
+using OneOf;
+using CheckMods.Models;
+
 namespace CheckMods.Utils;
 
 /// <summary>
@@ -6,25 +9,19 @@ namespace CheckMods.Utils;
 public static class SemVer
 {
     /// <summary>
-    /// Parses a semantic version, returning null when the string is missing or invalid.
+    /// Parses a semantic version.
     /// </summary>
     /// <param name="version">The version string to parse.</param>
-    /// <returns>The parsed version, or null if it could not be parsed.</returns>
-    public static SemanticVersioning.Version? TryParse(string? version)
+    /// <param name="context">Context about what this version represents, used for error reporting.</param>
+    /// <returns>The parsed version, or an InvalidSemVer error.</returns>
+    public static OneOf<SemanticVersioning.Version, InvalidSemVer> TryParse(string? version, string context)
     {
-        return !string.IsNullOrWhiteSpace(version) && SemanticVersioning.Version.TryParse(version, out var parsed)
-            ? parsed
-            : null;
-    }
+        if (string.IsNullOrWhiteSpace(version) || !SemanticVersioning.Version.TryParse(version, out var parsed))
+        {
+            return new InvalidSemVer(version, context);
+        }
 
-    /// <summary>
-    /// Parses a semantic version, falling back to 0.0.0 when the string is missing or invalid.
-    /// </summary>
-    /// <param name="version">The version string to parse.</param>
-    /// <returns>The parsed version, or 0.0.0 if it could not be parsed.</returns>
-    public static SemanticVersioning.Version ParseOrZero(string? version)
-    {
-        return TryParse(version) ?? new SemanticVersioning.Version(0, 0, 0);
+        return parsed;
     }
 
     /// <summary>

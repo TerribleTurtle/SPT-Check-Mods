@@ -35,15 +35,15 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
     /// <inheritdoc />
     public bool IsIgnored(Mod mod)
     {
-        if (mod.ApiModId <= 0)
+        if (mod.Api.ApiModId <= 0)
         {
             return false;
         }
 
         return _store.Any(x => 
-            x.ApiModId == mod.ApiModId && 
-            x.LocalVersion == mod.LocalVersion && 
-            x.IgnoredLatestVersion == mod.LatestVersion);
+            x.ApiModId == mod.Api.ApiModId && 
+            x.LocalVersion == mod.Local.LocalVersion && 
+            x.IgnoredLatestVersion == mod.Update.LatestVersion);
     }
 
     /// <inheritdoc />
@@ -68,3 +68,9 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
         return added;
     }
 }
+
+
+
+
+
+

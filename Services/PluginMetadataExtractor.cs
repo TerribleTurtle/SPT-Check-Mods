@@ -60,7 +60,7 @@ public sealed class PluginMetadataExtractor(
 
     private static List<Mod> FilterDuplicateClientMods(List<Mod> mods)
     {
-        return mods.DistinctBy(m => (m.LocalName.ToLowerInvariant(), m.LocalAuthor.ToLowerInvariant())).ToList();
+        return mods.DistinctBy(m => (m.Local.LocalName.ToLowerInvariant(), m.Local.LocalAuthor.ToLowerInvariant())).ToList();
     }
 
     /// <inheritdoc />
@@ -182,13 +182,13 @@ public sealed class PluginMetadataExtractor(
     /// <inheritdoc />
     public MisplacedMod ToMisplacedMod(List<PluginDll> group, string directoryName)
     {
-        var (primaryDll, primaryPlugin) = SelectPrimaryPlugin(
+        var (primaryDll, primaryPlugin) = SelectprimaryPlugin(
             group.Select(plugin => (plugin.DllPath, plugin.Plugin)).ToList(),
             directoryName
         );
 
         var mod = CreateModFromBepInPlugin(primaryPlugin, primaryDll);
-        return new MisplacedMod(false, mod.Guid, mod.LocalName, mod.LocalVersion, primaryDll);
+        return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
     private Mod? ExtractClientModMetadata(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings)
@@ -300,18 +300,18 @@ public sealed class PluginMetadataExtractor(
     {
         var plugins = group.Select(item => (item.DllPath, item.Plugin)).ToList();
 
-        var (primaryDll, primaryPlugin) = SelectPrimaryPlugin(plugins, directoryName);
+        var (primaryDll, primaryPlugin) = SelectprimaryPlugin(plugins, directoryName);
 
         var mod = CreateModFromBepInPlugin(primaryPlugin, primaryDll);
 
         var alternateGuids = plugins
             .Select(item => item.Plugin.Guid)
             .Where(guid => !guid.Equals(primaryPlugin.Guid, StringComparison.OrdinalIgnoreCase))
-            .Except(mod.AlternateGuids, StringComparer.OrdinalIgnoreCase);
+            .Except(mod.Local.AlternateGuids, StringComparer.OrdinalIgnoreCase);
 
         foreach (var guid in alternateGuids)
         {
-            mod.AlternateGuids.Add(guid);
+            mod.Local.AlternateGuids.Add(guid);
         }
 
         return mod;
@@ -325,13 +325,16 @@ public sealed class PluginMetadataExtractor(
 
         return new Mod
         {
-            Guid = plugin.Guid,
-            FilePath = dllPath,
-            IsServerMod = false,
-            LocalName = name,
-            LocalAuthor = author,
-            LocalVersion = plugin.Version,
-            LocalSptVersion = null,
+            Local = new LocalModIdentity
+            {
+                Guid = plugin.Guid,
+                FilePath = dllPath,
+                IsServerMod = false,
+                LocalName = name,
+                LocalAuthor = author,
+                LocalVersion = plugin.Version?.ToString() ?? "0.0.0",
+                LocalSptVersion = null,
+            },
             LoadWarnings = warnings,
         };
     }
@@ -389,7 +392,7 @@ public sealed class PluginMetadataExtractor(
         return parts.Length <= 1 ? [] : parts[..^1].ToList();
     }
 
-    private static (string DllPath, BepInPluginAttribute Plugin) SelectPrimaryPlugin(
+    private static (string DllPath, BepInPluginAttribute Plugin) SelectprimaryPlugin(
         List<(string DllPath, BepInPluginAttribute Plugin)> plugins,
         string directoryName
     )
@@ -524,6 +527,13 @@ public sealed class PluginMetadataExtractor(
 
     private static bool IsValidVersion(string version)
     {
-        return SemVer.TryParse(version) is not null;
+        return SemVer.TryParse(version, "PluginMetadataExtractor").IsT0;
     }
 }
+
+
+
+
+
+
+

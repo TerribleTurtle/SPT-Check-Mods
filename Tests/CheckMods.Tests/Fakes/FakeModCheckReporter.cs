@@ -145,3 +145,9 @@ public sealed class FakeModCheckReporter : IModCheckReporter
     /// <inheritdoc />
     public void IgnoreReportOpened(string url, bool browserOpened, bool prefilled) { }
 }
+
+
+
+
+
+

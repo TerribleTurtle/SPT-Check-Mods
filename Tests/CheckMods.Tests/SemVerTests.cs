@@ -13,7 +13,7 @@ public sealed class SemVerTests
     [InlineData("1.0.0-beta.1")]
     public void TryParse_returns_version_for_valid_input(string input)
     {
-        Assert.NotNull(SemVer.TryParse(input));
+        Assert.True(SemVer.TryParse(input, "test").IsT0);
     }
 
     [Theory]
@@ -22,23 +22,9 @@ public sealed class SemVerTests
     [InlineData("   ")]
     [InlineData("not-a-version")]
     [InlineData("abc")]
-    public void TryParse_returns_null_for_missing_or_invalid_input(string? input)
+    public void TryParse_returns_error_for_missing_or_invalid_input(string? input)
     {
-        Assert.Null(SemVer.TryParse(input));
-    }
-
-    [Fact]
-    public void ParseOrZero_parses_valid_input()
-    {
-        Assert.Equal(new SemanticVersioning.Version("1.2.3"), SemVer.ParseOrZero("1.2.3"));
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("garbage")]
-    public void ParseOrZero_falls_back_to_zero(string? input)
-    {
-        Assert.Equal(new SemanticVersioning.Version(0, 0, 0), SemVer.ParseOrZero(input));
+        Assert.True(SemVer.TryParse(input, "test").IsT1);
     }
 
     [Theory]
@@ -59,3 +45,8 @@ public sealed class SemVerTests
         Assert.False(SemVer.SatisfiesRange(constraint, new SemanticVersioning.Version("1.0.0")));
     }
 }
+
+
+
+
+

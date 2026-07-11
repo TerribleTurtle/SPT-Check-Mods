@@ -294,7 +294,7 @@ public sealed class TextRenderer : ITextRenderer
         foreach (var mod in candidates)
         {
             var item = prompt.AddChoice(mod);
-            if (mod.ApiModId.HasValue && preIgnoredApiModIds.Contains(mod.ApiModId.Value))
+            if (mod.Api.ApiModId.HasValue && preIgnoredApiModIds.Contains(mod.Api.ApiModId.Value))
             {
                 item.Select();
             }
@@ -369,8 +369,8 @@ public sealed class TextRenderer : ITextRenderer
     private static string FormatIgnoreChoice(Mod mod)
     {
         var name = mod.DisplayName.EscapeMarkup();
-        var local = mod.LocalVersion.EscapeMarkup();
-        var latest = (mod.LatestVersion ?? "?").EscapeMarkup();
+        var local = mod.Local.LocalVersion.EscapeMarkup();
+        var latest = (mod.Update.LatestVersion ?? "?").EscapeMarkup();
         return $"{name}  [grey]{local} -> {latest}[/]";
     }
 
@@ -382,6 +382,11 @@ public sealed class TextRenderer : ITextRenderer
         }
     }
 }
+
+
+
+
+
 
 
 

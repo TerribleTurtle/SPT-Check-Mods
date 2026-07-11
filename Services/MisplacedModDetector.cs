@@ -33,7 +33,7 @@ public sealed class MisplacedModDetector(
                 if (clientMod is not null)
                 {
                     wrongFolder.Add(
-                        new MisplacedMod(false, clientMod.Guid, clientMod.LocalName, clientMod.LocalVersion, dllPath)
+                        new MisplacedMod(false, clientMod.Local.Guid, clientMod.Local.LocalName, clientMod.Local.LocalVersion, dllPath)
                     );
                 }
             }
@@ -50,7 +50,7 @@ public sealed class MisplacedModDetector(
                 if (serverMod is not null)
                 {
                     wrongFolder.Add(
-                        new MisplacedMod(true, serverMod.Guid, serverMod.LocalName, serverMod.LocalVersion, dllPath)
+                        new MisplacedMod(true, serverMod.Local.Guid, serverMod.Local.LocalName, serverMod.Local.LocalVersion, dllPath)
                     );
                 }
             }
@@ -196,3 +196,4 @@ public sealed class MisplacedModDetector(
         }
     }
 }
+

@@ -21,12 +21,14 @@ public sealed class ModDependencyServiceTests
     {
         return new Mod
         {
-            Guid = guid,
-            FilePath = $"{name}.dll",
-            IsServerMod = true,
-            LocalName = name,
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0",
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = guid,
+                FilePath = $"{name}.dll",
+                IsServerMod = true,
+                LocalName = name,
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+            }
         };
     }
 
@@ -43,12 +45,14 @@ public sealed class ModDependencyServiceTests
     {
         var mod = new Mod
         {
-            Guid = guid,
-            FilePath = $"{name}.dll",
-            IsServerMod = true,
-            LocalName = name,
-            LocalAuthor = "Author",
-            LocalVersion = localVersion,
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = guid,
+                FilePath = $"{name}.dll",
+                IsServerMod = true,
+                LocalName = name,
+                LocalAuthor = "Author",
+                LocalVersion = localVersion,
+            }
         };
         mod.UpdateFromApiMatch(
             new ModSearchResult(apiModId, null, name, "slug", null, null, 0, null, null, null, null)
@@ -234,7 +238,7 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main], []);
 
-        var delta = main.UpdateDependencyChanges;
+        var delta = main.Update.UpdateDependencyChanges;
         Assert.NotNull(delta);
         var added = Assert.Single(delta.Added);
         Assert.Equal("com.author.dep", added.Guid);
@@ -261,7 +265,7 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main, dep], []);
 
-        var added = Assert.Single(main.UpdateDependencyChanges!.Added);
+        var added = Assert.Single(main.Update.UpdateDependencyChanges!.Added);
         Assert.Equal(DependencyInstallState.InstalledOk, added.InstallState);
         Assert.Equal("3.0.0", added.InstalledVersion);
     }
@@ -283,7 +287,7 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main, dep], []);
 
-        var added = Assert.Single(main.UpdateDependencyChanges!.Added);
+        var added = Assert.Single(main.Update.UpdateDependencyChanges!.Added);
         Assert.Equal(DependencyInstallState.InstalledOutdated, added.InstallState);
         Assert.Equal("2.0.0", added.InstalledVersion);
         Assert.Equal("3.0.0", added.RecommendedVersion);
@@ -309,7 +313,7 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main], []);
 
-        var added = main.UpdateDependencyChanges!.Added;
+        var added = main.Update.UpdateDependencyChanges!.Added;
         Assert.Equal(2, added.Count);
         Assert.Contains(added, c => c.Guid == "com.a");
         Assert.Contains(added, c => c.Guid == "com.b");
@@ -331,9 +335,9 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main], []);
 
-        var removed = Assert.Single(main.UpdateDependencyChanges!.Removed);
+        var removed = Assert.Single(main.Update.UpdateDependencyChanges!.Removed);
         Assert.Equal("com.old", removed.Guid);
-        Assert.Empty(main.UpdateDependencyChanges.Added);
+        Assert.Empty(main.Update.UpdateDependencyChanges.Added);
     }
 
     [Fact]
@@ -344,7 +348,7 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main], []);
 
-        Assert.Null(main.UpdateDependencyChanges);
+        Assert.Null(main.Update.UpdateDependencyChanges);
     }
 
     [Fact]
@@ -369,7 +373,7 @@ public sealed class ModDependencyServiceTests
 
         var result = await CreateService(api).AnalyzeDependenciesAsync([main], []);
 
-        Assert.Null(main.UpdateDependencyChanges);
+        Assert.Null(main.Update.UpdateDependencyChanges);
         Assert.Single(result.MissingDependencies);
     }
 
@@ -392,7 +396,13 @@ public sealed class ModDependencyServiceTests
 
         await CreateService(api).AnalyzeDependenciesAsync([main], []);
 
-        var added = Assert.Single(main.UpdateDependencyChanges!.Added);
+        var added = Assert.Single(main.Update.UpdateDependencyChanges!.Added);
         Assert.True(added.Conflict);
     }
 }
+
+
+
+
+
+

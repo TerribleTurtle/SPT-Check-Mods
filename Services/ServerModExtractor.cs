@@ -75,13 +75,16 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
 
             return new Mod
             {
-                Guid = modGuid,
-                FilePath = dllPath,
-                IsServerMod = true,
-                LocalName = name,
-                LocalAuthor = author,
-                LocalVersion = version,
-                LocalSptVersion = string.IsNullOrEmpty(sptVersion) ? null : sptVersion,
+                Local = new LocalModIdentity
+                {
+                    Guid = modGuid,
+                    FilePath = dllPath,
+                    IsServerMod = true,
+                    LocalName = name,
+                    LocalAuthor = author,
+                    LocalVersion = version,
+                    LocalSptVersion = string.IsNullOrEmpty(sptVersion) ? null : sptVersion
+                },
                 LoadWarnings = warnings,
             };
         }
@@ -176,6 +179,10 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
 
     private static bool IsValidVersion(string version)
     {
-        return SemVer.TryParse(version) is not null;
+        return SemVer.TryParse(version, "ServerModExtractor").IsT0;
     }
 }
+
+
+
+

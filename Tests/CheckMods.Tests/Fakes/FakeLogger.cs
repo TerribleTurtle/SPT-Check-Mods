@@ -38,3 +38,9 @@ public sealed class FakeLogger<T> : ILogger<T>
         _loggedMessages.Add(formatter(state, exception));
     }
 }
+
+
+
+
+
+

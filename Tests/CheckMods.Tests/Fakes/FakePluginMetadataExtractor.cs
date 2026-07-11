@@ -52,3 +52,9 @@ public sealed class FakePluginMetadataExtractor : IPluginMetadataExtractor
         return MisplacedModToReturn!;
     }
 }
+
+
+
+
+
+

@@ -11,7 +11,7 @@
 If you discover a security vulnerability in SPT Check Mods, please report it responsibly by following these steps:
 
 1. **Do NOT** create a public GitHub issue for security vulnerabilities
-2. Send an email to the project maintainer me@refringe.com with details about the vulnerability
+2. Send an email to the project maintainers with details about the vulnerability
 3. Include the following information:
    - Description of the vulnerability
    - Steps to reproduce the issue

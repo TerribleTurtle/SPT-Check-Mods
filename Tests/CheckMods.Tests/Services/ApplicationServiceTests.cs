@@ -65,7 +65,7 @@ public sealed class ApplicationServiceTests
         var sptVersion = new Version("3.9.0");
         _sptInstallationService.ValidatedVersion = sptVersion;
         
-        var serverMod = new Mod { Guid = "test", FilePath = "test", LocalName = "TestMod", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true };
+        var serverMod = new Mod { Local = new CheckMods.Models.LocalModIdentity { Guid = "test", FilePath = "test", LocalName = "TestMod", LocalAuthor = "Author", LocalVersion = "1.0.0", IsServerMod = true } };
         _modScannerService.ServerModsToReturn = [serverMod];
         
         _modReconciliationService.ResultToReturn = new ModReconciliationResult
@@ -110,12 +110,14 @@ public sealed class ApplicationServiceTests
 
         var mod = new Mod 
         { 
-            Guid = "test",
-            FilePath = "test", 
-            LocalName = "TestMod", 
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0",
-            IsServerMod = true
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "test",
+                FilePath = "test", 
+                LocalName = "TestMod", 
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true
+            }
         };
         mod.UpdateFromApiMatch(apiResult);
         
@@ -140,7 +142,7 @@ public sealed class ApplicationServiceTests
         // Assert
         Assert.Single(result);
         var returnedMod = result[0];
-        Assert.True(returnedMod.UpdateSuppressed);
+        Assert.True(returnedMod.Update.UpdateSuppressed);
     }
 
     [Fact]
@@ -166,12 +168,14 @@ public sealed class ApplicationServiceTests
 
         var mod = new Mod 
         { 
-            Guid = "test",
-            FilePath = "test", 
-            LocalName = "TestMod", 
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0",
-            IsServerMod = true
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "test",
+                FilePath = "test", 
+                LocalName = "TestMod", 
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+                IsServerMod = true
+            }
         };
         mod.UpdateFromApiMatch(apiResult);
 
@@ -196,3 +200,9 @@ public sealed class ApplicationServiceTests
         Assert.Contains(_reporter.Headings, h => h.Contains("Verifying Forge records"));
     }
 }
+
+
+
+
+
+

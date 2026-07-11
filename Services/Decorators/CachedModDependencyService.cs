@@ -28,7 +28,7 @@ public sealed class CachedModDependencyService(
     )
     {
         // Sort items for deterministic cache key
-        var modKey = string.Join(",", mods.Select(m => $"{m.Guid}_{m.LocalVersion}").OrderBy(x => x));
+        var modKey = string.Join(",", mods.Select(m => $"{m.Local.Guid}_{m.Local.LocalVersion}").OrderBy(x => x));
         var installedKey = string.Join(",", installedModGuids.OrderBy(x => x));
         var key = $"ModDeps_{modKey}_{installedKey}";
 
@@ -47,3 +47,4 @@ public sealed class CachedModDependencyService(
         return result;
     }
 }
+

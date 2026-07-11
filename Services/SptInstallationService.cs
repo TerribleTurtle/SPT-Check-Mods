@@ -67,8 +67,8 @@ public sealed class SptInstallationService(
             return null;
         }
 
-        var localSptVersion = SemVer.TryParse(localSptVersionStr);
-        if (localSptVersion is null)
+        var localSptVersionResult = SemVer.TryParse(localSptVersionStr, "SptInstallationService");
+        if (!localSptVersionResult.TryPickT0(out var localSptVersion, out _))
         {
             logger.LogError("Could not parse SPT version '{SptVersion}'", localSptVersionStr);
             reporter.Error($"Failed. Could not parse SPT version '{localSptVersionStr}'.");
@@ -94,9 +94,12 @@ public sealed class SptInstallationService(
             {
                 // Filter to versions newer than the current version, skipping any that can't be parsed.
                 var newerVersions = versions
-                    .Select(v => (Raw: v, Parsed: SemVer.TryParse(v.Version)))
-                    .Where(x => x.Parsed is not null && x.Parsed! > currentVersion)
-                    .OrderByDescending(x => x.Parsed)
+                    .Select(v => {
+                        var parsed = SemVer.TryParse(v.Version, "SptUpdateCheck");
+                        return (Raw: v, ParsedResult: parsed);
+                    })
+                    .Where(x => x.ParsedResult.TryPickT0(out var ver, out _) && ver > currentVersion)
+                    .OrderByDescending(x => x.ParsedResult.AsT0)
                     .Select(x => x.Raw)
                     .ToList();
 
@@ -111,3 +114,4 @@ public sealed class SptInstallationService(
         );
     }
 }
+

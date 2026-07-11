@@ -46,7 +46,7 @@ public sealed class ModScannerServiceTests : IDisposable
         Directory.CreateDirectory(modPath);
         File.WriteAllText(Path.Combine(modPath, "TestMod.dll"), "dummy");
 
-        var fakeMod = new Mod { Guid = "com.server.test", FilePath = "test", LocalName = "Test Server Mod", LocalAuthor = "ServerAuthor", LocalVersion = "1.0.0", LocalSptVersion = "3.8.0", IsServerMod = true };
+        var fakeMod = new Mod { Local = new CheckMods.Models.LocalModIdentity { Guid = "com.server.test", FilePath = "test", LocalName = "Test Server Mod", LocalAuthor = "ServerAuthor", LocalVersion = "1.0.0", LocalSptVersion = "3.8.0", IsServerMod = true } };
         _serverExtractor.ExtractedMod = fakeMod;
 
         var mods = _service.ScanServerMods(_sptPath);
@@ -66,7 +66,7 @@ public sealed class ModScannerServiceTests : IDisposable
 
         _pluginExtractor.ValidClientDllFilesToReturn = [dllPath];
 
-        var fakeMod = new Mod { Guid = "com.client.test", FilePath = "test", LocalName = "Test Client Mod", LocalAuthor = "client", LocalVersion = "1.0.0", IsServerMod = false };
+        var fakeMod = new Mod { Local = new CheckMods.Models.LocalModIdentity { Guid = "com.client.test", FilePath = "test", LocalName = "Test Client Mod", LocalAuthor = "client", LocalVersion = "1.0.0", IsServerMod = false } };
         _pluginExtractor.ProcessedClientMods = [fakeMod];
 
         var mods = await _service.ScanClientModsAsync(_sptPath);
@@ -154,11 +154,17 @@ public class TestServerMod : AbstractModMetadata {
 
         // Assert
         Assert.Single(clientMods);
-        Assert.Equal("com.client.test", clientMods[0].Guid);
-        Assert.Equal("Test Client Mod", clientMods[0].LocalName);
+        Assert.Equal("com.client.test", clientMods[0].Local.Guid);
+        Assert.Equal("Test Client Mod", clientMods[0].Local.LocalName);
         
         Assert.Single(serverMods);
-        Assert.Equal("com.server.test", serverMods[0].Guid);
-        Assert.Equal("Test Server Mod", serverMods[0].LocalName);
+        Assert.Equal("com.server.test", serverMods[0].Local.Guid);
+        Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
+
+
+
+
+
+

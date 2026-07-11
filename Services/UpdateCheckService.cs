@@ -117,7 +117,7 @@ public sealed class UpdateCheckService(
         }
 
         var latestStable = mod
-            .Versions.Select(v => (Raw: v, Parsed: SemVer.TryParse(v.Version)))
+            .Versions.Select(v => (Raw: v, Parsed: SemVer.TryParse(v.Version, "UpdateCheckService").AsT0))
             .Where(x => x.Parsed is not null && string.IsNullOrEmpty(x.Parsed!.PreRelease))
             .OrderByDescending(x => x.Parsed)
             .Select(x => x.Raw)
@@ -137,3 +137,5 @@ public sealed class UpdateCheckService(
         );
     }
 }
+
+

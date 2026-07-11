@@ -20,3 +20,9 @@ public sealed class FakeUpdateCheckService : IUpdateCheckService
         return Task.FromResult(ResultToReturn);
     }
 }
+
+
+
+
+
+

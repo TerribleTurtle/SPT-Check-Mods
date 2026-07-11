@@ -24,12 +24,14 @@ public sealed class ModEnrichmentServiceTests
         // Arrange
         var unmatchedMod = new Mod
         {
-            Guid = "com.test.mod",
-            FilePath = "test.dll",
-            IsServerMod = true,
-            LocalName = "Test Mod",
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0"
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "com.test.mod",
+                FilePath = "test.dll",
+                IsServerMod = true,
+                LocalName = "Test Mod",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0"
+            }
         };
         
         // Act
@@ -37,7 +39,7 @@ public sealed class ModEnrichmentServiceTests
 
         // Assert
         Assert.Contains("No matched mods to enrich", _logger.LoggedMessages);
-        Assert.Null(unmatchedMod.LatestVersion);
+        Assert.Null(unmatchedMod.Update.LatestVersion);
     }
 
     [Fact]
@@ -46,12 +48,14 @@ public sealed class ModEnrichmentServiceTests
         // Arrange
         var matchedMod = new Mod
         {
-            Guid = "com.test.mod",
-            FilePath = "test.dll",
-            IsServerMod = true,
-            LocalName = "Test Mod",
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0"
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "com.test.mod",
+                FilePath = "test.dll",
+                IsServerMod = true,
+                LocalName = "Test Mod",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0"
+            }
         };
         matchedMod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
         
@@ -61,8 +65,8 @@ public sealed class ModEnrichmentServiceTests
         await _service.EnrichAllWithVersionDataAsync([matchedMod], _sptVersion);
 
         // Assert
-        Assert.Null(matchedMod.LatestVersion);
-        Assert.Equal(UpdateStatus.Unknown, matchedMod.UpdateStatus);
+        Assert.Null(matchedMod.Update.LatestVersion);
+        Assert.Equal(UpdateStatus.Unknown, matchedMod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -71,12 +75,14 @@ public sealed class ModEnrichmentServiceTests
         // Arrange
         var matchedMod = new Mod
         {
-            Guid = "com.test.mod",
-            FilePath = "test.dll",
-            IsServerMod = true,
-            LocalName = "Test Mod",
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0"
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "com.test.mod",
+                FilePath = "test.dll",
+                IsServerMod = true,
+                LocalName = "Test Mod",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0"
+            }
         };
         matchedMod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
         
@@ -97,8 +103,14 @@ public sealed class ModEnrichmentServiceTests
         await _service.EnrichAllWithVersionDataAsync([matchedMod], _sptVersion);
 
         // Assert
-        Assert.Equal("2.0.0", matchedMod.LatestVersion);
-        Assert.Equal("http://download", matchedMod.DownloadLink);
-        Assert.Equal(UpdateStatus.UpdateAvailable, matchedMod.UpdateStatus);
+        Assert.Equal("2.0.0", matchedMod.Update.LatestVersion);
+        Assert.Equal("http://download", matchedMod.Update.DownloadLink);
+        Assert.Equal(UpdateStatus.UpdateAvailable, matchedMod.Update.UpdateStatus);
     }
 }
+
+
+
+
+
+

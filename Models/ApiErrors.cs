@@ -30,3 +30,10 @@ public readonly record struct InvalidSptVersion;
 /// <param name="StatusCode">The HTTP status code, if applicable.</param>
 /// <param name="Exception">The underlying exception, if any.</param>
 public readonly record struct ApiError(string Message, int? StatusCode = null, Exception? Exception = null);
+
+/// <summary>
+/// Represents a semantic version string that could not be parsed.
+/// </summary>
+/// <param name="VersionString">The raw string that failed to parse.</param>
+/// <param name="Context">Context about where this version string came from (e.g., ModName, property).</param>
+public readonly record struct InvalidSemVer(string? VersionString, string Context);

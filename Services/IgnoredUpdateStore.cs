@@ -46,12 +46,12 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     /// <inheritdoc />
     public bool IsIgnored(Mod mod)
     {
-        if (!mod.ApiModId.HasValue || mod.LatestVersion is null)
+        if (!mod.Api.ApiModId.HasValue || mod.Update.LatestVersion is null)
         {
             return false;
         }
 
-        return IsIgnored(mod.ApiModId.Value, mod.LocalVersion, mod.LatestVersion);
+        return IsIgnored(mod.Api.ApiModId.Value, mod.Local.LocalVersion, mod.Update.LatestVersion);
     }
 
     /// <summary>Value-based overload of <see cref="IsIgnored(Mod)"/>.</summary>
@@ -167,3 +167,5 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
         return $"{apiModId}|{localVersion}|{latestVersion}";
     }
 }
+
+

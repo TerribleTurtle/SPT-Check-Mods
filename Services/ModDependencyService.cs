@@ -25,7 +25,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         var result = new DependencyAnalysisResult();
 
         // Only analyze mods that are matched with the API
-        var matchedMods = modList.Where(m => m.IsMatched && m.ApiModId.HasValue).ToList();
+        var matchedMods = modList.Where(m => m.IsMatched && m.Api.ApiModId.HasValue).ToList();
         if (matchedMods.Count == 0)
         {
             logger.LogDebug("No matched mods to analyze for dependencies");
@@ -37,13 +37,13 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
 
         // Build lookup maps for finding installed mods
         var modByGuid = modList
-            .Where(m => !string.IsNullOrWhiteSpace(m.Guid))
-            .GroupBy(m => m.Guid, StringComparer.OrdinalIgnoreCase)
+            .Where(m => !string.IsNullOrWhiteSpace(m.Local.Guid))
+            .GroupBy(m => m.Local.Guid, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
         var modById = matchedMods
-            .Where(m => m.ApiModId.HasValue)
-            .GroupBy(m => m.ApiModId!.Value)
+            .Where(m => m.Api.ApiModId.HasValue)
+            .GroupBy(m => m.Api.ApiModId!.Value)
             .ToDictionary(g => g.Key, g => g.First());
 
         // Track all missing dependencies and conflicts across all mods
@@ -55,8 +55,8 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
 
         // Get unique mod IDs to fetch
         var uniqueModIds = matchedMods
-            .Where(m => m.ApiModId.HasValue)
-            .Select(m => m.ApiModId!.Value)
+            .Where(m => m.Api.ApiModId.HasValue)
+            .Select(m => m.Api.ApiModId!.Value)
             .Distinct()
             .ToList();
 
@@ -65,11 +65,11 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         var updatableGroups = modList
             .Where(m =>
                 m.IsMatched
-                && m.ApiModId.HasValue
-                && m.UpdateStatus == UpdateStatus.UpdateAvailable
-                && !string.IsNullOrWhiteSpace(m.LatestVersion)
+                && m.Api.ApiModId.HasValue
+                && m.Update.UpdateStatus == UpdateStatus.UpdateAvailable
+                && !string.IsNullOrWhiteSpace(m.Update.LatestVersion)
             )
-            .GroupBy(m => m.ApiModId!.Value)
+            .GroupBy(m => m.Api.ApiModId!.Value)
             .ToList();
 
         var totalToFetch = uniqueModIds.Count + updatableGroups.Count;
@@ -79,14 +79,14 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var modId = mod.ApiModId!.Value;
+            var modId = mod.Api.ApiModId!.Value;
             if (modDependencyCache.ContainsKey(modId))
             {
                 continue;
             }
 
             var depsResult = await forgeApiService.GetModDependenciesAsync(
-                [(modId.ToString(), mod.LocalVersion)],
+                [(modId.ToString(), mod.Local.LocalVersion)],
                 cancellationToken
             );
 
@@ -109,7 +109,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             cancellationToken.ThrowIfCancellationRequested();
 
             var modId = group.Key;
-            var targetVersion = group.First().LatestVersion!;
+            var targetVersion = group.First().Update.LatestVersion!;
 
             var targetResult = await forgeApiService.GetModDependenciesAsync(
                 [(modId.ToString(), targetVersion)],
@@ -148,13 +148,13 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         {
             // Get dependencies for this mod (if it's matched)
             List<ModDependency> modDeps = [];
-            if (mod.ApiModId.HasValue && modDependencyCache.TryGetValue(mod.ApiModId.Value, out var cachedDeps))
+            if (mod.Api.ApiModId.HasValue && modDependencyCache.TryGetValue(mod.Api.ApiModId.Value, out var cachedDeps))
             {
                 modDeps = cachedDeps;
             }
 
             // Build the dependency subtree for this mod
-            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { mod.Guid };
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { mod.Local.Guid };
             var children = modDeps
                 .Select(dep =>
                     BuildDependencySubtree(dep, modByGuid, modById, installedModGuids, missingDeps, conflicts, visited)
@@ -294,12 +294,15 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             installedMod
             ?? new Mod
             {
-                Guid = dependency.Guid,
-                FilePath = string.Empty,
-                IsServerMod = true,
-                LocalName = dependency.Name,
-                LocalAuthor = string.Empty,
-                LocalVersion = dependency.LatestCompatibleVersion?.Version ?? "unknown",
+                Local = new LocalModIdentity
+                {
+                    Guid = dependency.Guid,
+                    FilePath = string.Empty,
+                    IsServerMod = true,
+                    LocalName = dependency.Name,
+                    LocalAuthor = string.Empty,
+                    LocalVersion = dependency.LatestCompatibleVersion?.Version ?? "unknown",
+                }
             };
 
         return new DependencyNode
@@ -414,7 +417,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         else if (
             installedMod != null
             && !string.IsNullOrWhiteSpace(recommendedVersion)
-            && SemVer.ParseOrZero(installedMod.LocalVersion) < SemVer.ParseOrZero(recommendedVersion)
+            && (SemVer.TryParse(installedMod.Local.LocalVersion, "ModDependencyService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))) < (SemVer.TryParse(recommendedVersion, "ModDependencyService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0)))
         )
         {
             state = DependencyInstallState.InstalledOutdated;
@@ -433,8 +436,12 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
             RecommendedVersion = recommendedVersion ?? "unknown",
             DownloadLink = downloadLink,
             InstallState = state,
-            InstalledVersion = installedMod?.LocalVersion,
+            InstalledVersion = installedMod?.Local.LocalVersion,
             Conflict = dependency.Conflict,
         };
     }
 }
+
+
+
+

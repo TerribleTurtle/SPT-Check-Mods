@@ -22,12 +22,14 @@ public sealed class ModMatchingServiceTests
     {
         return new Mod
         {
-            Guid = guid,
-            FilePath = $"plugins/{name}.dll",
-            IsServerMod = false,
-            LocalName = name,
-            LocalAuthor = "Author",
-            LocalVersion = version,
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = guid,
+                FilePath = $"plugins/{name}.dll",
+                IsServerMod = false,
+                LocalName = name,
+                LocalAuthor = "Author",
+                LocalVersion = version,
+            }
         };
     }
 
@@ -52,12 +54,14 @@ public sealed class ModMatchingServiceTests
     {
         return new Mod
         {
-            Guid = guid,
-            FilePath = $"plugins/{name}.dll",
-            IsServerMod = false,
-            LocalName = name,
-            LocalAuthor = author,
-            LocalVersion = "1.0.0",
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = guid,
+                FilePath = $"plugins/{name}.dll",
+                IsServerMod = false,
+                LocalName = name,
+                LocalAuthor = author,
+                LocalVersion = "1.0.0",
+            }
         };
     }
 
@@ -70,7 +74,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(2471, mod.ApiModId);
+        Assert.Equal(2471, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -86,7 +90,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(2471, mod.ApiModId);
+        Assert.Equal(2471, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -240,7 +244,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(10, mod.ApiModId);
+        Assert.Equal(10, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -256,7 +260,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(20, mod.ApiModId);
+        Assert.Equal(20, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -272,7 +276,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(30, mod.ApiModId);
+        Assert.Equal(30, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -289,7 +293,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(40, mod.ApiModId);
+        Assert.Equal(40, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -306,7 +310,7 @@ public sealed class ModMatchingServiceTests
         await CreateService(api).MatchModsAsync([mod], SptVersion);
 
         Assert.True(mod.IsMatched);
-        Assert.Equal(50, mod.ApiModId);
+        Assert.Equal(50, mod.Api.ApiModId);
     }
 
     [Fact]
@@ -378,3 +382,9 @@ public sealed class ModMatchingServiceTests
         Assert.DoesNotContain(queries, q => q.Contains("Unknown"));
     }
 }
+
+
+
+
+
+

@@ -55,12 +55,12 @@ public class MySptMod : AbstractModMetadata
         var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath), _sptPath);
 
         Assert.NotNull(mod);
-        Assert.True(mod!.IsServerMod);
-        Assert.Equal("com.server.test", mod.Guid);
-        Assert.Equal("Test Server Mod", mod.LocalName);
-        Assert.Equal("ServerAuthor", mod.LocalAuthor);
-        Assert.Equal("1.0.0", mod.LocalVersion);
-        Assert.Equal("3.8.0", mod.LocalSptVersion);
+        Assert.True(mod!.Local.IsServerMod);
+        Assert.Equal("com.server.test", mod.Local.Guid);
+        Assert.Equal("Test Server Mod", mod.Local.LocalName);
+        Assert.Equal("ServerAuthor", mod.Local.LocalAuthor);
+        Assert.Equal("1.0.0", mod.Local.LocalVersion);
+        Assert.Equal("3.8.0", mod.Local.LocalSptVersion);
     }
 
     [Fact]
@@ -155,3 +155,9 @@ public class SomeClass
         _fixture.Dispose();
     }
 }
+
+
+
+
+
+

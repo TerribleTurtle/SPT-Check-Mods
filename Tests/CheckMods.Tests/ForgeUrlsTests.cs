@@ -30,3 +30,9 @@ public sealed class ForgeUrlsTests
         Assert.Equal("https://forge.sp-tarkov.com/mod/123/", ForgeUrls.ModPage(123, slug));
     }
 }
+
+
+
+
+
+

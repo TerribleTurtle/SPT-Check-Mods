@@ -180,7 +180,7 @@ public sealed class ApplicationService(
     {
         foreach (var mod in mods)
         {
-            if (mod.UpdateStatus == UpdateStatus.UpdateAvailable && ignoredUpdateStore.IsIgnored(mod))
+            if (mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable && ignoredUpdateStore.IsIgnored(mod))
             {
                 mod.SetUpdateSuppressed(true);
             }
@@ -350,8 +350,8 @@ public sealed class ApplicationService(
         var excludedDirectories = report.ExcludedDirectories;
 
         return mods.Where(mod =>
-                !excludedFiles.Contains(mod.FilePath)
-                && !excludedDirectories.Any(directory => IsWithinDirectory(mod.FilePath, directory))
+                !excludedFiles.Contains(mod.Local.FilePath)
+                && !excludedDirectories.Any(directory => IsWithinDirectory(mod.Local.FilePath, directory))
             )
             .ToList();
     }
@@ -417,7 +417,7 @@ public sealed class ApplicationService(
         var selectedMod = pair.SelectedMod;
 
         // Skip if already has API info
-        if (selectedMod.ApiSourceCodeUrl is not null || selectedMod.ApiUrl is not null)
+        if (selectedMod.Api.ApiSourceCodeUrl is not null || selectedMod.Api.ApiUrl is not null)
         {
             return;
         }
@@ -426,17 +426,17 @@ public sealed class ApplicationService(
 
         // Collect all unique GUIDs to try (server GUID, client GUID)
         List<string> guidsToTry = [];
-        if (!string.IsNullOrWhiteSpace(pair.ServerMod.Guid))
+        if (!string.IsNullOrWhiteSpace(pair.ServerMod.Local.Guid))
         {
-            guidsToTry.Add(pair.ServerMod.Guid);
+            guidsToTry.Add(pair.ServerMod.Local.Guid);
         }
 
         if (
-            !string.IsNullOrWhiteSpace(pair.ClientMod.Guid)
-            && !guidsToTry.Contains(pair.ClientMod.Guid, StringComparer.OrdinalIgnoreCase)
+            !string.IsNullOrWhiteSpace(pair.ClientMod.Local.Guid)
+            && !guidsToTry.Contains(pair.ClientMod.Local.Guid, StringComparer.OrdinalIgnoreCase)
         )
         {
-            guidsToTry.Add(pair.ClientMod.Guid);
+            guidsToTry.Add(pair.ClientMod.Local.Guid);
         }
 
         // Try each GUID until we find a match
@@ -473,7 +473,7 @@ public sealed class ApplicationService(
     )
     {
         // Skip if already has API info
-        if (mod.ApiSourceCodeUrl is not null || mod.ApiUrl is not null)
+        if (mod.Api.ApiSourceCodeUrl is not null || mod.Api.ApiUrl is not null)
         {
             return;
         }
@@ -481,9 +481,9 @@ public sealed class ApplicationService(
         ModSearchResult? apiResult = null;
 
         // Try to find the mod by GUID first
-        if (!string.IsNullOrWhiteSpace(mod.Guid))
+        if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
         {
-            var guidResult = await forgeApiService.GetModByGuidAsync(mod.Guid, sptVersion, cancellationToken);
+            var guidResult = await forgeApiService.GetModByGuidAsync(mod.Local.Guid, sptVersion, cancellationToken);
             if (guidResult.TryPickT0(out var match, out _))
             {
                 apiResult = match;
@@ -510,14 +510,14 @@ public sealed class ApplicationService(
         CancellationToken cancellationToken = default
     )
     {
-        if (string.IsNullOrWhiteSpace(mod.LocalName))
+        if (string.IsNullOrWhiteSpace(mod.Local.LocalName))
         {
             return null;
         }
 
-        var searchResult = mod.IsServerMod
-            ? await forgeApiService.SearchModsAsync(mod.LocalName, sptVersion, cancellationToken)
-            : await forgeApiService.SearchClientModsAsync(mod.LocalName, sptVersion, cancellationToken);
+        var searchResult = mod.Local.IsServerMod
+            ? await forgeApiService.SearchModsAsync(mod.Local.LocalName, sptVersion, cancellationToken)
+            : await forgeApiService.SearchClientModsAsync(mod.Local.LocalName, sptVersion, cancellationToken);
 
         // Extract search results or empty list on error
         var searchResults = searchResult.Match(
@@ -530,7 +530,7 @@ public sealed class ApplicationService(
             return null;
         }
 
-        var normalizedLocalName = ModNameNormalizer.Normalize(mod.LocalName);
+        var normalizedLocalName = ModNameNormalizer.Normalize(mod.Local.LocalName);
 
         // Try exact match first
         var apiResult = searchResults.FirstOrDefault(r =>
@@ -544,7 +544,7 @@ public sealed class ApplicationService(
 
         // If no exact match, try fuzzy match with high threshold
         var bestMatch = searchResults
-            .Select(r => (Result: r, Score: ModNameNormalizer.GetFuzzyMatchScore(mod.LocalName, r.Name)))
+            .Select(r => (Result: r, Score: ModNameNormalizer.GetFuzzyMatchScore(mod.Local.LocalName, r.Name)))
             .Where(x => x.Score >= MatchingConstants.NameSearchFuzzyThreshold)
             .OrderByDescending(x => x.Score)
             .FirstOrDefault();
@@ -621,7 +621,7 @@ public sealed class ApplicationService(
 
         // Only check mods that are matched with the API and have versions stored, skipping those whose update was
         // dismissed as a false positive.
-        var matchedMods = mods.Where(m => m.IsMatched && m.ApiVersions is { Count: > 0 } && !m.UpdateSuppressed)
+        var matchedMods = mods.Where(m => m.IsMatched && m.Api.ApiVersions is { Count: > 0 } && !m.Update.UpdateSuppressed)
             .ToList();
 
         foreach (var mod in matchedMods)
@@ -641,8 +641,8 @@ public sealed class ApplicationService(
     private void CheckModSptCompatibility(Mod mod, SemanticVersioning.Version sptVersion)
     {
         // Find the version that matches the installed local version.
-        var installedApiVersion = mod.ApiVersions!.FirstOrDefault(v =>
-            string.Equals(v.Version, mod.LocalVersion, StringComparison.OrdinalIgnoreCase)
+        var installedApiVersion = mod.Api.ApiVersions!.FirstOrDefault(v =>
+            string.Equals(v.Version, mod.Local.LocalVersion, StringComparison.OrdinalIgnoreCase)
         );
 
         if (installedApiVersion == null)
@@ -673,13 +673,13 @@ public sealed class ApplicationService(
         }
 
         // The installed version is NOT compatible with the installed SPT version
-        var reason = $"Version {mod.LocalVersion} requires SPT {installedApiVersion.SptVersionConstraint}";
+        var reason = $"Version {mod.Local.LocalVersion} requires SPT {installedApiVersion.SptVersionConstraint}";
 
         // Find the latest compatible version to suggest
-        var compatibleApiVersion = mod.ApiVersions!.Where(v =>
+        var compatibleApiVersion = mod.Api.ApiVersions!.Where(v =>
                 SemVer.SatisfiesRange(v.SptVersionConstraint, sptVersion)
             )
-            .OrderByDescending(v => SemVer.ParseOrZero(v.Version))
+            .OrderByDescending(v => (SemVer.TryParse(v.Version, "ApplicationService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))))
             .FirstOrDefault();
 
         mod.SetLocalSptIncompatible(reason, compatibleApiVersion?.Version);
@@ -700,22 +700,22 @@ public sealed class ApplicationService(
         reporter.Blank();
 
         // Build set of installed mod GUIDs
-        var installedGuids = mods.Where(m => !string.IsNullOrWhiteSpace(m.Guid))
-            .Select(m => m.Guid)
+        var installedGuids = mods.Where(m => !string.IsNullOrWhiteSpace(m.Local.Guid))
+            .Select(m => m.Local.Guid)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Count matched mods for progress
-        var matchedCount = mods.Count(m => m.IsMatched && m.ApiModId.HasValue);
+        var matchedCount = mods.Count(m => m.IsMatched && m.Api.ApiModId.HasValue);
 
         // Mods with an available update get a second dependency fetch (at the proposed version), deduped by API mod ID.
         // Include those in the progress total.
         var updatableCount = mods.Where(m =>
                 m.IsMatched
-                && m.ApiModId.HasValue
-                && m.UpdateStatus == UpdateStatus.UpdateAvailable
-                && !string.IsNullOrWhiteSpace(m.LatestVersion)
+                && m.Api.ApiModId.HasValue
+                && m.Update.UpdateStatus == UpdateStatus.UpdateAvailable
+                && !string.IsNullOrWhiteSpace(m.Update.LatestVersion)
             )
-            .Select(m => m.ApiModId!.Value)
+            .Select(m => m.Api.ApiModId!.Value)
             .Distinct()
             .Count();
 
@@ -735,3 +735,5 @@ public sealed class ApplicationService(
         reporter.DependencyResults(result);
     }
 }
+
+

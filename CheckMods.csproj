@@ -10,8 +10,8 @@
     <SelfContained>false</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <ApplicationIcon>check-mods.ico</ApplicationIcon>
-    <Copyright>2026 Refringe &lt;me@refringe.com&gt;</Copyright>
-    <Product>https://github.com/refringe/SPT-Check-Mods</Product>
+    <Copyright>2026 Refringe</Copyright>
+    <Product>https://github.com/TerribleTurtle/SPT-Check-Mods</Product>
     <AssemblyTitle>CheckMods</AssemblyTitle>
     <!--
     Baseline semver for local/dev builds. Releases override this via -p:BuildVersion (from the git tag). Bump this when
@@ -97,6 +97,8 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="OneOf" Version="3.0.271" />
     <PackageReference Include="SemanticVersioning" Version="3.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Spectre.Console" Version="0.57.0" />
     <PackageReference Include="SPTarkov.DI" Version="4.0.13" />
     <PackageReference Include="System.Reflection.MetadataLoadContext" Version="10.0.9" />

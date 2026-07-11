@@ -4,7 +4,13 @@ A .NET 9 console application that validates Single Player Tarkov (SPT) mod compa
 
 <img width="1013" height="314" alt="image" src="https://github.com/user-attachments/assets/00878387-024c-4961-b66f-b977f4e550c0" />
 
+## Acknowledgments
+
+This project is a fork of the original [SPT Check Mods](https://github.com/refringe/SPT-Check-Mods) by Refringe. We are incredibly grateful for their foundational work and continued contributions to the SPT modding community.
+
 ## Features
+
+> ✨ Indicates a feature added or improved in this fork.
 
 - **Forge API Integration**: Verifies mods against the official SPT Forge database
 - **Version Compatibility**: Checks installed mod versions against SPT version requirements
@@ -16,8 +22,11 @@ A .NET 9 console application that validates Single Player Tarkov (SPT) mod compa
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- **Decoupled Architecture**: Extracted monolithic processing logic into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) resulting in a clean, strictly decoupled codebase
-- **Optimized Dependency Resolution**: Highly optimized dependency reconciliation with O(1) matching and aggressive caching for fast processing
+- ✨ **Decoupled Architecture**: Extracted monolithic processing logic into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) resulting in a clean, strictly decoupled codebase
+- ✨ **Optimized Dependency Resolution**: Highly optimized dependency reconciliation with O(1) matching and aggressive caching for fast processing
+- ✨ **Robust Data Models**: Refactored the core domain models into strict data boundaries to separate remote API states from local filesystem states
+- ✨ **Strict Semantic Versioning**: Dropped dangerous silent-failures in version parsing, instead surfacing native Mod Load Warnings when mod authors provide invalid versions
+- ✨ **Enterprise Logging**: Replaced fragile manual file logging with Serilog, providing robust, high-concurrency log rotation
 
 ## Requirements
 

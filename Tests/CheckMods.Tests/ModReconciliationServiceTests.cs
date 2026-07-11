@@ -19,12 +19,14 @@ public sealed class ModReconciliationServiceTests
     {
         return new Mod
         {
-            Guid = guid,
-            FilePath = $"server/{name}.dll",
-            IsServerMod = true,
-            LocalName = name,
-            LocalAuthor = "Author",
-            LocalVersion = version,
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = guid,
+                FilePath = $"server/{name}.dll",
+                IsServerMod = true,
+                LocalName = name,
+                LocalAuthor = "Author",
+                LocalVersion = version,
+            }
         };
     }
 
@@ -32,12 +34,14 @@ public sealed class ModReconciliationServiceTests
     {
         return new Mod
         {
-            Guid = guid,
-            FilePath = $"client/{name}.dll",
-            IsServerMod = false,
-            LocalName = name,
-            LocalAuthor = "Author",
-            LocalVersion = version,
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = guid,
+                FilePath = $"client/{name}.dll",
+                IsServerMod = false,
+                LocalName = name,
+                LocalAuthor = "Author",
+                LocalVersion = version,
+            }
         };
     }
 
@@ -68,7 +72,7 @@ public sealed class ModReconciliationServiceTests
         );
 
         var pair = Assert.Single(result.ReconciledPairs);
-        Assert.Equal("1.2.0", pair.SelectedMod.LocalVersion);
+        Assert.Equal("1.2.0", pair.SelectedMod.Local.LocalVersion);
         Assert.Contains(pair.Notes, n => n.Contains("Version mismatch"));
     }
 
@@ -102,3 +106,9 @@ public sealed class ModReconciliationServiceTests
         Assert.Contains(pair.Notes, n => n.Contains("GUID mismatch"));
     }
 }
+
+
+
+
+
+

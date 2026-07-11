@@ -114,3 +114,9 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
         Assert.False(File.Exists(_path + ".tmp"));
     }
 }
+
+
+
+
+
+

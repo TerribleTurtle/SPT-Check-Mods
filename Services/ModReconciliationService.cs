@@ -35,17 +35,17 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         {
             var serverMod = serverMods[i];
             
-            if (!string.IsNullOrWhiteSpace(serverMod.Guid))
+            if (!string.IsNullOrWhiteSpace(serverMod.Local.Guid))
             {
-                if (!serverByGuid.TryGetValue(serverMod.Guid, out var list))
+                if (!serverByGuid.TryGetValue(serverMod.Local.Guid, out var list))
                 {
                     list = [];
-                    serverByGuid[serverMod.Guid] = list;
+                    serverByGuid[serverMod.Local.Guid] = list;
                 }
                 list.Add(i);
             }
 
-            var normName = ModNameNormalizer.Normalize(serverMod.LocalName, removeComponentSuffixes: true);
+            var normName = ModNameNormalizer.Normalize(serverMod.Local.LocalName, removeComponentSuffixes: true);
             if (!string.IsNullOrEmpty(normName))
             {
                 if (!serverByNormName.TryGetValue(normName, out var list))
@@ -56,7 +56,7 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
                 list.Add(i);
             }
 
-            var guidName = ModNameNormalizer.ExtractNameFromGuid(serverMod.Guid);
+            var guidName = ModNameNormalizer.ExtractNameFromGuid(serverMod.Local.Guid);
             if (!string.IsNullOrEmpty(guidName))
             {
                 serverHasGuidName[i] = true;
@@ -79,7 +79,7 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
             var clientMod = clientMods[clientIdx];
             var (selectedMod, notes) = SelectBestMod(serverMod, clientMod);
 
-            selectedMod.PairedComponentPath = selectedMod == serverMod ? clientMod.FilePath : serverMod.FilePath;
+            selectedMod.Local.PairedComponentPath = selectedMod == serverMod ? clientMod.Local.FilePath : serverMod.Local.FilePath;
 
             reconciledPairs.Add(
                 new ModPair
@@ -99,12 +99,12 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         for (int clientIdx = 0; clientIdx < clientMods.Count; clientIdx++)
         {
             var clientMod = clientMods[clientIdx];
-            if (string.IsNullOrWhiteSpace(clientMod.Guid))
+            if (string.IsNullOrWhiteSpace(clientMod.Local.Guid))
             {
                 continue;
             }
 
-            if (serverByGuid.TryGetValue(clientMod.Guid, out var serverIndices))
+            if (serverByGuid.TryGetValue(clientMod.Local.Guid, out var serverIndices))
             {
                 foreach (var serverIdx in serverIndices)
                 {
@@ -127,8 +127,8 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
             }
 
             var clientMod = clientMods[clientIdx];
-            var normName = ModNameNormalizer.Normalize(clientMod.LocalName, removeComponentSuffixes: true);
-            var guidName = ModNameNormalizer.ExtractNameFromGuid(clientMod.Guid);
+            var normName = ModNameNormalizer.Normalize(clientMod.Local.LocalName, removeComponentSuffixes: true);
+            var guidName = ModNameNormalizer.ExtractNameFromGuid(clientMod.Local.Guid);
             var hasGuidName = !string.IsNullOrEmpty(guidName);
             var normGuidName = hasGuidName ? ModNameNormalizer.Normalize(guidName, removeComponentSuffixes: true) : null;
 
@@ -214,19 +214,22 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
     {
         List<string> notes = [];
 
-        if (!string.Equals(serverMod.Guid, clientMod.Guid, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(serverMod.Local.Guid, clientMod.Local.Guid, StringComparison.OrdinalIgnoreCase))
         {
-            notes.Add($"GUID mismatch: server '{serverMod.Guid}' vs client '{clientMod.Guid}'");
+            notes.Add($"GUID mismatch: server '{serverMod.Local.Guid}' vs client '{clientMod.Local.Guid}'");
         }
 
-        var serverVersion = SemVer.TryParse(serverMod.LocalVersion);
-        var clientVersion = SemVer.TryParse(clientMod.LocalVersion);
+        var serverVersionResult = SemVer.TryParse(serverMod.Local.LocalVersion, "ModReconciliation_Server");
+        var clientVersionResult = SemVer.TryParse(clientMod.Local.LocalVersion, "ModReconciliation_Client");
 
-        if (serverVersion is not null && clientVersion is not null)
+        var hasServerVer = serverVersionResult.TryPickT0(out var serverVersion, out _);
+        var hasClientVer = clientVersionResult.TryPickT0(out var clientVersion, out _);
+
+        if (hasServerVer && hasClientVer)
         {
             if (serverVersion != clientVersion)
             {
-                notes.Add($"Version mismatch: server '{serverMod.LocalVersion}' vs client '{clientMod.LocalVersion}'");
+                notes.Add($"Version mismatch: server '{serverMod.Local.LocalVersion}' vs client '{clientMod.Local.LocalVersion}'");
             }
 
             // Select the mod with the higher version
@@ -240,14 +243,14 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
                 return (serverMod, notes);
             }
         }
-        else if (clientVersion is not null && serverVersion is null)
+        else if (hasClientVer && !hasServerVer)
         {
-            notes.Add($"Server mod has invalid version: '{serverMod.LocalVersion}'");
+            notes.Add($"Server mod has invalid version: '{serverMod.Local.LocalVersion}'");
             return (clientMod, notes);
         }
-        else if (serverVersion is not null && clientVersion is null)
+        else if (hasServerVer && !hasClientVer)
         {
-            notes.Add($"Client mod has invalid version: '{clientMod.LocalVersion}'");
+            notes.Add($"Client mod has invalid version: '{clientMod.Local.LocalVersion}'");
             return (serverMod, notes);
         }
 
@@ -255,3 +258,4 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         return (serverMod, notes);
     }
 }
+

@@ -12,12 +12,14 @@ public sealed class ModUpdateMethodsTests
     {
         return new Mod
         {
-            Guid = "com.author.coolmod",
-            FilePath = $"mods/{name}.dll",
-            IsServerMod = true,
-            LocalName = name,
-            LocalAuthor = author,
-            LocalVersion = version,
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "com.author.coolmod",
+                FilePath = $"mods/{name}.dll",
+                IsServerMod = true,
+                LocalName = name,
+                LocalAuthor = author,
+                LocalVersion = version,
+            }
         };
     }
 
@@ -88,13 +90,13 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromApiMatch(result);
 
-        Assert.Equal(2471, mod.ApiModId);
-        Assert.Equal("Cool Mod", mod.ApiName);
-        Assert.Equal("ForgeAuthor", mod.ApiAuthor?.Name);
-        Assert.Equal("cool-mod", mod.ApiSlug);
-        Assert.Equal("https://forge.sp-tarkov.com/mod/2471/cool-mod", mod.ApiUrl);
-        Assert.Equal("https://github.com/author/coolmod", mod.ApiSourceCodeUrl);
-        Assert.Equal(2, mod.ApiVersions?.Count);
+        Assert.Equal(2471, mod.Api.ApiModId);
+        Assert.Equal("Cool Mod", mod.Api.ApiName);
+        Assert.Equal("ForgeAuthor", mod.Api.ApiAuthor?.Name);
+        Assert.Equal("cool-mod", mod.Api.ApiSlug);
+        Assert.Equal("https://forge.sp-tarkov.com/mod/2471/cool-mod", mod.Api.ApiUrl);
+        Assert.Equal("https://github.com/author/coolmod", mod.Api.ApiSourceCodeUrl);
+        Assert.Equal(2, mod.Api.ApiVersions?.Count);
         Assert.Equal(ModStatus.Verified, mod.Status);
         Assert.True(mod.IsMatched);
     }
@@ -107,10 +109,10 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromApiMatch(result);
 
-        Assert.Null(mod.ApiAuthor);
-        Assert.Null(mod.ApiUrl);
-        Assert.Null(mod.ApiSourceCodeUrl);
-        Assert.Null(mod.ApiVersions);
+        Assert.Null(mod.Api.ApiAuthor);
+        Assert.Null(mod.Api.ApiUrl);
+        Assert.Null(mod.Api.ApiSourceCodeUrl);
+        Assert.Null(mod.Api.ApiVersions);
         Assert.Equal(ModStatus.Verified, mod.Status);
 
         Assert.True(mod.IsMatched);
@@ -141,9 +143,9 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromSafeToUpdate(update);
 
-        Assert.Equal("1.1.0", mod.LatestVersion);
-        Assert.Equal("https://forge.sp-tarkov.com/mod/download/2471/cool-mod/1.1.0", mod.DownloadLink);
-        Assert.Equal(UpdateStatus.UpdateAvailable, mod.UpdateStatus);
+        Assert.Equal("1.1.0", mod.Update.LatestVersion);
+        Assert.Equal("https://forge.sp-tarkov.com/mod/download/2471/cool-mod/1.1.0", mod.Update.DownloadLink);
+        Assert.Equal(UpdateStatus.UpdateAvailable, mod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -154,9 +156,9 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromSafeToUpdate(update);
 
-        Assert.Null(mod.LatestVersion);
-        Assert.Null(mod.DownloadLink);
-        Assert.Equal(UpdateStatus.UpdateAvailable, mod.UpdateStatus);
+        Assert.Null(mod.Update.LatestVersion);
+        Assert.Null(mod.Update.DownloadLink);
+        Assert.Equal(UpdateStatus.UpdateAvailable, mod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -173,10 +175,10 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromBlocked(blocked);
 
-        Assert.Equal("2.0.0", mod.LatestVersion);
-        Assert.Equal("dependency_constraint_violation", mod.BlockReason);
-        Assert.Equal(blocking, Assert.Single(mod.BlockingMods!));
-        Assert.Equal(UpdateStatus.UpdateBlocked, mod.UpdateStatus);
+        Assert.Equal("2.0.0", mod.Update.LatestVersion);
+        Assert.Equal("dependency_constraint_violation", mod.Update.BlockReason);
+        Assert.Equal(blocking, Assert.Single(mod.Update.BlockingMods!));
+        Assert.Equal(UpdateStatus.UpdateBlocked, mod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -192,8 +194,8 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromBlocked(blocked);
 
-        Assert.Null(mod.LatestVersion);
-        Assert.Equal(UpdateStatus.UpdateBlocked, mod.UpdateStatus);
+        Assert.Null(mod.Update.LatestVersion);
+        Assert.Equal(UpdateStatus.UpdateBlocked, mod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -203,8 +205,8 @@ public sealed class ModUpdateMethodsTests
 
         mod.UpdateFromUpToDate(new UpToDateMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", null));
 
-        Assert.Equal("1.0.0", mod.LatestVersion);
-        Assert.Equal(UpdateStatus.UpToDate, mod.UpdateStatus);
+        Assert.Equal("1.0.0", mod.Update.LatestVersion);
+        Assert.Equal(UpdateStatus.UpToDate, mod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -216,8 +218,8 @@ public sealed class ModUpdateMethodsTests
             new IncompatibleMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", "no_version_for_spt", null)
         );
 
-        Assert.Equal("no_version_for_spt", mod.IncompatibilityReason);
-        Assert.Equal(UpdateStatus.Incompatible, mod.UpdateStatus);
+        Assert.Equal("no_version_for_spt", mod.Update.IncompatibilityReason);
+        Assert.Equal(UpdateStatus.Incompatible, mod.Update.UpdateStatus);
     }
 
     [Fact]
@@ -227,9 +229,9 @@ public sealed class ModUpdateMethodsTests
 
         mod.SetLocalSptIncompatible("Version 1.0.0 requires SPT ~3.0.0", "1.2.0");
 
-        Assert.True(mod.IsLocalSptIncompatible);
-        Assert.Equal("Version 1.0.0 requires SPT ~3.0.0", mod.IncompatibilityReason);
-        Assert.Equal("1.2.0", mod.CompatibleVersionString);
+        Assert.True(mod.Update.IsLocalSptIncompatible);
+        Assert.Equal("Version 1.0.0 requires SPT ~3.0.0", mod.Update.IncompatibilityReason);
+        Assert.Equal("1.2.0", mod.Update.CompatibleVersionString);
     }
 
     [Fact]
@@ -239,8 +241,8 @@ public sealed class ModUpdateMethodsTests
 
         mod.SetLocalSptIncompatible("No compatible version available");
 
-        Assert.True(mod.IsLocalSptIncompatible);
-        Assert.Null(mod.CompatibleVersionString);
+        Assert.True(mod.Update.IsLocalSptIncompatible);
+        Assert.Null(mod.Update.CompatibleVersionString);
     }
 
     [Fact]
@@ -289,3 +291,9 @@ public sealed class ModUpdateMethodsTests
         Assert.True(mod.HasWarnings);
     }
 }
+
+
+
+
+
+

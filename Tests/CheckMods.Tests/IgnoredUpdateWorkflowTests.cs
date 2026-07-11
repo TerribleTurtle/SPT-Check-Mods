@@ -24,12 +24,14 @@ public sealed class IgnoredUpdateWorkflowTests
     {
         var mod = new Mod
         {
-            Guid = $"com.author.mod{id}",
-            FilePath = $"mods/Mod{id}.dll",
-            IsServerMod = true,
-            LocalName = $"Mod {id}",
-            LocalAuthor = "Author",
-            LocalVersion = "1.0.0",
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = $"com.author.mod{id}",
+                FilePath = $"mods/Mod{id}.dll",
+                IsServerMod = true,
+                LocalName = $"Mod {id}",
+                LocalAuthor = "Author",
+                LocalVersion = "1.0.0",
+            }
         };
 
         mod.UpdateFromApiMatch(
@@ -190,3 +192,9 @@ public sealed class IgnoredUpdateWorkflowTests
         Assert.Empty(reportable);
     }
 }
+
+
+
+
+
+

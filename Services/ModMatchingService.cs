@@ -27,19 +27,19 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         CancellationToken cancellationToken = default
     )
     {
-        logger.LogDebug("Matching mod: {ModName} (GUID: {Guid})", mod.LocalName, mod.Guid);
+        logger.LogDebug("Matching mod: {ModName} (GUID: {Guid})", mod.Local.LocalName, mod.Local.Guid);
 
         // A GUID match whose mod has no SPT-compatible version, held as a fallback.
         ModSearchResult? incompatibleMatch = null;
 
         // Try GUID lookup first
-        if (!string.IsNullOrWhiteSpace(mod.Guid))
+        if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
         {
-            var guidResult = await forgeApiService.GetModByGuidAsync(mod.Guid, sptVersion, cancellationToken);
+            var guidResult = await forgeApiService.GetModByGuidAsync(mod.Local.Guid, sptVersion, cancellationToken);
 
             if (guidResult.TryPickT0(out var guidMatch, out _))
             {
-                logger.LogDebug("Mod matched by GUID: {ModName} -> {ApiName}", mod.LocalName, guidMatch.Name);
+                logger.LogDebug("Mod matched by GUID: {ModName} -> {ApiName}", mod.Local.LocalName, guidMatch.Name);
                 mod.UpdateFromApiMatch(guidMatch);
                 return mod;
             }
@@ -51,7 +51,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         }
 
         // Try alternate GUIDs
-        foreach (var alternateGuid in mod.AlternateGuids)
+        foreach (var alternateGuid in mod.Local.AlternateGuids)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -76,7 +76,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var searchResult = mod.IsServerMod
+            var searchResult = mod.Local.IsServerMod
                 ? await forgeApiService.SearchModsAsync(searchTerm, sptVersion, cancellationToken)
                 : await forgeApiService.SearchClientModsAsync(searchTerm, sptVersion, cancellationToken);
 
@@ -107,14 +107,14 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         {
             logger.LogDebug(
                 "Mod matched by GUID but has no SPT-compatible version: {ModName} -> {ApiName}",
-                mod.LocalName,
+                mod.Local.LocalName,
                 incompatibleMatch.Name
             );
             mod.UpdateFromApiMatch(incompatibleMatch);
             return mod;
         }
 
-        logger.LogDebug("No match found for mod: {ModName}", mod.LocalName);
+        logger.LogDebug("No match found for mod: {ModName}", mod.Local.LocalName);
         mod.MarkUnmatched();
         return mod;
     }
@@ -128,19 +128,19 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // 1. Original local name
-        AddIfNew(terms, seen, mod.LocalName);
+        AddIfNew(terms, seen, mod.Local.LocalName);
 
         // 2. Name without server/client suffix (e.g., "ModNameServer" -> "ModName")
-        var nameWithoutSuffix = RemoveComponentSuffix(mod.LocalName);
-        if (!string.Equals(nameWithoutSuffix, mod.LocalName, StringComparison.OrdinalIgnoreCase))
+        var nameWithoutSuffix = RemoveComponentSuffix(mod.Local.LocalName);
+        if (!string.Equals(nameWithoutSuffix, mod.Local.LocalName, StringComparison.OrdinalIgnoreCase))
         {
             AddIfNew(terms, seen, nameWithoutSuffix);
         }
 
         // 3. Name extracted from GUID (e.g., "com.author.modname" -> "modname")
-        if (!string.IsNullOrWhiteSpace(mod.Guid))
+        if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
         {
-            var guidName = ModNameNormalizer.ExtractNameFromGuid(mod.Guid);
+            var guidName = ModNameNormalizer.ExtractNameFromGuid(mod.Local.Guid);
             AddIfNew(terms, seen, guidName);
 
             // Also try without suffix
@@ -153,11 +153,11 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
 
         // 4. Author + name combination (if author is known and not generic)
         if (
-            !string.IsNullOrWhiteSpace(mod.LocalAuthor)
-            && !string.Equals(mod.LocalAuthor, "Unknown", StringComparison.OrdinalIgnoreCase)
+            !string.IsNullOrWhiteSpace(mod.Local.LocalAuthor)
+            && !string.Equals(mod.Local.LocalAuthor, "Unknown", StringComparison.OrdinalIgnoreCase)
         )
         {
-            AddIfNew(terms, seen, $"{mod.LocalAuthor} {mod.LocalName}");
+            AddIfNew(terms, seen, $"{mod.Local.LocalAuthor} {mod.Local.LocalName}");
         }
 
         return terms;
@@ -219,7 +219,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             catch (Exception ex)
             {
                 // Isolate per-mod failures: mark this mod unmatched and record the failure.
-                logger.LogWarning(ex, "Failed to match mod: {ModName}", mod.LocalName);
+                logger.LogWarning(ex, "Failed to match mod: {ModName}", mod.Local.LocalName);
                 mod.MarkUnmatched();
                 Interlocked.Increment(ref failureCount);
                 Interlocked.CompareExchange(ref firstFailure, ex, null);
@@ -253,15 +253,15 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         // 1. Try exact normalized name match
         foreach (var result in searchResults)
         {
-            if (ModNameNormalizer.IsExactMatch(mod.LocalName, result.Name))
+            if (ModNameNormalizer.IsExactMatch(mod.Local.LocalName, result.Name))
             {
                 return result;
             }
         }
 
         // 2. Try exact match with component suffix removed
-        var nameWithoutSuffix = RemoveComponentSuffix(mod.LocalName);
-        if (!string.Equals(nameWithoutSuffix, mod.LocalName, StringComparison.OrdinalIgnoreCase))
+        var nameWithoutSuffix = RemoveComponentSuffix(mod.Local.LocalName);
+        if (!string.Equals(nameWithoutSuffix, mod.Local.LocalName, StringComparison.OrdinalIgnoreCase))
         {
             foreach (var result in searchResults)
             {
@@ -278,15 +278,15 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             if (!string.IsNullOrWhiteSpace(result.Slug))
             {
                 // Compare normalized slug to normalized local name
-                if (ModNameNormalizer.IsExactMatch(mod.LocalName, result.Slug, removeComponentSuffixes: true))
+                if (ModNameNormalizer.IsExactMatch(mod.Local.LocalName, result.Slug, removeComponentSuffixes: true))
                 {
                     return result;
                 }
 
                 // Also compare GUID name part to slug
-                if (!string.IsNullOrWhiteSpace(mod.Guid))
+                if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
                 {
-                    var guidName = ModNameNormalizer.ExtractNameFromGuid(mod.Guid);
+                    var guidName = ModNameNormalizer.ExtractNameFromGuid(mod.Local.Guid);
                     if (ModNameNormalizer.IsExactMatch(guidName, result.Slug, removeComponentSuffixes: true))
                     {
                         return result;
@@ -297,16 +297,16 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
 
         // 4. Try matching by author + name combination
         if (
-            !string.IsNullOrWhiteSpace(mod.LocalAuthor)
-            && !string.Equals(mod.LocalAuthor, "Unknown", StringComparison.OrdinalIgnoreCase)
+            !string.IsNullOrWhiteSpace(mod.Local.LocalAuthor)
+            && !string.Equals(mod.Local.LocalAuthor, "Unknown", StringComparison.OrdinalIgnoreCase)
         )
         {
             foreach (var result in searchResults)
             {
                 if (
                     result.Owner is not null
-                    && string.Equals(mod.LocalAuthor, result.Owner.Name, StringComparison.OrdinalIgnoreCase)
-                    && ModNameNormalizer.IsExactMatch(mod.LocalName, result.Name, removeComponentSuffixes: true)
+                    && string.Equals(mod.Local.LocalAuthor, result.Owner.Name, StringComparison.OrdinalIgnoreCase)
+                    && ModNameNormalizer.IsExactMatch(mod.Local.LocalName, result.Name, removeComponentSuffixes: true)
                 )
                 {
                     return result;
@@ -319,9 +319,9 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             .Select(r => new
             {
                 Result = r,
-                NameScore = ModNameNormalizer.GetFuzzyMatchScore(mod.LocalName, r.Name),
+                NameScore = ModNameNormalizer.GetFuzzyMatchScore(mod.Local.LocalName, r.Name),
                 SlugScore = !string.IsNullOrWhiteSpace(r.Slug)
-                    ? ModNameNormalizer.GetFuzzyMatchScore(mod.LocalName, r.Slug)
+                    ? ModNameNormalizer.GetFuzzyMatchScore(mod.Local.LocalName, r.Slug)
                     : 0,
             })
             .Select(x => new { x.Result, Score = Math.Max(x.NameScore, x.SlugScore) })
@@ -332,3 +332,4 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         return bestFuzzyMatch?.Result;
     }
 }
+

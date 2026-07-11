@@ -21,10 +21,10 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
     {
         logger.LogDebug("Enriching mods with version data");
 
-        var matchedMods = mods.Where(m => m.IsMatched && m.ApiModId.HasValue).ToList();
+        var matchedMods = mods.Where(m => m.IsMatched && m.Api.ApiModId.HasValue).ToList();
 
         // Group by API mod ID to deduplicate.
-        var uniqueModsById = matchedMods.GroupBy(m => m.ApiModId!.Value).ToDictionary(g => g.Key, g => g.ToList());
+        var uniqueModsById = matchedMods.GroupBy(m => m.Api.ApiModId!.Value).ToDictionary(g => g.Key, g => g.ToList());
 
         if (uniqueModsById.Count == 0)
         {
@@ -35,7 +35,7 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
         logger.LogDebug("Enriching {ModCount} unique mods", uniqueModsById.Count);
 
         var modUpdates = uniqueModsById
-            .Select(kvp => (ModId: kvp.Key, CurrentVersion: kvp.Value[0].LocalVersion))
+            .Select(kvp => (ModId: kvp.Key, CurrentVersion: kvp.Value[0].Local.LocalVersion))
             .ToList();
 
         var updatesResult = await forgeApiService.GetModUpdatesAsync(modUpdates, sptVersion, cancellationToken);
@@ -68,3 +68,4 @@ public sealed class ModEnrichmentService(IForgeApiService forgeApiService, ILogg
         ProcessUpdates(updatesData.Incompatible, i => i.ModId, (m, i) => m.UpdateFromIncompatible(i));
     }
 }
+

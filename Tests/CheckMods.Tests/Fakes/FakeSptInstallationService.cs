@@ -36,3 +36,9 @@ public sealed class FakeSptInstallationService : ISptInstallationService
         return Task.FromResult(_updates.ToList());
     }
 }
+
+
+
+
+
+

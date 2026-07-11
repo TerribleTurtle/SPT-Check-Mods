@@ -23,13 +23,13 @@ public sealed class IgnoredUpdateWorkflow(
     {
         // One row per Forge mod id (paired server/client mods share an id and a single table row).
         var candidates = (mods ?? [])
-            .Where(m => m is { UpdateStatus: UpdateStatus.UpdateAvailable, ApiModId: not null })
-            .GroupBy(m => m.ApiModId!.Value)
+            .Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateAvailable && m.Api.ApiModId != null)
+            .GroupBy(m => m.Api.ApiModId!.Value)
             .Select(g => g.First())
             .ToList();
 
         // The mods actually shown as "Updates available"; dismissed false positives are excluded.
-        var openable = candidates.Where(m => !m.UpdateSuppressed).ToList();
+        var openable = candidates.Where(m => !m.Update.UpdateSuppressed).ToList();
 
         // The end-of-run menu loops until the user chooses to close. The counts reflect this run's results and don't
         // change as ignores are edited.
@@ -84,8 +84,8 @@ public sealed class IgnoredUpdateWorkflow(
         foreach (var mod in openable)
         {
             var url =
-                !string.IsNullOrWhiteSpace(mod.ApiUrl) ? mod.ApiUrl
-                : mod.ApiModId.HasValue ? ForgeUrls.ModPage(mod.ApiModId.Value, mod.ApiSlug)
+                !string.IsNullOrWhiteSpace(mod.Api.ApiUrl) ? mod.Api.ApiUrl
+                : mod.Api.ApiModId.HasValue ? ForgeUrls.ModPage(mod.Api.ApiModId.Value, mod.Api.ApiSlug)
                 : null;
 
             if (!string.IsNullOrWhiteSpace(url) && seen.Add(url))
@@ -107,7 +107,7 @@ public sealed class IgnoredUpdateWorkflow(
         CancellationToken cancellationToken
     )
     {
-        var preIgnoredIds = candidates.Where(m => m.UpdateSuppressed).Select(m => m.ApiModId!.Value).ToHashSet();
+        var preIgnoredIds = candidates.Where(m => m.Update.UpdateSuppressed).Select(m => m.Api.ApiModId!.Value).ToHashSet();
         var selected = reporter.SelectUpdatesToIgnore(candidates, preIgnoredIds);
         var chosen = selected.Select(ToIgnoredUpdate).ToList();
 
@@ -118,7 +118,7 @@ public sealed class IgnoredUpdateWorkflow(
 
     private void PersistSelection(IReadOnlyList<Mod> mods, IReadOnlyList<IgnoredUpdate> chosen)
     {
-        var evaluatedIds = mods.Where(m => m.IsMatched).Select(m => m.ApiModId!.Value).ToHashSet();
+        var evaluatedIds = mods.Where(m => m.IsMatched).Select(m => m.Api.ApiModId!.Value).ToHashSet();
         var newSet = BuildNewSet(store.Load(), evaluatedIds, chosen);
         store.Save(newSet);
     }
@@ -210,13 +210,21 @@ public sealed class IgnoredUpdateWorkflow(
     private static IgnoredUpdate ToIgnoredUpdate(Mod mod)
     {
         return new IgnoredUpdate(
-            ApiModId: mod.ApiModId!.Value,
-            LocalVersion: mod.LocalVersion,
-            IgnoredLatestVersion: mod.LatestVersion!,
+            ApiModId: mod.Api.ApiModId!.Value,
+            LocalVersion: mod.Local.LocalVersion,
+            IgnoredLatestVersion: mod.Update.LatestVersion!,
             Name: mod.DisplayName,
-            Guid: string.IsNullOrWhiteSpace(mod.Guid) ? null : mod.Guid,
+            Guid: string.IsNullOrWhiteSpace(mod.Local.Guid) ? null : mod.Local.Guid,
             Source: IgnoreSource.User,
             DismissedUtc: DateTimeOffset.UtcNow
         );
     }
 }
+
+
+
+
+
+
+
+

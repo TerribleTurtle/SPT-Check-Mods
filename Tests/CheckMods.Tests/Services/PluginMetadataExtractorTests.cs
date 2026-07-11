@@ -46,11 +46,11 @@ public class MyClientPlugin {}
 
         Assert.Single(mods);
         var mod = mods[0];
-        Assert.False(mod.IsServerMod);
-        Assert.Equal("com.client.test", mod.Guid);
-        Assert.Equal("Test Client Mod", mod.LocalName);
-        Assert.Equal("client", mod.LocalAuthor);
-        Assert.Equal("1.0.0", mod.LocalVersion);
+        Assert.False(mod.Local.IsServerMod);
+        Assert.Equal("com.client.test", mod.Local.Guid);
+        Assert.Equal("Test Client Mod", mod.Local.LocalName);
+        Assert.Equal("client", mod.Local.LocalAuthor);
+        Assert.Equal("1.0.0", mod.Local.LocalVersion);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class TryDetectClientPlugin {}
         var mod = _extractor.TryDetectClientMod(Path.Combine(_sptPath, dllPath));
 
         Assert.NotNull(mod);
-        Assert.Equal("com.trydetect.test", mod!.Guid);
+        Assert.Equal("com.trydetect.test", mod!.Local.Guid);
     }
 
     [Fact]
@@ -144,9 +144,9 @@ public class ModulePlugin {}
 
         Assert.Single(consolidated);
         var mod = consolidated[0];
-        Assert.Equal("com.consolidate.core", mod.Guid);
-        Assert.Single(mod.AlternateGuids);
-        Assert.Contains("com.consolidate.module", mod.AlternateGuids);
+        Assert.Equal("com.consolidate.core", mod.Local.Guid);
+        Assert.Single(mod.Local.AlternateGuids);
+        Assert.Contains("com.consolidate.module", mod.Local.AlternateGuids);
     }
 
     [Fact]
@@ -189,3 +189,9 @@ public class ModulePlugin {}
         _fixture.Dispose();
     }
 }
+
+
+
+
+
+

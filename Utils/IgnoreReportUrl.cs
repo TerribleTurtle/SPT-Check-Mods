@@ -12,7 +12,7 @@ internal static class IgnoreReportUrl
 {
     /// <summary>Base "new issue" URL targeting the ignore-suggestion issue form.</summary>
     private const string BaseUrl =
-        "https://github.com/refringe/SPT-Check-Mods/issues/new?template=report-ignored-updates.yml";
+        "https://github.com/TerribleTurtle/SPT-Check-Mods/issues/new?template=report-ignored-updates.yml";
 
     /// <summary>Issue-form field id that receives the pre-filled JSON (must match the template's field id).</summary>
     private const string FieldId = "ignored_versions";

@@ -60,7 +60,7 @@ public sealed class TableRendererTests
     public void FormatVersionDisplay_formats_ignored_update()
     {
         var mod = CreateMod();
-        typeof(Mod).GetProperty(nameof(Mod.LatestVersion))!.SetValue(mod, "2.0.0");
+        mod.Update.LatestVersion = "2.0.0";
         mod.SetUpdateSuppressed(true);
 
         var result = TableRenderer.FormatVersionDisplay(mod);
@@ -72,8 +72,8 @@ public sealed class TableRendererTests
     public void FormatVersionDisplay_formats_up_to_date()
     {
         var mod = CreateMod();
-        typeof(Mod).GetProperty(nameof(Mod.LatestVersion))!.SetValue(mod, "1.0.0");
-        typeof(Mod).GetProperty(nameof(Mod.UpdateStatus))!.SetValue(mod, UpdateStatus.UpToDate);
+        mod.Update.LatestVersion = "1.0.0";
+        mod.Update.UpdateStatus = UpdateStatus.UpToDate;
 
         var result = TableRenderer.FormatVersionDisplay(mod);
 
@@ -84,8 +84,8 @@ public sealed class TableRendererTests
     public void FormatVersionDisplay_formats_update_available()
     {
         var mod = CreateMod();
-        typeof(Mod).GetProperty(nameof(Mod.LatestVersion))!.SetValue(mod, "2.0.0");
-        typeof(Mod).GetProperty(nameof(Mod.UpdateStatus))!.SetValue(mod, UpdateStatus.UpdateAvailable);
+        mod.Update.LatestVersion = "2.0.0";
+        mod.Update.UpdateStatus = UpdateStatus.UpdateAvailable;
 
         var result = TableRenderer.FormatVersionDisplay(mod);
 
@@ -96,8 +96,8 @@ public sealed class TableRendererTests
     public void FormatVersionDisplay_formats_update_blocked()
     {
         var mod = CreateMod();
-        typeof(Mod).GetProperty(nameof(Mod.LatestVersion))!.SetValue(mod, "2.0.0");
-        typeof(Mod).GetProperty(nameof(Mod.UpdateStatus))!.SetValue(mod, UpdateStatus.UpdateBlocked);
+        mod.Update.LatestVersion = "2.0.0";
+        mod.Update.UpdateStatus = UpdateStatus.UpdateBlocked;
 
         var result = TableRenderer.FormatVersionDisplay(mod);
 
@@ -108,8 +108,8 @@ public sealed class TableRendererTests
     public void FormatVersionDisplay_formats_newer_installed()
     {
         var mod = CreateMod();
-        typeof(Mod).GetProperty(nameof(Mod.LatestVersion))!.SetValue(mod, "0.9.0");
-        typeof(Mod).GetProperty(nameof(Mod.UpdateStatus))!.SetValue(mod, UpdateStatus.NewerInstalled);
+        mod.Update.LatestVersion = "0.9.0";
+        mod.Update.UpdateStatus = UpdateStatus.NewerInstalled;
 
         var result = TableRenderer.FormatVersionDisplay(mod);
 
@@ -120,8 +120,8 @@ public sealed class TableRendererTests
     public void FormatVersionDisplay_formats_unknown_status()
     {
         var mod = CreateMod();
-        typeof(Mod).GetProperty(nameof(Mod.LatestVersion))!.SetValue(mod, "1.0.0");
-        typeof(Mod).GetProperty(nameof(Mod.UpdateStatus))!.SetValue(mod, UpdateStatus.Unknown);
+        mod.Update.LatestVersion = "1.0.0";
+        mod.Update.UpdateStatus = UpdateStatus.Unknown;
 
         var result = TableRenderer.FormatVersionDisplay(mod);
 
@@ -132,12 +132,20 @@ public sealed class TableRendererTests
     {
         return new Mod
         {
-            Guid = "test",
-            FilePath = "test.dll",
-            IsServerMod = false,
-            LocalName = "test",
-            LocalAuthor = "test",
-            LocalVersion = "1.0.0"
+            Local = new CheckMods.Models.LocalModIdentity {
+                Guid = "test",
+                FilePath = "test.dll",
+                IsServerMod = false,
+                LocalName = "test",
+                LocalAuthor = "test",
+                LocalVersion = "1.0.0"
+            }
         };
     }
 }
+
+
+
+
+
+

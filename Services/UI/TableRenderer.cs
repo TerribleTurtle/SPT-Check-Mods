@@ -27,7 +27,7 @@ public sealed class TableRenderer : ITableRenderer
     /// <inheritdoc />
     public void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion)
     {
-        var incompatibleMods = mods.Where(m => m.IsLocalSptIncompatible).ToList();
+        var incompatibleMods = mods.Where(m => m.Update.IsLocalSptIncompatible).ToList();
 
         if (incompatibleMods.Count == 0)
         {
@@ -43,22 +43,22 @@ public sealed class TableRenderer : ITableRenderer
 
         foreach (var mod in incompatibleMods)
         {
-            var nameDisplay = FormatModLink(mod.DisplayName, mod.ApiUrl);
+            var nameDisplay = FormatModLink(mod.DisplayName, mod.Api.ApiUrl);
 
             var modNode = tree.AddNode(nameDisplay);
-            modNode.AddNode($"[yellow]{mod.IncompatibilityReason?.EscapeMarkup()}[/]");
+            modNode.AddNode($"[yellow]{mod.Update.IncompatibilityReason?.EscapeMarkup()}[/]");
 
-            if (string.IsNullOrWhiteSpace(mod.CompatibleVersionString))
+            if (string.IsNullOrWhiteSpace(mod.Update.CompatibleVersionString))
             {
                 modNode.AddNode($"[red]No compatible version available for SPT {sptVersion}[/]");
                 continue;
             }
 
-            modNode.AddNode($"[grey]Latest compatible version:[/] [green]{mod.CompatibleVersionString.EscapeMarkup()}[/]");
+            modNode.AddNode($"[grey]Latest compatible version:[/] [green]{mod.Update.CompatibleVersionString.EscapeMarkup()}[/]");
 
-            if (mod.ApiModId.HasValue && !string.IsNullOrWhiteSpace(mod.ApiSlug))
+            if (mod.Api.ApiModId.HasValue && !string.IsNullOrWhiteSpace(mod.Api.ApiSlug))
             {
-                var forgeDownloadUrl = ForgeUrls.Download(mod.ApiModId.Value, mod.ApiSlug, mod.CompatibleVersionString);
+                var forgeDownloadUrl = ForgeUrls.Download(mod.Api.ApiModId.Value, mod.Api.ApiSlug, mod.Update.CompatibleVersionString);
                 modNode.AddNode($"[grey]Download:[/] [link]{forgeDownloadUrl.EscapeMarkup()}[/]");
             }
         }
@@ -82,10 +82,10 @@ public sealed class TableRenderer : ITableRenderer
 
         foreach (var mod in modsWithWarnings)
         {
-            var modType = mod.IsServerMod ? "Server" : "Client";
-            var modName = !string.IsNullOrWhiteSpace(mod.LocalName) ? mod.LocalName : Path.GetFileName(mod.FilePath);
+            var modType = mod.Local.IsServerMod ? "Server" : "Client";
+            var modName = !string.IsNullOrWhiteSpace(mod.Local.LocalName) ? mod.Local.LocalName : Path.GetFileName(mod.Local.FilePath);
 
-            var nameDisplay = FormatModLink(modName, mod.ApiUrl);
+            var nameDisplay = FormatModLink(modName, mod.Api.ApiUrl);
 
             var modNode = tree.AddNode($"[grey]{modType}:[/] {nameDisplay}");
             foreach (var warning in mod.LoadWarnings)
@@ -93,13 +93,13 @@ public sealed class TableRenderer : ITableRenderer
                 modNode.AddNode($"[yellow]{warning.EscapeMarkup()}[/]");
             }
 
-            if (!string.IsNullOrWhiteSpace(mod.ApiSourceCodeUrl))
+            if (!string.IsNullOrWhiteSpace(mod.Api.ApiSourceCodeUrl))
             {
-                modNode.AddNode($"[grey]Please report:[/] [link]{mod.ApiSourceCodeUrl.EscapeMarkup()}[/]");
+                modNode.AddNode($"[grey]Please report:[/] [link]{mod.Api.ApiSourceCodeUrl.EscapeMarkup()}[/]");
             }
-            else if (!string.IsNullOrWhiteSpace(mod.ApiUrl))
+            else if (!string.IsNullOrWhiteSpace(mod.Api.ApiUrl))
             {
-                modNode.AddNode($"[grey]Please report:[/] [link]{mod.ApiUrl.EscapeMarkup()}[/]");
+                modNode.AddNode($"[grey]Please report:[/] [link]{mod.Api.ApiUrl.EscapeMarkup()}[/]");
             }
         }
 
@@ -130,9 +130,9 @@ public sealed class TableRenderer : ITableRenderer
 
                 foreach (var pair in pairsWithNotes)
                 {
-                    var modName = pair.SelectedMod.LocalName;
+                    var modName = pair.SelectedMod.Local.LocalName;
 
-                    var nameDisplay = FormatModLink(modName, pair.SelectedMod.ApiUrl);
+                    var nameDisplay = FormatModLink(modName, pair.SelectedMod.Api.ApiUrl);
 
                     var modNode = tree.AddNode(nameDisplay);
                     foreach (var note in pair.Notes)
@@ -140,11 +140,11 @@ public sealed class TableRenderer : ITableRenderer
                         modNode.AddNode($"[yellow]{note.EscapeMarkup()}[/]");
                     }
 
-                    var reportUrl = !string.IsNullOrWhiteSpace(pair.SelectedMod.ApiSourceCodeUrl)
-                        ? pair.SelectedMod.ApiSourceCodeUrl
-                        : pair.SelectedMod.ApiUrl;
+                    var reportUrl = !string.IsNullOrWhiteSpace(pair.SelectedMod.Api.ApiSourceCodeUrl)
+                        ? pair.SelectedMod.Api.ApiSourceCodeUrl
+                        : pair.SelectedMod.Api.ApiUrl;
 
-                    var guidMismatch = !string.Equals(pair.ServerMod.Guid, pair.ClientMod.Guid, StringComparison.OrdinalIgnoreCase);
+                    var guidMismatch = !string.Equals(pair.ServerMod.Local.Guid, pair.ClientMod.Local.Guid, StringComparison.OrdinalIgnoreCase);
 
                     if (guidMismatch)
                     {
@@ -277,14 +277,14 @@ public sealed class TableRenderer : ITableRenderer
 
             var modNode = tree.AddNode($"[white]{modDisplayName}[/]");
 
-            if (!string.IsNullOrWhiteSpace(mod.Guid))
+            if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
             {
-                modNode.AddNode($"[grey]GUID: {mod.Guid.EscapeMarkup()}[/]");
+                modNode.AddNode($"[grey]GUID: {mod.Local.Guid.EscapeMarkup()}[/]");
             }
 
-            if (!string.IsNullOrWhiteSpace(mod.FilePath))
+            if (!string.IsNullOrWhiteSpace(mod.Local.FilePath))
             {
-                modNode.AddNode($"[grey]Path: {mod.FilePath.EscapeMarkup()}[/]");
+                modNode.AddNode($"[grey]Path: {mod.Local.FilePath.EscapeMarkup()}[/]");
             }
         }
 
@@ -368,7 +368,7 @@ public sealed class TableRenderer : ITableRenderer
     private static string FormatDependencyNodeLabel(DependencyNode node)
     {
         var name = node.Mod.DisplayName.EscapeMarkup();
-        var version = node.Mod.LocalVersion.EscapeMarkup();
+        var version = node.Mod.Local.LocalVersion.EscapeMarkup();
 
         string statusIndicator;
         string nameColor;
@@ -390,9 +390,9 @@ public sealed class TableRenderer : ITableRenderer
         }
 
         string? linkUrl = null;
-        if (!string.IsNullOrWhiteSpace(node.Mod.ApiUrl))
+        if (!string.IsNullOrWhiteSpace(node.Mod.Api.ApiUrl))
         {
-            linkUrl = node.Mod.ApiUrl;
+            linkUrl = node.Mod.Api.ApiUrl;
         }
         else if (node.DependencyInfo != null && node.DependencyInfo.Id > 0 && !string.IsNullOrWhiteSpace(node.DependencyInfo.Slug))
         {
@@ -494,9 +494,9 @@ public sealed class TableRenderer : ITableRenderer
     /// <inheritdoc />
     public void VersionTable(List<Mod> mods)
     {
-        var verifiedMods = mods.Where(m => m.IsMatched && m.LatestVersion is not null)
-            .GroupBy(m => m.ApiModId!.Value)
-            .Select(g => g.OrderByDescending(m => SemVer.ParseOrZero(m.LocalVersion)).First())
+        var verifiedMods = mods.Where(m => m.IsMatched && m.Update.LatestVersion is not null)
+            .GroupBy(m => m.Api.ApiModId!.Value)
+            .Select(g => g.OrderByDescending(m => (SemVer.TryParse(m.Local.LocalVersion, "TableRenderer").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0)))).First())
             .ToList();
 
         if (verifiedMods.Count == 0)
@@ -521,12 +521,12 @@ public sealed class TableRenderer : ITableRenderer
         {
             var (displayName, displayAuthor) = FormatModDisplayStrings(mod.DisplayName, mod.DisplayAuthor);
             var latestVersionDisplay = FormatVersionDisplay(mod);
-            var nameDisplay = FormatModLink(displayName, mod.ApiUrl);
+            var nameDisplay = FormatModLink(displayName, mod.Api.ApiUrl);
 
             table.AddRow(
                 nameDisplay,
                 displayAuthor.EscapeMarkup(),
-                mod.LocalVersion.EscapeMarkup(),
+                mod.Local.LocalVersion.EscapeMarkup(),
                 latestVersionDisplay
             );
         }
@@ -535,7 +535,7 @@ public sealed class TableRenderer : ITableRenderer
 
         AnsiConsole.MarkupLine("[grey]Version colors: [green]Up to date[/] | [red]Update available[/] | [darkorange]Update blocked[/] | [blue]Newer than latest[/] | [grey]Ignored[/][/]");
 
-        var modsWithUpdates = verifiedMods.Where(m => m.UpdateStatus == UpdateStatus.UpdateAvailable && !m.UpdateSuppressed).ToList();
+        var modsWithUpdates = verifiedMods.Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateAvailable && !m.Update.UpdateSuppressed).ToList();
         if (modsWithUpdates.Count > 0)
         {
             AnsiConsole.WriteLine();
@@ -544,26 +544,26 @@ public sealed class TableRenderer : ITableRenderer
 
             foreach (var mod in modsWithUpdates)
             {
-                var nameDisplay = FormatModLink(mod.DisplayName, mod.ApiUrl);
+                var nameDisplay = FormatModLink(mod.DisplayName, mod.Api.ApiUrl);
 
                 var modNode = updatesTree.AddNode(nameDisplay);
-                modNode.AddNode($"[grey]{mod.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [green]{mod.LatestVersion!.EscapeMarkup()}[/]");
+                modNode.AddNode($"[grey]{mod.Local.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [green]{mod.Update.LatestVersion!.EscapeMarkup()}[/]");
 
-                if (!string.IsNullOrWhiteSpace(mod.DownloadLink))
+                if (!string.IsNullOrWhiteSpace(mod.Update.DownloadLink))
                 {
-                    modNode.AddNode($"[grey]Download:[/] [link]{mod.DownloadLink.EscapeMarkup()}[/]");
+                    modNode.AddNode($"[grey]Download:[/] [link]{mod.Update.DownloadLink.EscapeMarkup()}[/]");
                 }
 
-                if (mod.UpdateDependencyChanges?.HasChanges == true)
+                if (mod.Update.UpdateDependencyChanges?.HasChanges == true)
                 {
-                    AddUpdateDependencyChangeNodes(modNode, mod.UpdateDependencyChanges);
+                    AddUpdateDependencyChangeNodes(modNode, mod.Update.UpdateDependencyChanges);
                 }
             }
 
             AnsiConsole.Write(updatesTree);
         }
 
-        var modsWithBlockedUpdates = verifiedMods.Where(m => m.UpdateStatus == UpdateStatus.UpdateBlocked).ToList();
+        var modsWithBlockedUpdates = verifiedMods.Where(m => m.Update.UpdateStatus == UpdateStatus.UpdateBlocked).ToList();
         if (modsWithBlockedUpdates.Count > 0)
         {
             AnsiConsole.WriteLine();
@@ -572,19 +572,19 @@ public sealed class TableRenderer : ITableRenderer
 
             foreach (var mod in modsWithBlockedUpdates)
             {
-                var nameDisplay = FormatModLink(mod.DisplayName, mod.ApiUrl);
+                var nameDisplay = FormatModLink(mod.DisplayName, mod.Api.ApiUrl);
 
                 var modNode = blockedTree.AddNode(nameDisplay);
-                modNode.AddNode($"[grey]{mod.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [darkorange]{mod.LatestVersion!.EscapeMarkup()}[/]");
+                modNode.AddNode($"[grey]{mod.Local.LocalVersion.EscapeMarkup()}[/] [yellow]->[/] [darkorange]{mod.Update.LatestVersion!.EscapeMarkup()}[/]");
 
-                if (!string.IsNullOrWhiteSpace(mod.BlockReason))
+                if (!string.IsNullOrWhiteSpace(mod.Update.BlockReason))
                 {
-                    modNode.AddNode($"[grey]Reason:[/] {FormatBlockReason(mod.BlockReason).EscapeMarkup()}");
+                    modNode.AddNode($"[grey]Reason:[/] {FormatBlockReason(mod.Update.BlockReason).EscapeMarkup()}");
                 }
 
-                if (mod.BlockingMods is { Count: > 0 })
+                if (mod.Update.BlockingMods is { Count: > 0 })
                 {
-                    foreach (var blocker in mod.BlockingMods)
+                    foreach (var blocker in mod.Update.BlockingMods)
                     {
                         modNode.AddNode($"[grey]Blocked by:[/] {blocker.Name.EscapeMarkup()} [grey]({blocker.Constraint.EscapeMarkup()})[/]");
                     }
@@ -604,20 +604,20 @@ public sealed class TableRenderer : ITableRenderer
         AnsiConsole.MarkupLine("[grey]Pro tip:    Mod names are clickable.[/]");
         AnsiConsole.MarkupLine("[grey]Expert tip: Read the mod page before installing or updating mods.[/]");
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[white]Find an issue [italic]with this tool[/]? Find Refringe on Discord, or [link=https://github.com/refringe/SPT-Check-Mods/issues/new]submit a bug report[/].[/]");
+        AnsiConsole.MarkupLine("[white]Find an issue [italic]with this tool[/]? Submit a bug report on the [link=https://github.com/TerribleTurtle/SPT-Check-Mods/issues/new]TerribleTurtle fork[/].[/]");
         AnsiConsole.WriteLine();
     }
 
     internal static string FormatVersionDisplay(Mod mod)
     {
-        var latestVersion = mod.LatestVersion!;
+        var latestVersion = mod.Update.LatestVersion!;
 
-        if (mod.UpdateSuppressed)
+        if (mod.Update.UpdateSuppressed)
         {
             return $"[grey]{latestVersion.EscapeMarkup()} (ignored)[/]";
         }
 
-        return mod.UpdateStatus switch
+        return mod.Update.UpdateStatus switch
         {
             UpdateStatus.UpToDate => $"[green]{latestVersion.EscapeMarkup()}[/]",
             UpdateStatus.UpdateAvailable => $"[red]{latestVersion.EscapeMarkup()}[/]",
@@ -669,3 +669,9 @@ public sealed class TableRenderer : ITableRenderer
         return !string.IsNullOrWhiteSpace(url) && !url.Contains('[') && !url.Contains(']');
     }
 }
+
+
+
+
+
+
