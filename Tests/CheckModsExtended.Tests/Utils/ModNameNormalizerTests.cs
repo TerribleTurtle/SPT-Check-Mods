@@ -1,6 +1,6 @@
 using CheckModsExtended.Utils;
 
-namespace CheckModsExtended.Tests;
+namespace CheckModsExtended.Tests.Utils;
 
 /// <summary>
 /// Tests for <see cref="ModNameNormalizer"/>, which underpins name-based mod matching.

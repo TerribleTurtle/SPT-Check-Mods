@@ -1,7 +1,7 @@
 using CheckModsExtended.Models;
 using CheckModsExtended.Utils;
 
-namespace CheckModsExtended.Tests;
+namespace CheckModsExtended.Tests.Utils;
 
 /// <summary>
 /// Tests for <see cref="IgnoreReportUrl"/>: pre-filling the GitHub issue-form field with the entries, and dropping the

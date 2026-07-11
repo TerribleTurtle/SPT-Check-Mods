@@ -2,7 +2,7 @@ using CheckModsExtended.Models;
 using CheckModsExtended.Services;
 using CheckModsExtended.Utils;
 
-namespace CheckModsExtended.Tests;
+namespace CheckModsExtended.Tests.Services;
 
 /// <summary>
 /// Tests for <see cref="IgnoredUpdateWorkflow"/>: the ignore-set rewrite logic (<see cref="IgnoredUpdateWorkflow.BuildNewSet"/>)

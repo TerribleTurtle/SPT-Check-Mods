@@ -6,7 +6,7 @@ using CheckModsExtended.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace CheckModsExtended.Tests;
+namespace CheckModsExtended.Tests.Services;
 
 /// <summary>
 /// Tests for <see cref="RemoteIgnoreFileClient"/>: parsing valid files, rejecting unsupported/newer schemas and

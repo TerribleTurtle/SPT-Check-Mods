@@ -1,6 +1,6 @@
 using CheckModsExtended.Models;
 
-namespace CheckModsExtended.Tests;
+namespace CheckModsExtended.Tests.Models;
 
 /// <summary>
 /// Tests for the <see cref="Mod"/> enrichment methods and computed display properties - the transforms that carry
