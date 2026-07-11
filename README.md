@@ -100,11 +100,11 @@ Check Mods keeps its data under `%APPDATA%\SptCheckModsExtended`:
 - **Server Mods**: SPT mods with `AbstractModMetadata` in `SPT/user/mods`
 - **Client Mods**: BepInEx plugins with `BepInPlugin` attribute in `BepInEx/plugins`
 
-## Contributing
+## Issues & Feedback
 
-**This is a personal fork.** I maintain this repository strictly for my own usage and experimentation. 
+Bug reports, issues, and suggestions are always welcome via the GitHub Issue tracker! 
 
-While you are absolutely welcome to fork this code and build upon it yourself, **I am not actively accepting feature requests, bug reports, or pull requests.** Thank you for understanding!
+However, please note that this is primarily a personal fork. While I appreciate all feedback and community input, I do not maintain a highly active community presence and may not be highly responsive to pull requests or feature ideas. Feel free to use and modify the code as you see fit!
 
 ## Security
 

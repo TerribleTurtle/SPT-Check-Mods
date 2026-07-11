@@ -1,0 +1,92 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in CheckModsExtended.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! Please fill out the sections below so we can reproduce and fix the issue.
+
+        **Note:** If CheckModsExtended keeps showing an "update available" for a mod you've confirmed is already up to date, that's a version-data mismatch on the Forge, not a bug. You can suggest that version be ignored for everyone using the [Ignored Update Suggestion](https://github.com/TerribleTurtle/CheckModsExtended/issues/new?template=report-ignored-updates.yml) form.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the behavior.
+      placeholder: |
+        1. Run CheckModsExtended with '...'
+        2. Observe '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened.
+    validations:
+      required: true
+
+  - type: input
+    id: spt-version
+    attributes:
+      label: SPT Version
+      description: The version of SPT you are running.
+      placeholder: "e.g. 4.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: check-mods-extended-version
+    attributes:
+      label: CheckModsExtended Version
+      description: The version of CheckModsExtended you are running.
+      placeholder: "e.g. 1.2.3"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: The operating system you are running.
+      placeholder: "e.g. Windows 11"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log Output
+      description: Paste any relevant log output or error messages. Logs are located at `%APPDATA%\SptCheckModsExtended\logs\checkmod.log`.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context or screenshots related to the issue.
+    validations:
+      required: false
+
+
