@@ -22,7 +22,6 @@ namespace CheckMods.Services;
 /// </remarks>
 public sealed partial class ForgeApiService(
     HttpClient httpClient,
-    IRateLimitService rateLimitService,
     IOptions<ForgeApiOptions> options,
     ILogger<ForgeApiService> logger
 ) : IForgeApiService
@@ -53,15 +52,9 @@ public sealed partial class ForgeApiService(
     private async Task<(HttpStatusCode StatusCode, string Body, bool IsSuccessStatusCode)> GetJsonAsync(string url, CancellationToken cancellationToken)
     {
         logger.LogDebug("API Request: GET {Url}", url);
-        var response = await rateLimitService.ExecuteWithRetryAsync(
-            async () =>
-            {
-                var req = new HttpRequestMessage(HttpMethod.Get, url);
-                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                return await httpClient.SendAsync(req, cancellationToken);
-            },
-            cancellationToken
-        );
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var response = await httpClient.SendAsync(req, cancellationToken);
 
         var statusCode = response.StatusCode;
         var body = await response.Content.ReadAsStringAsync(cancellationToken);

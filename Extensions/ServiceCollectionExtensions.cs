@@ -7,6 +7,7 @@ using CheckMods.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -93,7 +94,7 @@ public static class ServiceCollectionExtensions
                     new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
                 );
             }
-        );
+        ).AddStandardResilienceHandler();
 
         services.AddTransient<IForgeApiService, CachedForgeApiService>(sp =>
         {

@@ -23,7 +23,6 @@ public sealed class ForgeApiServiceTests
 
         return new ForgeApiService(
             httpClient,
-            new PassThroughRateLimitService(),
             options,
             NullLogger<ForgeApiService>.Instance
         );
@@ -143,14 +142,5 @@ public sealed class ForgeApiServiceTests
         }
     }
 
-    private sealed class PassThroughRateLimitService : IRateLimitService
-    {
-        public Task<HttpResponseMessage> ExecuteWithRetryAsync(
-            Func<Task<HttpResponseMessage>> requestFunc,
-            CancellationToken cancellationToken = default
-        )
-        {
-            return requestFunc();
-        }
-    }
+
 }
