@@ -17,7 +17,7 @@ First and foremost, a massive thank you to Refringe for their incredible foundat
 - **Pipeline Architecture**
   The core mod-checking logic has been restructured into discrete, testable workflow steps to make the codebase easier to maintain and extend over time.
 - **Project Rename**
-  Officially renamed to Check Mods Extended to distinguish it from the upstream repository while it tests these new experimental features.
+  Officially renamed to Check Mods Extended to reflect the massive divergence and distinguish it as a standalone, independent fork.
 
 Enjoy the update!
 
