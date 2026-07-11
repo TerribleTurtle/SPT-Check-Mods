@@ -22,10 +22,10 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
+- ✨ **Pipeline Architecture Rewrite**: Tearing down the monolith into 13 decoupled `IWorkflowStep` classes
+- ✨ **High-Performance Concurrency**: Using `Parallel.ForEachAsync` instead of bounded `Task.WhenAll` to drastically speed up dependency fetching and protect against rate limits
+- ✨ **Trimming-Safe UI**: Using `WindowsConsoleHelper` to force VT mode, preserving Spectre.Console colors even in heavily trimmed binaries
 - ✨ **Robust Error Handling**: Implemented `OneOf` error boundaries to explicitly catch and surface API network failures instead of relying on silent exceptions
-- ✨ **Modular Architecture**: Reorganized core processing into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) for enhanced maintainability
-- ✨ **Decoupled UI Rendering**: Separated monolithic rendering logic into discrete, highly-testable UI components powered by `Spectre.Console`
-- ✨ **Optimized Dependency Resolution**: Introduced O(1) matching and aggressive caching to speed up the dependency reconciliation process
 - ✨ **Enhanced Data Models**: Restructured the domain models to explicitly separate remote API states from local filesystem states
 - ✨ **Strict Semantic Versioning**: Improved version parsing to explicitly capture and surface Mod Load Warnings, helping users understand exactly why a mod failed a version check
 - ✨ **Standardized Logging**: Transitioned to Serilog for the internal logging engine, providing robust, high-concurrency log rotation
@@ -37,12 +37,12 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 ## Installation
 
 ### Option 1: Download Release
-Download the latest release (`CheckModsExtended-win-x64.exe`) from the [Releases](https://github.com/TerribleTurtle/SPT-Check-Mods/releases) page, then move it into the root of your SPT installation directory. Running it from there checks the mods in that installation.
+Download the latest release (`CheckModsExtended-win-x64.exe`) from the [Releases](https://github.com/TerribleTurtle/CheckModsExtended/releases) page, then move it into the root of your SPT installation directory. Running it from there checks the mods in that installation.
 
 ### Option 2: Build from Source
 ```bash
-git clone https://github.com/TerribleTurtle/SPT-Check-Mods.git
-cd SPT-Check-Mods
+git clone https://github.com/TerribleTurtle/CheckModsExtended.git
+cd CheckModsExtended
 dotnet build
 ```
 
@@ -85,11 +85,6 @@ $env:LoggingOptions__MinimumLogLevel="Debug"
 .\CheckModsExtended-win-x64.exe
 ```
 
-**Override Rate Limits:**
-```bash
-
-CheckModsExtended-win-x64.exe
-```
 
 ## Configuration
 
