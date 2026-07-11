@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using CheckMods.Models;
 using CheckMods.Tests.Fakes;
 using CheckMods.Services;
-using CheckMods.Tests; // To get the right FakeForgeApiService
+using CheckMods.Tests.Fakes;
 using SemanticVersioning;
 using Xunit;
 using Version = SemanticVersioning.Version;

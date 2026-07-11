@@ -76,7 +76,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public void returns_update_available_when_mod_in_updates()
+    public void Returns_update_available_when_mod_in_updates()
     {
         var data = new ModUpdatesData(
             SafeToUpdate:
@@ -101,7 +101,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public void returns_up_to_date_when_mod_in_up_to_date()
+    public void Returns_up_to_date_when_mod_in_up_to_date()
     {
         var data = new ModUpdatesData(
             SafeToUpdate: null,
@@ -117,7 +117,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public void returns_incompatible_when_mod_in_incompatible()
+    public void Returns_incompatible_when_mod_in_incompatible()
     {
         var data = new ModUpdatesData(
             SafeToUpdate: null,
@@ -144,7 +144,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public void returns_null_when_all_categories_empty()
+    public void Returns_null_when_all_categories_empty()
     {
         var data = new ModUpdatesData([], [], [], []);
 
@@ -154,7 +154,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public void returns_null_when_mod_absent_from_populated_categories()
+    public void Returns_null_when_mod_absent_from_populated_categories()
     {
         var data = new ModUpdatesData(
             SafeToUpdate:
@@ -176,7 +176,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_reports_update_available_from_the_updates_endpoint()
+    public async Task Checkasync_reports_update_available_from_the_updates_endpoint()
     {
         var data = new ModUpdatesData(
             SafeToUpdate:
@@ -200,7 +200,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_reports_unavailable_on_api_error()
+    public async Task Checkasync_reports_unavailable_on_api_error()
     {
         var api = new FakeForgeApiService { OnGetModUpdates = () => new ApiError("boom") };
 
@@ -210,7 +210,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_recommends_latest_stable_version_for_an_unrecognized_build()
+    public async Task Checkasync_recommends_latest_stable_version_for_an_unrecognized_build()
     {
         var api = new FakeForgeApiService
         {
@@ -231,7 +231,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_orders_unrecognized_versions_by_semver_not_string()
+    public async Task Checkasync_orders_unrecognized_versions_by_semver_not_string()
     {
         var api = new FakeForgeApiService
         {
@@ -246,7 +246,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_reports_unavailable_when_only_prereleases_exist()
+    public async Task Checkasync_reports_unavailable_when_only_prereleases_exist()
     {
         var api = new FakeForgeApiService
         {
@@ -260,7 +260,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_uses_the_version_link_as_download_link_when_present()
+    public async Task Checkasync_uses_the_version_link_as_download_link_when_present()
     {
         var api = new FakeForgeApiService
         {
@@ -274,7 +274,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_falls_back_to_detail_url_when_the_version_has_no_link()
+    public async Task Checkasync_falls_back_to_detail_url_when_the_version_has_no_link()
     {
         var api = new FakeForgeApiService
         {
@@ -288,7 +288,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_reports_unavailable_when_the_mod_is_not_found()
+    public async Task Checkasync_reports_unavailable_when_the_mod_is_not_found()
     {
         var api = new FakeForgeApiService
         {
@@ -302,7 +302,7 @@ public sealed class UpdateCheckServiceTests
     }
 
     [Fact]
-    public async Task checkasync_reports_unavailable_when_the_mod_has_no_versions()
+    public async Task Checkasync_reports_unavailable_when_the_mod_has_no_versions()
     {
         var api = new FakeForgeApiService
         {

@@ -26,7 +26,7 @@ public sealed class PluginMetadataExtractorTests : IDisposable
     }
 
     [Fact]
-    public async Task processclientdllsinparallelasync_returnsvalidmods()
+    public async Task Processclientdllsinparallelasync_returnsvalidmods()
     {
         var dllPath = Path.Combine("BepInEx", "plugins", "test-client-mod", "TestClient.dll");
 
@@ -55,7 +55,7 @@ public class MyClientPlugin {}
     }
 
     [Fact]
-    public async Task trydetectclientmodasync_returnsmod_whenvaliddll()
+    public async Task Trydetectclientmodasync_returnsmod_whenvaliddll()
     {
         var dllPath = Path.Combine("BepInEx", "plugins", "trydetect-client-mod", "TestClient.dll");
         var code =
@@ -74,7 +74,7 @@ public class TryDetectClientPlugin {}
     }
 
     [Fact]
-    public async Task readplugindllsasync_returnsplugindlls()
+    public async Task Readplugindllsasync_returnsplugindlls()
     {
         var dllPath = Path.Combine("BepInEx", "plugins", "readplugins-client-mod", "TestClient.dll");
         var code =
@@ -93,7 +93,7 @@ public class ReadPluginsPlugin {}
     }
 
     [Fact]
-    public async Task partitionbyrelatedness_partitionscorrectly()
+    public async Task Partitionbyrelatedness_partitionscorrectly()
     {
         var dllPath1 = Path.Combine("BepInEx", "plugins", "partition-client-mod", "Core.dll");
         var code1 =
@@ -123,7 +123,7 @@ public class ModulePlugin {}
     }
 
     [Fact]
-    public async Task consolidatedirectorymodsasync_returnsconsolidatedmods()
+    public async Task Consolidatedirectorymodsasync_returnsconsolidatedmods()
     {
         var dirName = "consolidate-client-mod";
         var dirPath = Path.Combine(_sptPath, "BepInEx", "plugins", dirName);
@@ -160,7 +160,7 @@ public class ModulePlugin {}
     }
 
     [Fact]
-    public void getvalidclientdllfiles_filterscorrectly()
+    public void Getvalidclientdllfiles_filterscorrectly()
     {
         var pluginsPath = Path.Combine(_sptPath, "BepInEx", "plugins");
         Directory.CreateDirectory(pluginsPath);
@@ -183,7 +183,7 @@ public class ModulePlugin {}
     }
 
     [Fact]
-    public async Task trydetectclientmodasync_returnsnull_wheninvaliddll()
+    public async Task Trydetectclientmodasync_returnsnull_wheninvaliddll()
     {
         var dllPath = Path.Combine(_sptPath, "BepInEx", "plugins", "Invalid.dll");
         Directory.CreateDirectory(Path.GetDirectoryName(dllPath)!);

@@ -68,7 +68,7 @@ public sealed class ForgeApiServiceTests
     }
 
     [Fact]
-    public async Task returns_not_found_for_empty_input_without_calling_the_api()
+    public async Task Returns_not_found_for_empty_input_without_calling_the_api()
     {
         var service = CreateService(_ => throw new InvalidOperationException("no request expected"));
 
@@ -78,7 +78,7 @@ public sealed class ForgeApiServiceTests
     }
 
     [Fact]
-    public async Task returns_merged_data_for_a_single_chunk()
+    public async Task Returns_merged_data_for_a_single_chunk()
     {
         var service = CreateService(_ => Ok(UpToDateJson(1, 2, 3)));
 
@@ -89,7 +89,7 @@ public sealed class ForgeApiServiceTests
     }
 
     [Fact]
-    public async Task merges_data_across_multiple_chunks()
+    public async Task Merges_data_across_multiple_chunks()
     {
         var service = CreateService(req => IsSecondChunk(req) ? Ok(UpToDateJson(2002)) : Ok(UpToDateJson(1001)));
 
@@ -103,7 +103,7 @@ public sealed class ForgeApiServiceTests
     }
 
     [Fact]
-    public async Task surfaces_an_error_when_any_chunk_fails()
+    public async Task Surfaces_an_error_when_any_chunk_fails()
     {
         var service = CreateService(req => IsSecondChunk(req) ? ServerError() : Ok(UpToDateJson(1001)));
 
@@ -113,7 +113,7 @@ public sealed class ForgeApiServiceTests
     }
 
     [Fact]
-    public async Task surfaces_an_error_when_every_chunk_fails()
+    public async Task Surfaces_an_error_when_every_chunk_fails()
     {
         var service = CreateService(_ => ServerError());
 
@@ -123,7 +123,7 @@ public sealed class ForgeApiServiceTests
     }
 
     [Fact]
-    public async Task returns_not_found_when_chunks_have_no_data()
+    public async Task Returns_not_found_when_chunks_have_no_data()
     {
         var service = CreateService(_ => Ok("{\"success\":true,\"data\":null}"));
 

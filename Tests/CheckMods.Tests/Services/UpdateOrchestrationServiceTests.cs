@@ -31,7 +31,7 @@ public sealed class UpdateOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task applyignoredupdates_suppresses_update_when_ignored()
+    public async Task Applyignoredupdates_suppresses_update_when_ignored()
     {
         // Arrange
         var mod = new Mod

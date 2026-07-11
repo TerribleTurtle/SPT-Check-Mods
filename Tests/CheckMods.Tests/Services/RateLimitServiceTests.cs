@@ -44,7 +44,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task returns_success_without_retrying()
+    public async Task Returns_success_without_retrying()
     {
         using var service = CreateService();
         var calls = 0;
@@ -60,7 +60,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task retries_after_rate_limit_then_succeeds()
+    public async Task Retries_after_rate_limit_then_succeeds()
     {
         using var service = CreateService();
         var queue = new Queue<HttpResponseMessage>([
@@ -80,7 +80,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task retries_after_server_error_then_succeeds()
+    public async Task Retries_after_server_error_then_succeeds()
     {
         using var service = CreateService();
         var queue = new Queue<HttpResponseMessage>([
@@ -100,7 +100,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task retries_after_network_error_then_succeeds()
+    public async Task Retries_after_network_error_then_succeeds()
     {
         using var service = CreateService();
         var calls = 0;
@@ -121,7 +121,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task retries_after_timeout_then_succeeds()
+    public async Task Retries_after_timeout_then_succeeds()
     {
         using var service = CreateService();
         var calls = 0;
@@ -143,7 +143,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task throws_after_exhausting_rate_limit_retries()
+    public async Task Throws_after_exhausting_rate_limit_retries()
     {
         using var service = CreateService();
         var calls = 0;
@@ -161,7 +161,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task returns_last_response_after_exhausting_server_error_retries()
+    public async Task Returns_last_response_after_exhausting_server_error_retries()
     {
         using var service = CreateService();
         var calls = 0;
@@ -177,7 +177,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task does_not_retry_non_transient_client_error()
+    public async Task Does_not_retry_non_transient_client_error()
     {
         using var service = CreateService();
         var calls = 0;
@@ -193,7 +193,7 @@ public sealed class RateLimitServiceTests
     }
 
     [Fact]
-    public async Task honors_caller_cancellation()
+    public async Task Honors_caller_cancellation()
     {
         using var service = CreateService();
         using var cts = new CancellationTokenSource();
