@@ -7,7 +7,7 @@ public sealed class FakeServerModExtractor : IServerModExtractor
 {
     public Mod? ExtractedMod { get; set; }
 
-    public Mod? ExtractServerModMetadata(string dllPath, string sptDirectory)
+    public Mod? ExtractServerModMetadata(string dllPath)
     {
         return ExtractedMod;
     }

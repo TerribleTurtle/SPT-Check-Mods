@@ -6,14 +6,14 @@ namespace CheckMods.Utils;
 public static class ModNameNormalizer
 {
     private static readonly char[] _charsToRemove = ['-', '_', ' ', '.'];
-    private static readonly string[] _suffixesToRemove = ["server", "client"];
+    public static readonly string[] SuffixesToRemove = ["server", "client", "plugin", "api", "core"];
 
     /// <summary>
     /// Normalizes a mod name for comparison by removing special characters,
-    /// converting to lowercase, and optionally removing server/client suffixes.
+    /// converting to lowercase, and optionally removing server/client/plugin suffixes.
     /// </summary>
     /// <param name="name">The name to normalize.</param>
-    /// <param name="removeComponentSuffixes">Whether to remove "server" and "client" suffixes.</param>
+    /// <param name="removeComponentSuffixes">Whether to remove component suffixes.</param>
     public static string Normalize(string? name, bool removeComponentSuffixes = false)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -28,7 +28,7 @@ public static class ModNameNormalizer
 
         if (removeComponentSuffixes)
         {
-            var matchingSuffix = _suffixesToRemove.FirstOrDefault(s => result.EndsWith(s, StringComparison.Ordinal));
+            var matchingSuffix = SuffixesToRemove.FirstOrDefault(s => result.EndsWith(s, StringComparison.Ordinal));
             if (matchingSuffix is not null)
             {
                 result = result[..^matchingSuffix.Length];

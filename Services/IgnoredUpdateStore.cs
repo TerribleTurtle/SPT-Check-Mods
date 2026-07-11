@@ -122,7 +122,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             // Keep only well-formed entries.
             return file.Ignored.Where(e => e.IsWellFormed).ToList();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
             logger.LogWarning(
                 ex,
@@ -151,7 +151,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             File.WriteAllText(tempPath, json);
             File.Move(tempPath, _options.FilePath, overwrite: true);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
             logger.LogWarning(ex, "Could not write ignored-updates file at {Path}", _options.FilePath);
         }

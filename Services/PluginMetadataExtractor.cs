@@ -102,7 +102,7 @@ public sealed class PluginMetadataExtractor(
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
         {
             logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
         }
@@ -136,7 +136,7 @@ public sealed class PluginMetadataExtractor(
 
                 plugins.Add(new PluginDll(dllPath, plugin, assembly.GetName().Name, referencedNames));
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
             {
                 logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
             }
@@ -200,7 +200,7 @@ public sealed class PluginMetadataExtractor(
 
             return ScanAssemblyForBepInPlugin(assembly, dllPath);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
         {
             warnings.Add((Path.GetFileName(dllPath), ex.Message));
             return null;

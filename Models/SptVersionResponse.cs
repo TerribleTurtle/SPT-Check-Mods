@@ -22,6 +22,9 @@ public class SptVersionApiResponse
 /// </summary>
 public class SptVersionResult
 {
+    /// <summary>
+    /// The unique numeric identifier for this SPT version on the Forge API.
+    /// </summary>
     [JsonPropertyName("id")]
     public int Id { get; set; }
 
@@ -31,12 +34,21 @@ public class SptVersionResult
     [JsonPropertyName("version")]
     public string Version { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The parsed major version number.
+    /// </summary>
     [JsonPropertyName("version_major")]
     public int VersionMajor { get; set; }
 
+    /// <summary>
+    /// The parsed minor version number.
+    /// </summary>
     [JsonPropertyName("version_minor")]
     public int VersionMinor { get; set; }
 
+    /// <summary>
+    /// The parsed patch version number.
+    /// </summary>
     [JsonPropertyName("version_patch")]
     public int VersionPatch { get; set; }
 

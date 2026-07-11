@@ -35,10 +35,18 @@ public sealed partial class ForgeApiService(
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// Issues a rate-limited GET request and returns its status code and body. Successful (2xx) and NotFound (404)
-    /// responses are cached by URL; server errors are not cached.
+    /// Issues a rate-limited GET request and returns its status code and body. 
+    /// This method does NOT perform caching on its own. Caching of successful 
+    /// (2xx) and NotFound (404) responses is handled externally by the 
+    /// <see cref="CachedForgeApiService"/> decorator.
     /// </summary>
-    /// <param name="url">The request URL, which doubles as the cache key.</param>
+    /// <example>
+    /// <code>
+    /// var (statusCode, body, isSuccess) = await GetJsonAsync("https://api/v1/data", ct);
+    /// if (isSuccess) { /* parse body */ }
+    /// </code>
+    /// </example>
+    /// <param name="url">The request URL, which is used as the cache key by the decorator.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     private async Task<(HttpStatusCode StatusCode, string Body, bool IsSuccessStatusCode)> GetJsonAsync(string url, CancellationToken cancellationToken)
     {

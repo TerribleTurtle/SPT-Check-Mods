@@ -20,6 +20,13 @@ public enum IgnoreSource
 /// (<see cref="ApiModId"/>, <see cref="LocalVersion"/>, <see cref="IgnoredLatestVersion"/>); the remaining fields are
 /// metadata.
 /// </summary>
+/// <param name="ApiModId">The Forge API mod ID.</param>
+/// <param name="LocalVersion">The locally installed version string.</param>
+/// <param name="IgnoredLatestVersion">The remote latest version string to ignore.</param>
+/// <param name="Name">The display name of the mod.</param>
+/// <param name="Guid">The unique identifier of the mod.</param>
+/// <param name="Source">Where the ignored update came from (User or Remote).</param>
+/// <param name="DismissedUtc">When the update was dismissed.</param>
 public sealed record IgnoredUpdate(
     [property: JsonPropertyName("apiModId")] int ApiModId,
     [property: JsonPropertyName("localVersion")] string LocalVersion,
@@ -58,6 +65,8 @@ public sealed record IgnoredUpdate(
 /// <summary>
 /// The on-disk (and remote) document format for the ignored-updates list.
 /// </summary>
+/// <param name="SchemaVersion">The version of the JSON schema.</param>
+/// <param name="Ignored">The list of dismissed update records.</param>
 public sealed record IgnoredUpdatesFile(
     [property: JsonPropertyName("schemaVersion")] int SchemaVersion,
     [property: JsonPropertyName("ignored")] List<IgnoredUpdate> Ignored

@@ -73,7 +73,7 @@ public sealed class RemoteIgnoreFileClient(
         {
             throw;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
         {
             logger.LogWarning(ex, "Could not fetch the remote ignore list");
             return null;

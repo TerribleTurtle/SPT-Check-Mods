@@ -23,13 +23,16 @@ public enum DependencyInstallState
 /// </summary>
 public sealed record DependencyChange
 {
+    /// <summary>The display name of the dependency.</summary>
     public required string Name { get; init; }
 
+    /// <summary>The unique BepInEx GUID of the dependency.</summary>
     public required string Guid { get; init; }
 
     /// <summary>The Forge mod ID of the dependency (0 when unknown).</summary>
     public required int ModId { get; init; }
 
+    /// <summary>The URL slug for the dependency on the Forge.</summary>
     public required string Slug { get; init; }
 
     /// <summary>The latest Forge-compatible version of the dependency.</summary>

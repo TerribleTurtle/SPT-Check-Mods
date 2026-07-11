@@ -30,7 +30,7 @@ public sealed class BrowserLauncher(ILogger<BrowserLauncher> logger) : IBrowserL
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or ObjectDisposedException or FileNotFoundException)
         {
             logger.LogWarning(ex, "Could not open the browser");
             return false;

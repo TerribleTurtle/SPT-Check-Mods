@@ -47,6 +47,9 @@ public class LoggingOptions
         }
     }
 
+    /// <summary>
+    /// The default absolute path to the active log file.
+    /// </summary>
     public static string CurrentLogFilePath
     {
         get { return Path.Combine(LogDirectory, "checkmod.log"); }

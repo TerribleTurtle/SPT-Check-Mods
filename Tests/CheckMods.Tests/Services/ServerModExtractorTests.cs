@@ -52,7 +52,7 @@ public class MySptMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath), _sptPath);
+        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
 
         Assert.NotNull(mod);
         Assert.True(mod!.Local.IsServerMod);
@@ -85,7 +85,7 @@ public class MySptMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath), _sptPath);
+        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
@@ -99,7 +99,7 @@ public class MySptMod : AbstractModMetadata
         Directory.CreateDirectory(Path.Combine(_sptPath, modPath));
         File.WriteAllBytes(Path.Combine(_sptPath, dllPath), [0x00, 0x01, 0x02]);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath), _sptPath);
+        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
@@ -126,7 +126,7 @@ public class MySptMod : AbstractModMetadata
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath), _sptPath);
+        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }
@@ -145,7 +145,7 @@ public class SomeClass
 ";
         _fixture.CompileDummyDll(dllPath, code);
 
-        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath), _sptPath);
+        var mod = _extractor.ExtractServerModMetadata(Path.Combine(_sptPath, dllPath));
 
         Assert.Null(mod);
     }

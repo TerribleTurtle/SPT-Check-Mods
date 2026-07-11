@@ -1,7 +1,9 @@
 using System.Net.Http.Headers;
 using System.Reflection;
+using Serilog;
+using Serilog.Events;
+using Microsoft.Extensions.Configuration;
 using CheckMods.Configuration;
-using CheckMods.Logging;
 using CheckMods.Services;
 using CheckMods.Services.Decorators;
 using CheckMods.Services.Interfaces;
@@ -22,55 +24,80 @@ public static class ServiceCollectionExtensions
     /// Registers all CheckMods services with the dependency injection container.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
-    public static IServiceCollection AddCheckModsServices(this IServiceCollection services)
+    /// <param name="configuration">The application configuration.</param>
+    public static IServiceCollection AddCheckModsServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<ForgeApiOptions>(_ => { });
-        services.Configure<RateLimitOptions>(_ => { });
-        services.Configure<ModScannerOptions>(_ => { });
-        services.Configure<LoggingOptions>(_ => { });
-        services.Configure<UpdateCheckOptions>(_ => { });
-        services.Configure<IgnoredUpdateOptions>(_ => { });
+        services.Configure<ForgeApiOptions>(configuration.GetSection("ForgeApiOptions"));
+        services.Configure<RateLimitOptions>(configuration.GetSection("RateLimitOptions"));
+        services.Configure<ModScannerOptions>(configuration.GetSection("ModScannerOptions"));
+        services.Configure<LoggingOptions>(configuration.GetSection("LoggingOptions"));
+        services.Configure<UpdateCheckOptions>(configuration.GetSection("UpdateCheckOptions"));
+        services.Configure<IgnoredUpdateOptions>(configuration.GetSection("IgnoredUpdateOptions"));
 
         services.AddMemoryCache();
 
         services.AddLogging(builder =>
         {
-            builder.SetMinimumLevel(LogLevel.Debug);
-            builder.AddFileLogger();
-
             // Suppress verbose HttpClient logging.
             builder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+
+            var loggingOptions = configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
+            
+            if (loggingOptions.EnableFileLogging)
+            {
+                LogEventLevel serilogLevel = loggingOptions.MinimumLogLevel switch
+                {
+                    LogLevel.Trace => LogEventLevel.Verbose,
+                    LogLevel.Debug => LogEventLevel.Debug,
+                    LogLevel.Information => LogEventLevel.Information,
+                    LogLevel.Warning => LogEventLevel.Warning,
+                    LogLevel.Error => LogEventLevel.Error,
+                    LogLevel.Critical => LogEventLevel.Fatal,
+                    _ => LogEventLevel.Information
+                };
+
+                var serilogLogger = new Serilog.LoggerConfiguration()
+                    .MinimumLevel.Is(serilogLevel)
+                    .WriteTo.File(
+                        loggingOptions.LogFilePath,
+                        fileSizeLimitBytes: loggingOptions.MaxFileSizeBytes,
+                        rollOnFileSizeLimit: true,
+                        retainedFileCountLimit: loggingOptions.RetainedFileCount,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"
+                    )
+                    .CreateLogger();
+
+                builder.AddSerilog(serilogLogger, dispose: true);
+            }
         });
 
         var diHandler = new DependencyInjectionHandler(services);
         diHandler.AddInjectableTypesFromAssembly(Assembly.GetExecutingAssembly());
         diHandler.InjectAll();
 
-        // Register ForgeApiService as a typed HttpClient.
-        services.AddHttpClient<ForgeApiService>(
-            (serviceProvider, client) =>
-            {
-                var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
-                client.Timeout = TimeSpan.FromSeconds(rateLimitOptions.RequestTimeoutSeconds);
+        // Register the named HttpClient for ForgeApi
+        services.AddHttpClient("ForgeApi", (serviceProvider, client) =>
+        {
+            var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(rateLimitOptions.RequestTimeoutSeconds);
 
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
-                client.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("(+https://github.com/refringe/SPT-Check-Mods)")
-                );
-            }
-        );
+            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
+            client.DefaultRequestHeaders.UserAgent.Add(
+                new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
+            );
+        });
 
         services.AddTransient<IForgeApiService, CachedForgeApiService>(sp =>
         {
-            var inner = sp.GetRequiredService<ForgeApiService>();
+            var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("ForgeApi");
+            var inner = ActivatorUtilities.CreateInstance<ForgeApiService>(sp, httpClient);
             return new CachedForgeApiService(inner, sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ILogger<CachedForgeApiService>>());
         });
 
-        services.AddTransient<ModDependencyService>();
         services.AddTransient<IModDependencyService, CachedModDependencyService>(sp =>
         {
-            var inner = sp.GetRequiredService<ModDependencyService>();
+            var inner = ActivatorUtilities.CreateInstance<ModDependencyService>(sp);
             return new CachedModDependencyService(inner, sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ILogger<CachedModDependencyService>>());
         });
 
@@ -84,7 +111,7 @@ public static class ServiceCollectionExtensions
                 var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
                 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("(+https://github.com/refringe/SPT-Check-Mods)")
+                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
                 );
             }
         );

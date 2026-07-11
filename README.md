@@ -1,6 +1,6 @@
 # SPT Check Mods
 
-A .NET 9 console application that validates Single Player Tarkov (SPT) mod compatibility using the Forge API.
+A .NET 9 console application (utilizing .NET 10.0 preview extensions) that validates Single Player Tarkov (SPT) mod compatibility using the Forge API.
 
 <img width="1013" height="314" alt="image" src="https://github.com/user-attachments/assets/00878387-024c-4961-b66f-b977f4e550c0" />
 
@@ -70,6 +70,27 @@ dotnet run
 dotnet run -- /path/to/spt
 ```
 
+## Troubleshooting
+
+You can override application settings using environment variables. This is particularly useful for debugging or circumventing network issues.
+
+**Enable Debug Logging:**
+```bash
+# Windows CLI
+set LoggingOptions__MinimumLogLevel=Debug
+CheckMods-win-x64.exe
+
+# PowerShell
+$env:LoggingOptions__MinimumLogLevel="Debug"
+.\CheckMods-win-x64.exe
+```
+
+**Override Rate Limits:**
+```bash
+set RateLimitOptions__MaxBurst=10
+CheckMods-win-x64.exe
+```
+
 ## Configuration
 
 ### Local Storage
@@ -77,6 +98,8 @@ Check Mods keeps its data under `%APPDATA%\SptCheckMods`:
 
 - **Logs**: `%APPDATA%\SptCheckMods\logs\checkmod.log`
 - **Ignored updates**: `%APPDATA%\SptCheckMods\ignored-updates.json`
+
+> **Note on Telemetry**: When the community shared ignore list is enabled, Check Mods makes a remote HTTP GET request to `https://forge-static.sp-tarkov.com/check-mods/ignored-updates.json` to fetch the latest suppressed updates.
 
 ### Supported Mod Formats
 - **Server Mods**: SPT mods with `AbstractModMetadata` in `SPT/user/mods`

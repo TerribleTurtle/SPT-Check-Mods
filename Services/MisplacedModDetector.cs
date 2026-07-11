@@ -46,7 +46,7 @@ public sealed class MisplacedModDetector(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var serverMod = serverExtractor.ExtractServerModMetadata(dllPath, sptPath);
+                var serverMod = serverExtractor.ExtractServerModMetadata(dllPath);
                 if (serverMod is not null)
                 {
                     wrongFolder.Add(

@@ -130,6 +130,13 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         // 1. Original local name
         AddIfNew(terms, seen, mod.Local.LocalName);
 
+        // 1b. Additive fallback: replace '-' and '_' with ' ' in LocalName
+        var spacedName = mod.Local.LocalName?.Replace("-", " ").Replace("_", " ");
+        if (!string.Equals(spacedName, mod.Local.LocalName, StringComparison.OrdinalIgnoreCase))
+        {
+            AddIfNew(terms, seen, spacedName);
+        }
+
         // 2. Name without server/client suffix (e.g., "ModNameServer" -> "ModName")
         var nameWithoutSuffix = RemoveComponentSuffix(mod.Local.LocalName);
         if (!string.Equals(nameWithoutSuffix, mod.Local.LocalName, StringComparison.OrdinalIgnoreCase))
@@ -166,15 +173,14 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
     /// <summary>
     /// Removes common component suffixes from a mod name.
     /// </summary>
-    private static string RemoveComponentSuffix(string name)
+    private static string? RemoveComponentSuffix(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             return name;
         }
 
-        string[] suffixes = ["Server", "Client"];
-        var matchingSuffix = suffixes.FirstOrDefault(s =>
+        var matchingSuffix = ModNameNormalizer.SuffixesToRemove.FirstOrDefault(s =>
             name.EndsWith(s, StringComparison.OrdinalIgnoreCase) && name.Length > s.Length
         );
 
@@ -184,7 +190,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
     /// <summary>
     /// Adds a term to the list if it's not already present and not empty.
     /// </summary>
-    private static void AddIfNew(List<string> terms, HashSet<string> seen, string term)
+    private static void AddIfNew(List<string> terms, HashSet<string> seen, string? term)
     {
         if (!string.IsNullOrWhiteSpace(term) && seen.Add(term))
         {
@@ -216,7 +222,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             {
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException or InvalidOperationException)
             {
                 // Isolate per-mod failures: mark this mod unmatched and record the failure.
                 logger.LogWarning(ex, "Failed to match mod: {ModName}", mod.Local.LocalName);

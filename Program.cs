@@ -3,6 +3,7 @@ using CheckMods.Extensions;
 using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,7 +14,7 @@ namespace CheckMods;
 /// <summary>
 /// Main entry point for the CheckMods application.
 /// </summary>
-public class Program
+public sealed class Program
 {
     private static CancellationTokenSource? _cts;
     private static bool _wasCancelled;
@@ -22,8 +23,9 @@ public class Program
     /// Sets up dependency injection, runs the application, and handles any unhandled exceptions.
     /// </summary>
     /// <param name="args">Command line arguments. The only argument is the SPT installation path.</param>
-    public static async Task Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
+        int exitCode = 0;
         ILogger<Program>? logger = null;
 
         // Path reported at the end of the run; falls back to the static default if DI setup fails.
@@ -34,13 +36,17 @@ public class Program
         Console.CancelKeyPress += OnCancelKeyPress;
 
         ServiceProvider? serviceProvider = null;
-        IIgnoredUpdateWorkflow? ignoredUpdateWorkflow = null;
-        IReadOnlyList<Mod>? mods = null;
 
         try
         {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
+
             var services = new ServiceCollection();
-            services.AddCheckModsServices();
+            services.AddCheckModsServices(configuration);
             serviceProvider = services.BuildServiceProvider();
 
             logger = serviceProvider.GetRequiredService<ILogger<Program>>();
@@ -49,20 +55,27 @@ public class Program
             logFilePath = serviceProvider.GetRequiredService<IOptions<LoggingOptions>>().Value.LogFilePath;
 
             var applicationService = serviceProvider.GetRequiredService<IApplicationService>();
-            ignoredUpdateWorkflow = serviceProvider.GetRequiredService<IIgnoredUpdateWorkflow>();
+            var ignoredUpdateWorkflow = serviceProvider.GetRequiredService<IIgnoredUpdateWorkflow>();
 
-            mods = await applicationService.RunAsync(args, _cts.Token);
+            var mods = await applicationService.RunAsync(args, _cts.Token);
+            
+            if (mods is not null)
+            {
+                await ignoredUpdateWorkflow.RunAsync(mods);
+            }
 
             logger.LogInformation("CheckMods application completed successfully");
         }
         catch (OperationCanceledException)
         {
             logger?.LogInformation("Application was cancelled by user");
+            exitCode = 1;
         }
         catch (Exception ex)
         {
             logger?.LogCritical(ex, "Unhandled exception occurred");
             AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
+            exitCode = 2;
         }
         finally
         {
@@ -75,23 +88,18 @@ public class Program
             AnsiConsole.MarkupLine($"[grey]Check Mods v{VersionInfo.SemVer} (build {VersionInfo.GitHash})[/]");
             AnsiConsole.MarkupLine($"[grey]Log file: {logFilePath}[/]");
 
+            // Prevent the console window from closing instantly when the user double-clicks the executable on Windows.
+            // Console.IsInputRedirected will be true if the application is run from a script or piping environment,
+            // in which case we don't want to block the thread.
             if (!_wasCancelled && !Console.IsInputRedirected)
             {
-                if (ignoredUpdateWorkflow is not null)
+                while (Console.KeyAvailable)
                 {
-                    await ignoredUpdateWorkflow.RunAsync(mods);
+                    Console.ReadKey(intercept: true);
                 }
-                else
-                {
-                    // Fallback when DI setup failed before the workflow was resolved.
-                    while (Console.KeyAvailable)
-                    {
-                        Console.ReadKey(intercept: true);
-                    }
 
-                    AnsiConsole.MarkupLine("[grey]Press any key to exit...[/]");
-                    Console.ReadKey();
-                }
+                AnsiConsole.MarkupLine("[grey]Press any key to exit...[/]");
+                Console.ReadKey();
             }
 
             if (serviceProvider is not null)
@@ -99,6 +107,8 @@ public class Program
                 await serviceProvider.DisposeAsync();
             }
         }
+
+        return exitCode;
     }
 
     /// <summary>

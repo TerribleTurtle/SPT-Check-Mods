@@ -1,6 +1,8 @@
-# SPT-Check-Mods Architecture Plan (V2: Deep Decoupling)
+# SPT-Check-Mods Architecture Plan (V3: Documentation & Drift Resolution)
 
-This document outlines the next phases of refactoring and architectural decoupling for `SPT-Check-Mods`. The original foundational work (RCE patch, initial test coverage, and high-level class breakdown) is complete. This next iteration targets the remaining "God Objects" and bloated files.
+This document outlines the next phases of development for `SPT-Check-Mods`. Previous phases (V1/V2 - RCE Patch, UI Decoupling, Error Handling, and Object Deconstruction) are complete. 
+
+The current focus is resolving **Documentation Drift** (where the code has outpaced the documentation) and fixing underlying code anomalies discovered during the documentation audit.
 
 All phases must maintain the strict `AGENTS.md` guidelines:
 - Strict `.editorconfig` formatting.
@@ -9,69 +11,57 @@ All phases must maintain the strict `AGENTS.md` guidelines:
 
 ---
 
-## Phase 1: ApplicationService Deep Decoupling
+## Phase 5: Core Infrastructure & Logging Synchronization
 
-`ApplicationService.cs` is currently a 740-line pipeline orchestrator that still contains too much low-level domain logic. It should be reduced to a strict workflow coordinator without any business logic of its own.
+This phase resolves severe discrepancies where the infrastructure code contradicts the documentation and project state.
 
-### 1. Extract `IModResolutionService`
-**Goal:** Handle all fuzzy search and Forge API resolution logic.
-- Extract `SearchModByNameAsync`.
-- Extract `FetchSourceCodeUrlForPairAsync` and `FetchSourceCodeUrlForModAsync`.
-- **Testing Requirement:** Add comprehensive `xUnit` tests for the new service to cover exact matches, fuzzy threshold matches, and missing mods.
+### 1. Serilog Migration Completion
+- **Issue:** `README.md` and `findings.md` state the app uses Serilog, but `ServiceCollectionExtensions.cs` still uses `builder.AddFileLogger()` (the custom `FileLogger.cs`).
+- **Action:** Wire up Serilog in Dependency Injection and deprecate/remove the 311-line custom `FileLogger.cs`.
 
-### 2. Extract `ICompatibilityValidationService`
-**Goal:** Isolate SPT version constraint parsing and verification.
-- Extract `CheckModSptCompatibility` and `CheckModVersionCompatibility`.
-- **Testing Requirement:** Ensure the `SemanticVersioning` logic is correctly evaluated within this dedicated service using targeted unit tests.
+### 2. Upstream References & User-Agents
+- **Issue:** `User-Agent` HTTP headers in `ForgeApiService` and `RemoteIgnoreFileClient` still hardcode the upstream `refringe/SPT-Check-Mods` URL.
+- **Action:** Update all hardcoded references to the `TerribleTurtle` fork.
 
-### 3. Extract `IUpdateOrchestrationService`
-**Goal:** Manage update checks for SPT and Check Mods.
-- Extract `CheckForSptUpdatesAsync` and `CheckForCheckModsUpdateAsync`.
-- Extract update suppression mapping (`ApplyIgnoredUpdates`).
-- **Testing Requirement:** Add tests validating that ignored updates successfully suppress warnings without mutating other mod state.
+### 3. README.md & Transparency Updates
+- **Action:** Update the README to reflect the accurate .NET version.
+- **Action:** Document the remote telemetry network call to `forge-static.sp-tarkov.com` for transparency (`ignored-updates.json`).
+- **Action:** Add CLI troubleshooting commands (enabling debug logs, overriding rate limits).
+- **Action:** Explain the "Magic Termination Logic" (`!Console.IsInputRedirected`) in `Program.cs` via comments.
 
 ---
 
-## Phase 2: UI Presentation Decoupling
+## Phase 6: Models & Configuration Documentation
 
-`TableRenderer.cs` (678 lines) violates the Single Responsibility Principle by rendering entirely distinct UI components (version tables, dependency trees, and misplaced mod warnings).
+This phase focuses on documenting the newly decoupled data models and configuration classes.
 
-### 1. Split into Specialized Renderers
-- `DependencyUiRenderer`: Renders `DependencyTree`, `DependencyConflicts`, and `MissingDependencies`.
-- `MisplacedModUiRenderer`: Renders `MisplacedMods` and `PrintCrossInstalledDirectory`.
-- `VersionTableUiRenderer`: Renders `VersionTable` and `VersionCompatibilityResults`.
-- `ReconciliationUiRenderer`: Renders `ReconciliationResults` and `LoadingWarnings`.
+### 1. Extracted Composition Records
+- **Action:** Add class and property-level XML documentation to `LocalModIdentity.cs`, `ForgeApiMetadata.cs`, and `ModUpdateState.cs`.
+- **Action:** Document the new `Local`, `Api`, and `Update` properties in `Mod.cs`.
 
-### 2. Maintain Façade
-- Retain `TableRenderer` (or consolidate back to `SpectreModCheckReporter`) purely as a facade that delegates calls to these specialized renderers to avoid breaking the `IApplicationService` interface.
-- **Testing Requirement:** Update `TableRendererTests.cs` and build test coverage for each new individual UI renderer, ensuring AnsiConsole output formatting is not compromised.
+### 2. Primary Constructors & Properties
+- **Action:** Add missing `<param>` tags for primary constructors in `ApiResponses.cs`, `PluginDll.cs`, and `IgnoredUpdate.cs`.
+- **Action:** Add missing `<summary>` tags in `DependencyChange.cs`, `SptVersionResponse.cs`, `ForgeApiOptions.cs`, and `LoggingOptions.cs`.
 
----
-
-## Phase 3: Forge API Client Breakdown
-
-`ForgeApiService.cs` (500+ lines) handles all API endpoints (Updates, Search, Validation, Dependencies) in a single service. 
-
-### 1. Split into Distinct API Clients
-- `IForgeUpdateClient`: Handles `/mods/updates`.
-- `IForgeSearchClient`: Handles `/mods?query=` and `/mod/{id}`.
-- `IForgeValidationClient`: Handles `/spt/versions`.
-- `IForgeDependencyClient`: Handles `/mods/dependencies`.
-
-### 2. Implementation details
-- Standardize the error translation (HTTP 404, 500, network timeouts) into the defined `ApiError`, `NotFound` types using `OneOf`.
-- **Testing Requirement:** Port the existing `FakeForgeApiService` logic to mirror this new structure. Ensure each client is tested for rate-limiting, retries, and network failure resiliency.
+### 3. Magic Constants Context
+- **Action:** Document the "why" behind thresholds in `MatchingConstants.cs` (`70` and `80`) and limits in `ModScannerOptions.cs` (`100MB`).
+- **Action:** Explicitly document how `RateLimitOptions.cs` maps to Forge API constraints.
 
 ---
 
-## Phase 4: Client Mod Extractor Optimization
+## Phase 7: Services & API Enhancements
 
-`PluginMetadataExtractor.cs` (540 lines) mixes file I/O, raw Reflection (`MetadataLoadContext`), and heuristic directory merging.
+This phase addresses missing documentation in the core business logic and fixes a remaining silent error swallow.
 
-### 1. Extract `BepinReflectionHelper`
-- Pull out the pure reflection logic (`CreateMetadataLoadContext`, `ScanAssemblyForBepInPluginAttribute`) into a static helper or dedicated singleton.
-- **Testing Requirement:** Add file-less reflection tests using in-memory byte arrays.
+### 1. Error Handling Fix
+- **Issue:** `ModDependencyService.cs` silently swallows `SemVer.TryParse` errors by returning `0.0.0`, violating Phase 4 error handling rules.
+- **Action:** Refactor the dependency version comparison to bubble up `InvalidSemVer` natively via `OneOf`.
 
-### 2. Extract `ClientModConsolidator`
-- Move the heuristic union-find logic (`PartitionByRelatedness`, `SameAuthorNamespace`) that groups related DLLs into a single mod entity into its own isolated service.
-- **Testing Requirement:** Test the consolidation logic extensively with dummy Mod dependency graphs to ensure unrelated mods aren't incorrectly merged.
+### 2. API Usage Examples
+- **Action:** Add concrete usage examples to the `IForgeApiService` endpoint documentation.
+- **Action:** Remove outdated XML documentation on `ForgeApiService.GetJsonAsync` that incorrectly claims it caches responses by URL.
+
+### 3. Internal Service Documentation
+- **Action:** Rewrite the `TableRenderer.cs` class summary to explain its architectural shift into a Façade pattern delegating to 4 UI renderers.
+- **Action:** Add missing `<param>` documentation to utility methods in `ApplicationService.cs` and `ModScannerService.cs`.
+- **Action:** Review the unused `sptDirectory` parameter in `IServerModExtractor.cs` and remove it or document it for future use.

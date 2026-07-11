@@ -16,7 +16,7 @@ namespace CheckMods.Services;
 public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : IServerModExtractor
 {
     /// <inheritdoc />
-    public Mod? ExtractServerModMetadata(string dllPath, string sptDirectory)
+    public Mod? ExtractServerModMetadata(string dllPath)
     {
         try
         {
@@ -88,7 +88,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
                 LoadWarnings = warnings,
             };
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or AssemblyResolutionException or System.Security.SecurityException)
         {
             logger.LogDebug(ex, "Could not inspect DLL as a server mod: {DllPath}", dllPath);
             return null;

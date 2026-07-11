@@ -53,7 +53,7 @@ public sealed class ModScannerService(
             {
                 try
                 {
-                    var mod = serverExtractor.ExtractServerModMetadata(dllPath, sptPath);
+                    var mod = serverExtractor.ExtractServerModMetadata(dllPath);
                     if (mod is null)
                     {
                         continue;
@@ -62,7 +62,7 @@ public sealed class ModScannerService(
                     mods.Add(mod);
                     break; // Only one mod per directory
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or BadImageFormatException or System.Security.SecurityException)
                 {
                     reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
                 }
@@ -123,6 +123,8 @@ public sealed class ModScannerService(
     /// <summary>
     /// Groups DLL files by their immediate parent directory.
     /// </summary>
+    /// <param name="dllFiles">A list of all discovered DLL files.</param>
+    /// <param name="pluginsDir">The absolute path to the plugins directory.</param>
     private static Dictionary<string, List<string>> GroupDllsByDirectory(List<string> dllFiles, string pluginsDir)
     {
         return dllFiles
@@ -133,6 +135,8 @@ public sealed class ModScannerService(
     /// <summary>
     /// Gets the mod's root directory (immediate child of plugins, or plugins itself for loose DLLs).
     /// </summary>
+    /// <param name="dllPath">The absolute path to the DLL.</param>
+    /// <param name="pluginsDir">The absolute path to the plugins directory.</param>
     private static string GetModDirectory(string dllPath, string pluginsDir)
     {
         var directory = Path.GetDirectoryName(dllPath);
@@ -181,7 +185,7 @@ public sealed class ModScannerService(
             var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(coreDllPath);
             return versionInfo.FileVersion;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or FileNotFoundException or System.ComponentModel.Win32Exception)
         {
             reporter.CouldNotReadSptVersion(ex.Message);
         }

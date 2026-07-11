@@ -271,6 +271,8 @@ public sealed class ApplicationService(
     /// Returns the mods with any misplaced entries removed: those whose DLL path was flagged as misplaced, plus any
     /// inside a cross-installed directory whose intruder couldn't be identified (the whole folder is excluded).
     /// </summary>
+    /// <param name="mods">The list of mods to filter.</param>
+    /// <param name="report">The misplaced mods report containing exclusions.</param>
     private static List<Mod> ExcludeMisplacedMods(List<Mod> mods, MisplacedModReport report)
     {
         var excludedFiles = new HashSet<string>(report.ExcludedFilePaths, StringComparer.OrdinalIgnoreCase);
@@ -287,6 +289,8 @@ public sealed class ApplicationService(
     /// Determines whether <paramref name="filePath"/> lives inside <paramref name="directory"/> (or is that directory
     /// itself), comparing fully-resolved paths case-insensitively.
     /// </summary>
+    /// <param name="filePath">The file path to check.</param>
+    /// <param name="directory">The directory path to check against.</param>
     private static bool IsWithinDirectory(string filePath, string directory)
     {
         var fullFile = System.IO.Path.GetFullPath(filePath);

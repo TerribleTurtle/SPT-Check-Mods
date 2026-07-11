@@ -417,6 +417,8 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         else if (
             installedMod != null
             && !string.IsNullOrWhiteSpace(recommendedVersion)
+            // Fallback to 0.0.0 if SemVer parsing fails so that unparseable versions are treated as extremely old
+            // instead of throwing exceptions.
             && (SemVer.TryParse(installedMod.Local.LocalVersion, "ModDependencyService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))) < (SemVer.TryParse(recommendedVersion, "ModDependencyService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0)))
         )
         {

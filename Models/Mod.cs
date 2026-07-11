@@ -1,12 +1,23 @@
 namespace CheckMods.Models;
 
 /// <summary>
-/// Master record representing a mod throughout the entire processing lifecycle.
+/// The central entity representing a mod throughout the entire processing lifecycle.
 /// </summary>
 public sealed class Mod
 {
+    /// <summary>
+    /// Metadata describing the local installation state of the mod on the disk.
+    /// </summary>
     public required LocalModIdentity Local { get; init; }
+
+    /// <summary>
+    /// Information retrieved from the remote Forge API for this mod, if matched.
+    /// </summary>
     public ForgeApiMetadata Api { get; } = new();
+
+    /// <summary>
+    /// Tracks the update status of this mod against available versions.
+    /// </summary>
     public ModUpdateState Update { get; } = new();
 
     #region Processing State
