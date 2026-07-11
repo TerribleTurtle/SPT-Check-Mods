@@ -65,6 +65,7 @@ public sealed class Program
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
+                .AddCommandLine(args)
                 .Build();
 
             var services = new ServiceCollection();
