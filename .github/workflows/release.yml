@@ -61,6 +61,7 @@ jobs:
           ./publish/win-x64/CheckModsExtended-*.zip
           ./publish/win-x64/checksums.txt
         generate_release_notes: true
+        body_path: release_notes.md
         prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
 
     - name: VirusTotal Scan
