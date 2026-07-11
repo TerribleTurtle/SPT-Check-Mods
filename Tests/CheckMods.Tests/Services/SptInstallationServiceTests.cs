@@ -15,7 +15,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     private readonly SptSandboxFixture _fixture;
     private readonly SptInstallationService _service;
     private readonly CheckMods.Tests.Fakes.FakeModScannerService _scannerService;
-    private readonly CheckMods.Tests.Fakes.FakeForgeApiService _forgeApiService;
+    private readonly FakeForgeApiService _forgeApiService;
     private readonly CheckMods.Tests.Fakes.FakeModCheckReporter _reporter;
     private readonly string _sptPath;
 
@@ -25,7 +25,7 @@ public sealed class SptInstallationServiceTests : IDisposable
         _sptPath = _fixture.SandboxPath;
 
         _scannerService = new CheckMods.Tests.Fakes.FakeModScannerService();
-        _forgeApiService = new CheckMods.Tests.Fakes.FakeForgeApiService();
+        _forgeApiService = new FakeForgeApiService();
         _reporter = new CheckMods.Tests.Fakes.FakeModCheckReporter();
 
         _service = new SptInstallationService(
@@ -44,7 +44,7 @@ public sealed class SptInstallationServiceTests : IDisposable
         File.WriteAllText(coreDllPath, "dummy content");
 
         _scannerService.SptVersionToReturn = "3.8.0";
-        _forgeApiService.ValidateSptVersionResult = true;
+        _forgeApiService.OnValidateSptVersion = _ => true;
 
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
 
@@ -68,7 +68,7 @@ public sealed class SptInstallationServiceTests : IDisposable
         File.WriteAllText(coreDllPath, "dummy content");
 
         _scannerService.SptVersionToReturn = "3.8.0";
-        _forgeApiService.ValidateSptVersionResult = new InvalidSptVersion();
+        _forgeApiService.OnValidateSptVersion = _ => false;
 
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
 

@@ -8,7 +8,7 @@ namespace CheckMods.Tests.Services;
 
 public sealed class ModEnrichmentServiceTests
 {
-    private readonly CheckMods.Tests.Fakes.FakeForgeApiService _forgeApiService = new();
+    private readonly FakeForgeApiService _forgeApiService = new();
     private readonly FakeLogger<ModEnrichmentService> _logger = new();
     private readonly ModEnrichmentService _service;
     private readonly Version _sptVersion = Version.Parse("3.9.0");
@@ -59,7 +59,7 @@ public sealed class ModEnrichmentServiceTests
         };
         matchedMod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
         
-        _forgeApiService.GetModUpdatesResult = new ApiError("Failed to fetch");
+        _forgeApiService.OnGetModUpdates = () => new ApiError("Failed to fetch");
 
         // Act
         await _service.EnrichAllWithVersionDataAsync([matchedMod], _sptVersion);
@@ -86,7 +86,7 @@ public sealed class ModEnrichmentServiceTests
         };
         matchedMod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
         
-        _forgeApiService.GetModUpdatesResult = new ModUpdatesData(
+        _forgeApiService.OnGetModUpdates = () => new ModUpdatesData(
             SafeToUpdate: [
                 new SafeToUpdateMod(
                     CurrentVersion: new ModUpdateVersion(10, 123, null, null, null, "1.0.0", null, null),

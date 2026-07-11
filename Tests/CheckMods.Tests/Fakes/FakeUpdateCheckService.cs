@@ -12,12 +12,17 @@ public sealed class FakeUpdateCheckService : IUpdateCheckService
 {
     /// <summary> Gets or sets result to return. </summary>
     public CheckModsUpdateResult ResultToReturn { get; set; } = new(CheckModsUpdateStatus.Unavailable, "1.0.0");
+    public Exception? CheckAsyncThrows { get; set; }
 
     /// <inheritdoc />
     public Task<CheckModsUpdateResult> CheckAsync(Version sptVersion, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(ResultToReturn);
+        if (CheckAsyncThrows is null)
+        {
+            return Task.FromResult(ResultToReturn);
+        }
+        throw CheckAsyncThrows;
     }
 }
 

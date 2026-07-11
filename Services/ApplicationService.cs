@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using CheckMods.Configuration;
 using CheckMods.Models;
 using CheckMods.Services.Interfaces;
@@ -13,18 +18,19 @@ namespace CheckMods.Services;
 [Injectable(InjectionType.Transient)]
 public sealed class ApplicationService(
     IInitializationService initializationService,
-    IForgeApiService forgeApiService,
     ISptInstallationService sptInstallationService,
     IModScannerService modScannerService,
     IModReconciliationService modReconciliationService,
     IModMatchingService modMatchingService,
     IModEnrichmentService modEnrichmentService,
     IModDependencyService modDependencyService,
-    IUpdateCheckService updateCheckService,
     IIgnoredUpdateStore ignoredUpdateStore,
     IRemoteIgnoreFileClient remoteIgnoreFileClient,
     IModCheckReporter reporter,
-    ILogger<ApplicationService> logger
+    ILogger<ApplicationService> logger,
+    IModResolutionService modResolutionService,
+    ICompatibilityValidationService compatibilityValidationService,
+    IUpdateOrchestrationService updateOrchestrationService
 ) : IApplicationService
 {
     /// <summary>
@@ -64,7 +70,7 @@ public sealed class ApplicationService(
 
             // Must run after the SPT update check.
             logger.LogDebug("Checking for Check Mods updates");
-            await CheckForCheckModsUpdateAsync(sptVersion, cancellationToken);
+            await updateOrchestrationService.CheckForCheckModsUpdateAsync(sptVersion, cancellationToken);
 
             // Offer to refresh the local ignore list from the author-maintained remote list (opt-in, default no).
             logger.LogDebug("Offering remote ignore list refresh");
@@ -107,11 +113,14 @@ public sealed class ApplicationService(
             await EnrichModsWithVersionDataAsync(mods, sptVersion, cancellationToken);
 
             logger.LogDebug("Applying ignored updates");
-            ApplyIgnoredUpdates(mods);
+            updateOrchestrationService.ApplyIgnoredUpdates(mods);
 
             // Suppressed false positives are skipped.
             logger.LogDebug("Checking mod version compatibility");
-            CheckModVersionCompatibility(mods, sptVersion);
+            reporter.Blank();
+            reporter.Heading("Checking mod version compatibility...");
+            compatibilityValidationService.CheckModVersionCompatibility(mods, sptVersion);
+            reporter.VersionCompatibilityResults(mods, sptVersion);
 
             logger.LogDebug("Checking mod dependencies");
             await CheckModDependenciesAsync(mods, cancellationToken);
@@ -172,22 +181,6 @@ public sealed class ApplicationService(
     }
 
     /// <summary>
-    /// Flags any mod whose available update matches a stored suppression so it renders as ignored (treated as up to
-    /// date).
-    /// </summary>
-    /// <param name="mods">The reconciled, enriched mods to evaluate.</param>
-    private void ApplyIgnoredUpdates(List<Mod> mods)
-    {
-        foreach (var mod in mods)
-        {
-            if (mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable && ignoredUpdateStore.IsIgnored(mod))
-            {
-                mod.SetUpdateSuppressed(true);
-            }
-        }
-    }
-
-    /// <summary>
     /// Validates the SPT installation and returns the version.
     /// </summary>
     /// <param name="sptPath">Path to SPT installation.</param>
@@ -206,78 +199,12 @@ public sealed class ApplicationService(
 
         reporter.SptVersionValidated(sptVersion.ToString());
 
-        await CheckForSptUpdatesAsync(sptVersion, cancellationToken);
+        await updateOrchestrationService.CheckForSptUpdatesAsync(sptVersion, cancellationToken);
 
         reporter.Blank();
         reporter.Rule();
         reporter.Blank();
         return sptVersion;
-    }
-
-    /// <summary>
-    /// Checks for available SPT updates and displays them to the user.
-    /// </summary>
-    /// <param name="currentVersion">The currently installed SPT version.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task CheckForSptUpdatesAsync(
-        SemanticVersioning.Version currentVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        reporter.Blank();
-        reporter.Status("Checking for SPT updates...");
-
-        var availableUpdates = await sptInstallationService.CheckForSptUpdatesAsync(currentVersion, cancellationToken);
-
-        if (availableUpdates.Count == 0)
-        {
-            reporter.Success("You are running the latest version of SPT!");
-            return;
-        }
-
-        // Show only the latest available update
-        reporter.SptUpdateAvailable(availableUpdates[0]);
-    }
-
-    /// <summary>
-    /// Checks whether a newer version of Check Mods is available on the Forge and displays the result.
-    /// </summary>
-    /// <param name="sptVersion">The installed SPT version, used for compatibility filtering.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task CheckForCheckModsUpdateAsync(
-        SemanticVersioning.Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        reporter.Heading("Checking for Check Mods updates...");
-
-        CheckModsUpdateResult result;
-        try
-        {
-            result = await updateCheckService.CheckAsync(sptVersion, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogWarning(ex, "Check Mods update check failed unexpectedly");
-            reporter.Status("Could not check for Check Mods updates.");
-            reporter.Blank();
-            reporter.Rule();
-            return;
-        }
-        catch (System.Text.Json.JsonException ex)
-        {
-            logger.LogWarning(ex, "Check Mods update check failed unexpectedly");
-            reporter.Status("Could not check for Check Mods updates.");
-            reporter.Blank();
-            reporter.Rule();
-            return;
-        }
-
-        reporter.CheckModsUpdate(result, sptVersion);
     }
 
     /// <summary>
@@ -316,7 +243,7 @@ public sealed class ApplicationService(
         var modsWithWarnings = serverMods.Concat(clientMods).Where(m => m.HasWarnings).ToList();
         if (modsWithWarnings.Count > 0)
         {
-            await FetchSourceCodeUrlsForModsAsync(modsWithWarnings, sptVersion, cancellationToken);
+            await modResolutionService.FetchSourceCodeUrlsForModsAsync(modsWithWarnings, sptVersion, cancellationToken);
         }
 
         reporter.LoadingWarnings(modsWithWarnings);
@@ -332,7 +259,7 @@ public sealed class ApplicationService(
         var pairsWithNotes = result.ReconciledPairs.Where(p => p.Notes.Count > 0).ToList();
         if (pairsWithNotes.Count > 0)
         {
-            await FetchSourceCodeUrlsForPairedModsAsync(pairsWithNotes, sptVersion, cancellationToken);
+            await modResolutionService.FetchSourceCodeUrlsForPairedModsAsync(pairsWithNotes, sptVersion, cancellationToken);
         }
 
         reporter.ReconciliationResults(result);
@@ -362,194 +289,19 @@ public sealed class ApplicationService(
     /// </summary>
     private static bool IsWithinDirectory(string filePath, string directory)
     {
-        var fullFile = Path.GetFullPath(filePath);
-        var fullDirectory = Path.GetFullPath(directory);
+        var fullFile = System.IO.Path.GetFullPath(filePath);
+        var fullDirectory = System.IO.Path.GetFullPath(directory);
 
         if (string.Equals(fullFile, fullDirectory, StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
-        var prefix = fullDirectory.EndsWith(Path.DirectorySeparatorChar)
+        var prefix = fullDirectory.EndsWith(System.IO.Path.DirectorySeparatorChar)
             ? fullDirectory
-            : fullDirectory + Path.DirectorySeparatorChar;
+            : fullDirectory + System.IO.Path.DirectorySeparatorChar;
 
         return fullFile.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Fetches source code URLs from the API for mods that have warnings.
-    /// </summary>
-    private async Task FetchSourceCodeUrlsForModsAsync(
-        List<Mod> mods,
-        SemanticVersioning.Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        // Dispatch the lookups concurrently and let the rate limiter throttle.
-        await Task.WhenAll(mods.Select(mod => FetchSourceCodeUrlForModAsync(mod, sptVersion, cancellationToken)));
-    }
-
-    /// <summary>
-    /// Fetches source code URLs from the API for paired mods with reconciliation warnings.
-    /// Tries both server and client GUIDs to find the mod.
-    /// </summary>
-    private async Task FetchSourceCodeUrlsForPairedModsAsync(
-        List<ModPair> pairs,
-        SemanticVersioning.Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        // Dispatch the lookups concurrently and let the rate limiter throttle.
-        await Task.WhenAll(pairs.Select(pair => FetchSourceCodeUrlForPairAsync(pair, sptVersion, cancellationToken)));
-    }
-
-    /// <summary>
-    /// Fetches and applies Forge API info for a single reconciled pair, trying both the server and client GUIDs
-    /// before falling back to a fuzzy name search.
-    /// </summary>
-    private async Task FetchSourceCodeUrlForPairAsync(
-        ModPair pair,
-        SemanticVersioning.Version sptVersion,
-        CancellationToken cancellationToken
-    )
-    {
-        var selectedMod = pair.SelectedMod;
-
-        // Skip if already has API info
-        if (selectedMod.Api.ApiSourceCodeUrl is not null || selectedMod.Api.ApiUrl is not null)
-        {
-            return;
-        }
-
-        ModSearchResult? apiResult = null;
-
-        // Collect all unique GUIDs to try (server GUID, client GUID)
-        List<string> guidsToTry = [];
-        if (!string.IsNullOrWhiteSpace(pair.ServerMod.Local.Guid))
-        {
-            guidsToTry.Add(pair.ServerMod.Local.Guid);
-        }
-
-        if (
-            !string.IsNullOrWhiteSpace(pair.ClientMod.Local.Guid)
-            && !guidsToTry.Contains(pair.ClientMod.Local.Guid, StringComparer.OrdinalIgnoreCase)
-        )
-        {
-            guidsToTry.Add(pair.ClientMod.Local.Guid);
-        }
-
-        // Try each GUID until we find a match
-        foreach (var guid in guidsToTry)
-        {
-            var guidResult = await forgeApiService.GetModByGuidAsync(guid, sptVersion, cancellationToken);
-            if (!guidResult.TryPickT0(out var match, out _))
-            {
-                continue;
-            }
-
-            apiResult = match;
-            break;
-        }
-
-        // If not found by any GUID, try searching by name with fuzzy matching
-        apiResult ??= await SearchModByNameAsync(selectedMod, sptVersion, cancellationToken);
-
-        if (apiResult is null)
-        {
-            return;
-        }
-
-        selectedMod.UpdateFromApiMatch(apiResult);
-    }
-
-    /// <summary>
-    /// Fetches source code URL from the API for a single mod.
-    /// </summary>
-    private async Task FetchSourceCodeUrlForModAsync(
-        Mod mod,
-        SemanticVersioning.Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        // Skip if already has API info
-        if (mod.Api.ApiSourceCodeUrl is not null || mod.Api.ApiUrl is not null)
-        {
-            return;
-        }
-
-        ModSearchResult? apiResult = null;
-
-        // Try to find the mod by GUID first
-        if (!string.IsNullOrWhiteSpace(mod.Local.Guid))
-        {
-            var guidResult = await forgeApiService.GetModByGuidAsync(mod.Local.Guid, sptVersion, cancellationToken);
-            if (guidResult.TryPickT0(out var match, out _))
-            {
-                apiResult = match;
-            }
-        }
-
-        // If not found by GUID, try searching by name with fuzzy matching
-        apiResult ??= await SearchModByNameAsync(mod, sptVersion, cancellationToken);
-
-        if (apiResult is null)
-        {
-            return;
-        }
-
-        mod.UpdateFromApiMatch(apiResult);
-    }
-
-    /// <summary>
-    /// Searches for a mod by name using fuzzy matching.
-    /// </summary>
-    private async Task<ModSearchResult?> SearchModByNameAsync(
-        Mod mod,
-        SemanticVersioning.Version sptVersion,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (string.IsNullOrWhiteSpace(mod.Local.LocalName))
-        {
-            return null;
-        }
-
-        var searchResult = mod.Local.IsServerMod
-            ? await forgeApiService.SearchModsAsync(mod.Local.LocalName, sptVersion, cancellationToken)
-            : await forgeApiService.SearchClientModsAsync(mod.Local.LocalName, sptVersion, cancellationToken);
-
-        // Extract search results or empty list on error
-        var searchResults = searchResult.Match(
-            results => results,
-            _ => [] // ApiError
-        );
-
-        if (searchResults.Count == 0)
-        {
-            return null;
-        }
-
-        var normalizedLocalName = ModNameNormalizer.Normalize(mod.Local.LocalName);
-
-        // Try exact match first
-        var apiResult = searchResults.FirstOrDefault(r =>
-            ModNameNormalizer.Normalize(r.Name).Equals(normalizedLocalName, StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (apiResult is not null)
-        {
-            return apiResult;
-        }
-
-        // If no exact match, try fuzzy match with high threshold
-        var bestMatch = searchResults
-            .Select(r => (Result: r, Score: ModNameNormalizer.GetFuzzyMatchScore(mod.Local.LocalName, r.Name)))
-            .Where(x => x.Score >= MatchingConstants.NameSearchFuzzyThreshold)
-            .OrderByDescending(x => x.Score)
-            .FirstOrDefault();
-
-        return bestMatch.Result;
     }
 
     /// <summary>
@@ -610,82 +362,6 @@ public sealed class ApplicationService(
     }
 
     /// <summary>
-    /// Checks mod version compatibility with the installed SPT version and displays results.
-    /// </summary>
-    /// <param name="mods">Mods to check.</param>
-    /// <param name="sptVersion">The installed SPT version.</param>
-    private void CheckModVersionCompatibility(List<Mod> mods, SemanticVersioning.Version sptVersion)
-    {
-        reporter.Blank();
-        reporter.Heading("Checking mod version compatibility...");
-
-        // Only check mods that are matched with the API and have versions stored, skipping those whose update was
-        // dismissed as a false positive.
-        var matchedMods = mods.Where(m => m.IsMatched && m.Api.ApiVersions is { Count: > 0 } && !m.Update.UpdateSuppressed)
-            .ToList();
-
-        foreach (var mod in matchedMods)
-        {
-            CheckModSptCompatibility(mod, sptVersion);
-        }
-
-        reporter.VersionCompatibilityResults(mods, sptVersion);
-    }
-
-    /// <summary>
-    /// Evaluates a single matched mod's installed version against the installed SPT version, flagging it when the
-    /// constraint can't be parsed or isn't satisfied.
-    /// </summary>
-    /// <param name="mod">The matched mod to evaluate.</param>
-    /// <param name="sptVersion">The installed SPT version.</param>
-    private void CheckModSptCompatibility(Mod mod, SemanticVersioning.Version sptVersion)
-    {
-        // Find the version that matches the installed local version.
-        var installedApiVersion = mod.Api.ApiVersions!.FirstOrDefault(v =>
-            string.Equals(v.Version, mod.Local.LocalVersion, StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (installedApiVersion == null)
-        {
-            // Couldn't find the installed version in the API versions
-            return;
-        }
-
-        // Check if the installed version's SPT constraint is compatible with the installed SPT version
-        if (string.IsNullOrWhiteSpace(installedApiVersion.SptVersionConstraint))
-        {
-            return;
-        }
-
-        if (!SemanticVersioning.Range.TryParse(installedApiVersion.SptVersionConstraint, out var range))
-        {
-            // The constraint from Forge can't be parsed; surface a warning.
-            reporter.Warning(
-                $"Could not verify SPT compatibility for {mod.DisplayName}: Forge reported an invalid version constraint ({installedApiVersion.SptVersionConstraint})."
-            );
-            return;
-        }
-
-        if (range.IsSatisfied(sptVersion))
-        {
-            // The installed version is compatible - no issue
-            return;
-        }
-
-        // The installed version is NOT compatible with the installed SPT version
-        var reason = $"Version {mod.Local.LocalVersion} requires SPT {installedApiVersion.SptVersionConstraint}";
-
-        // Find the latest compatible version to suggest
-        var compatibleApiVersion = mod.Api.ApiVersions!.Where(v =>
-                SemVer.SatisfiesRange(v.SptVersionConstraint, sptVersion)
-            )
-            .OrderByDescending(v => (SemVer.TryParse(v.Version, "ApplicationService").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))))
-            .FirstOrDefault();
-
-        mod.SetLocalSptIncompatible(reason, compatibleApiVersion?.Version);
-    }
-
-    /// <summary>
     /// Checks mod dependencies and displays a dependency tree with any issues.
     /// </summary>
     /// <param name="mods">Mods to check dependencies for.</param>
@@ -735,5 +411,3 @@ public sealed class ApplicationService(
         reporter.DependencyResults(result);
     }
 }
-
-

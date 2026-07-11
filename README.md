@@ -22,7 +22,9 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
+- ✨ **Robust Error Handling**: Implemented `OneOf` error boundaries to explicitly catch and surface API network failures instead of relying on silent exceptions
 - ✨ **Modular Architecture**: Reorganized core processing into specialized, stateless services (`PluginMetadataExtractor`, `ServerModExtractor`, `MisplacedModDetector`) for enhanced maintainability
+- ✨ **Decoupled UI Rendering**: Separated monolithic rendering logic into discrete, highly-testable UI components powered by `Spectre.Console`
 - ✨ **Optimized Dependency Resolution**: Introduced O(1) matching and aggressive caching to speed up the dependency reconciliation process
 - ✨ **Enhanced Data Models**: Restructured the domain models to explicitly separate remote API states from local filesystem states
 - ✨ **Strict Semantic Versioning**: Improved version parsing to explicitly capture and surface Mod Load Warnings, helping users understand exactly why a mod failed a version check

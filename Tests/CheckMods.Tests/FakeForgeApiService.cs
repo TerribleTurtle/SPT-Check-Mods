@@ -34,6 +34,9 @@ internal sealed class FakeForgeApiService : IForgeApiService
         OneOf<List<ModDependency>, NotFound, ApiError>
     >? OnGetModDependenciesVersioned { get; set; }
 
+    public Func<string, OneOf<bool, InvalidSptVersion, ApiError>>? OnValidateSptVersion { get; set; }
+    public Func<OneOf<List<SptVersionResult>, ApiError>>? OnGetAllSptVersions { get; set; }
+
     public Task<OneOf<ModSearchResult, NotFound, NoCompatibleVersion, ApiError>> GetModByGuidAsync(
         string modGuid,
         SemanticVersioning.Version sptVersion,
@@ -74,14 +77,22 @@ internal sealed class FakeForgeApiService : IForgeApiService
         CancellationToken cancellationToken = default
     )
     {
-        throw new NotSupportedException();
+        if (OnValidateSptVersion is null)
+        {
+            throw new NotSupportedException();
+        }
+        return Task.FromResult(OnValidateSptVersion(sptVersion));
     }
 
     public Task<OneOf<List<SptVersionResult>, ApiError>> GetAllSptVersionsAsync(
         CancellationToken cancellationToken = default
     )
     {
-        throw new NotSupportedException();
+        if (OnGetAllSptVersions is null)
+        {
+            throw new NotSupportedException();
+        }
+        return Task.FromResult(OnGetAllSptVersions());
     }
 
     public Task<OneOf<ModSearchResult, NotFound, InvalidInput, ApiError>> GetModByIdAsync(
