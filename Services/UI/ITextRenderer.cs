@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CheckModsExtended.Models;
 
 namespace CheckModsExtended.Services.UI;
@@ -92,4 +93,19 @@ public interface ITextRenderer
 
     /// <summary>Writes the application footer with version and log file info.</summary>
     void ApplicationFooter(string version, string hash, string logFilePath);
+
+    /// <summary>Reports that an update is already ignored.</summary>
+    void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion);
+
+    /// <summary>Reports successful addition of an ignored update.</summary>
+    void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion);
+
+    /// <summary>Reports that no ignored updates were found to remove.</summary>
+    void IgnoreRemoveNotFound(int apiModId);
+
+    /// <summary>Reports successful removal of ignored updates.</summary>
+    void IgnoreRemoveSuccess(int removedCount, int apiModId);
+
+    /// <summary>Prompts the user to confirm a mod match.</summary>
+    Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation);
 }

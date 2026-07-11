@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Services.Interfaces;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace CheckModsExtended.Commands;
@@ -14,6 +13,7 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
 {
     private readonly IInitializationService _initializationService;
     private readonly IModScannerService _scannerService;
+    private readonly IModCheckReporter _reporter;
 
     public sealed class Settings : GlobalSettings
     {
@@ -22,10 +22,15 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
         public string? SptPath { get; set; }
     }
 
-    public ListModsCommand(IInitializationService initializationService, IModScannerService scannerService)
+    public ListModsCommand(
+        IInitializationService initializationService,
+        IModScannerService scannerService,
+        IModCheckReporter reporter
+    )
     {
         _initializationService = initializationService;
         _scannerService = scannerService;
+        _reporter = reporter;
     }
 
     protected override async Task<int> ExecuteAsync(
@@ -46,47 +51,7 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
 
         var (serverMods, clientMods) = await _scannerService.ScanAllModsAsync(sptPath, cancellationToken);
 
-        AnsiConsole.WriteLine();
-
-        if (clientMods.Count == 0 && serverMods.Count == 0)
-        {
-            AnsiConsole.MarkupLine("[yellow]No mods found.[/]");
-            return 0;
-        }
-
-        var table = new Table()
-            .Border(TableBorder.Rounded)
-            .Title("[bold blue]Installed Mods[/]")
-            .AddColumn("Name")
-            .AddColumn("Author")
-            .AddColumn("Version")
-            .AddColumn("Type");
-
-        foreach (var mod in serverMods)
-        {
-            table.AddRow(
-                mod.DisplayName.EscapeMarkup(),
-                mod.DisplayAuthor.EscapeMarkup(),
-                mod.Local.LocalVersion.EscapeMarkup(),
-                "[green]Server[/]"
-            );
-        }
-
-        foreach (var mod in clientMods)
-        {
-            table.AddRow(
-                mod.DisplayName.EscapeMarkup(),
-                (mod.DisplayAuthor ?? "Unknown").EscapeMarkup(),
-                mod.Local.LocalVersion.EscapeMarkup(),
-                "[blue]Client[/]"
-            );
-        }
-
-        AnsiConsole.Write(table);
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine(
-            $"Total: [bold]{clientMods.Count + serverMods.Count}[/] mods ([green]{serverMods.Count} server[/], [blue]{clientMods.Count} client[/])"
-        );
+        _reporter.InstalledModsList(serverMods, clientMods);
 
         return 0;
     }

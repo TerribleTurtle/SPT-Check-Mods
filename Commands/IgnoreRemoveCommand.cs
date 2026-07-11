@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Services.Interfaces;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace CheckModsExtended.Commands;
@@ -12,6 +11,7 @@ namespace CheckModsExtended.Commands;
 public sealed class IgnoreRemoveCommand : AsyncCommand<IgnoreRemoveCommand.Settings>
 {
     private readonly IIgnoredUpdateStore _store;
+    private readonly IModCheckReporter _reporter;
 
     public sealed class Settings : GlobalSettings
     {
@@ -20,9 +20,10 @@ public sealed class IgnoreRemoveCommand : AsyncCommand<IgnoreRemoveCommand.Setti
         public int ApiModId { get; set; }
     }
 
-    public IgnoreRemoveCommand(IIgnoredUpdateStore store)
+    public IgnoreRemoveCommand(IIgnoredUpdateStore store, IModCheckReporter reporter)
     {
         _store = store;
+        _reporter = reporter;
     }
 
     protected override async Task<int> ExecuteAsync(
@@ -37,15 +38,13 @@ public sealed class IgnoreRemoveCommand : AsyncCommand<IgnoreRemoveCommand.Setti
 
         if (removedCount == 0)
         {
-            AnsiConsole.MarkupLine($"[yellow]No ignored updates found for API Mod ID {settings.ApiModId}.[/]");
+            _reporter.IgnoreRemoveNotFound(settings.ApiModId);
             return 0;
         }
 
         await _store.SaveAsync(ignores, cancellationToken);
 
-        AnsiConsole.MarkupLine(
-            $"[green]Successfully removed {removedCount} ignored update(s) for API Mod ID {settings.ApiModId}.[/]"
-        );
+        _reporter.IgnoreRemoveSuccess(removedCount, settings.ApiModId);
         return 0;
     }
 }

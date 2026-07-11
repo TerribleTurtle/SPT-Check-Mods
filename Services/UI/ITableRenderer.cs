@@ -29,4 +29,13 @@ public interface ITableRenderer
 
     /// <summary>Displays the final version summary table and update/blocked lists.</summary>
     void VersionTable(List<Mod> mods);
+
+    /// <summary>Displays the list of ignored updates.</summary>
+    void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores);
+
+    /// <summary>Displays the list of locally installed mods.</summary>
+    void InstalledModsList(IReadOnlyList<Mod> serverMods, IReadOnlyList<Mod> clientMods);
+
+    /// <summary>Displays a summary of pending confirmations.</summary>
+    void PendingConfirmationsSummary(IReadOnlyList<PendingConfirmation> pendingConfirmations);
 }

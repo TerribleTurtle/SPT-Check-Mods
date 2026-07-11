@@ -270,34 +270,48 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
     /// <inheritdoc />
     public void PendingConfirmationsSummary(IReadOnlyList<PendingConfirmation> pendingConfirmations)
     {
-        AnsiConsole.MarkupLine($"\n[yellow]Found {pendingConfirmations.Count} match(es) that need confirmation...[/]");
-
-        var table = new Table();
-        table.AddColumn("Local Server Mod");
-        table.AddColumn("Author");
-        table.AddColumn("API Match");
-        table.AddColumn("API Author");
-        table.AddColumn("Confidence");
-
-        foreach (var pending in pendingConfirmations)
-        {
-            table.AddRow(
-                pending.OriginalMod.Local.LocalName.EscapeMarkup(),
-                pending.OriginalMod.Local.LocalAuthor?.EscapeMarkup() ?? "Unknown",
-                pending.ApiMatch.Name.EscapeMarkup(),
-                pending.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A",
-                $"{pending.ConfidenceScore}%"
-            );
-        }
-        AnsiConsole.Write(table);
+        _tableRenderer.PendingConfirmationsSummary(pendingConfirmations);
     }
 
     /// <inheritdoc />
-    public async Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
+    public Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
     {
-        var displayMod = confirmation.OriginalMod.Local;
-        return await AnsiConsole.ConfirmAsync(
-            $"[yellow]Is '[white]{displayMod.LocalName.EscapeMarkup()}[/]' by '[white]{displayMod.LocalAuthor?.EscapeMarkup() ?? "Unknown"}[/]' the same as '[white]{confirmation.ApiMatch.Name.EscapeMarkup()}[/]' by '[white]{confirmation.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A"}[/]'? ([grey]Confidence: {confirmation.ConfidenceScore}%[/])[/]"
-        );
+        return _textRenderer.PromptForConfirmationAsync(confirmation);
+    }
+
+    /// <inheritdoc />
+    public void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion)
+    {
+        _textRenderer.IgnoreAddAlreadyIgnored(apiModId, localVersion, latestVersion);
+    }
+
+    /// <inheritdoc />
+    public void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion)
+    {
+        _textRenderer.IgnoreAddSuccess(apiModId, localVersion, latestVersion);
+    }
+
+    /// <inheritdoc />
+    public void IgnoreRemoveNotFound(int apiModId)
+    {
+        _textRenderer.IgnoreRemoveNotFound(apiModId);
+    }
+
+    /// <inheritdoc />
+    public void IgnoreRemoveSuccess(int removedCount, int apiModId)
+    {
+        _textRenderer.IgnoreRemoveSuccess(removedCount, apiModId);
+    }
+
+    /// <inheritdoc />
+    public void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores)
+    {
+        _tableRenderer.IgnoredUpdatesList(ignores);
+    }
+
+    /// <inheritdoc />
+    public void InstalledModsList(IReadOnlyList<Mod> serverMods, IReadOnlyList<Mod> clientMods)
+    {
+        _tableRenderer.InstalledModsList(serverMods, clientMods);
     }
 }

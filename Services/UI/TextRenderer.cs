@@ -434,6 +434,45 @@ public sealed class TextRenderer : ITextRenderer
         return $"{name}  [grey]{local} -> {latest}[/]";
     }
 
+    /// <inheritdoc />
+    public void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion)
+    {
+        AnsiConsole.MarkupLine(
+            $"[yellow]Update is already ignored (ID: {apiModId}, {localVersion.EscapeMarkup()} -> {latestVersion.EscapeMarkup()}).[/]"
+        );
+    }
+
+    /// <inheritdoc />
+    public void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion)
+    {
+        AnsiConsole.MarkupLine(
+            $"[green]Successfully ignored update for API Mod ID {apiModId} ({localVersion.EscapeMarkup()} -> {latestVersion.EscapeMarkup()}).[/]"
+        );
+    }
+
+    /// <inheritdoc />
+    public void IgnoreRemoveNotFound(int apiModId)
+    {
+        AnsiConsole.MarkupLine($"[yellow]No ignored updates found for API Mod ID {apiModId}.[/]");
+    }
+
+    /// <inheritdoc />
+    public void IgnoreRemoveSuccess(int removedCount, int apiModId)
+    {
+        AnsiConsole.MarkupLine(
+            $"[green]Successfully removed {removedCount} ignored update(s) for API Mod ID {apiModId}.[/]"
+        );
+    }
+
+    /// <inheritdoc />
+    public async System.Threading.Tasks.Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
+    {
+        var displayMod = confirmation.OriginalMod.Local;
+        return await AnsiConsole.ConfirmAsync(
+            $"[yellow]Is '[white]{displayMod.LocalName.EscapeMarkup()}[/]' by '[white]{(displayMod.LocalAuthor ?? "Unknown").EscapeMarkup()}[/]' the same as '[white]{confirmation.ApiMatch.Name.EscapeMarkup()}[/]' by '[white]{(confirmation.ApiMatch.Owner?.Name ?? "N/A").EscapeMarkup()}[/]'? ([grey]Confidence: {confirmation.ConfidenceScore}%[/])[/]"
+        );
+    }
+
     private static void DrainBufferedKeys()
     {
         if (Console.IsInputRedirected)

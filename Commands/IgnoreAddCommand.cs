@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace CheckModsExtended.Commands;
@@ -13,6 +12,7 @@ namespace CheckModsExtended.Commands;
 public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
 {
     private readonly IIgnoredUpdateStore _store;
+    private readonly IModCheckReporter _reporter;
 
     public sealed class Settings : GlobalSettings
     {
@@ -29,9 +29,10 @@ public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
         public string LatestVersion { get; set; } = string.Empty;
     }
 
-    public IgnoreAddCommand(IIgnoredUpdateStore store)
+    public IgnoreAddCommand(IIgnoredUpdateStore store, IModCheckReporter reporter)
     {
         _store = store;
+        _reporter = reporter;
     }
 
     protected override async Task<int> ExecuteAsync(
@@ -52,18 +53,14 @@ public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
 
         if (ignores.Any(i => string.Equals(i.Key, newIgnore.Key, StringComparison.OrdinalIgnoreCase)))
         {
-            AnsiConsole.MarkupLine(
-                $"[yellow]Update is already ignored (ID: {settings.ApiModId}, {settings.LocalVersion} -> {settings.LatestVersion}).[/]"
-            );
+            _reporter.IgnoreAddAlreadyIgnored(settings.ApiModId, settings.LocalVersion, settings.LatestVersion);
             return 0;
         }
 
         ignores.Add(newIgnore);
         await _store.SaveAsync(ignores, cancellationToken);
 
-        AnsiConsole.MarkupLine(
-            $"[green]Successfully ignored update for API Mod ID {settings.ApiModId} ({settings.LocalVersion} -> {settings.LatestVersion}).[/]"
-        );
+        _reporter.IgnoreAddSuccess(settings.ApiModId, settings.LocalVersion, settings.LatestVersion);
         return 0;
     }
 }

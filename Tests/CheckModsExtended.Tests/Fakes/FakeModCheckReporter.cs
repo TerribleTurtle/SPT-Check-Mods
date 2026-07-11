@@ -255,4 +255,11 @@ public sealed class FakeModCheckReporter : IModCheckReporter
     {
         return Task.FromResult(true);
     }
+
+    public void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion) { }
+    public void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion) { }
+    public void IgnoreRemoveNotFound(int apiModId) { }
+    public void IgnoreRemoveSuccess(int removedCount, int apiModId) { }
+    public void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores) { }
+    public void InstalledModsList(IReadOnlyList<Mod> serverMods, IReadOnlyList<Mod> clientMods) { }
 }
