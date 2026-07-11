@@ -19,7 +19,7 @@ public sealed class ServerModExtractorTests : IDisposable
     {
         _fixture = new SptSandboxFixture();
         _sptPath = _fixture.SandboxPath;
-        _extractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance);
+        _extractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, new CheckModsExtended.Utils.FileSystem());
     }
 
     [Fact]
@@ -157,3 +157,5 @@ public sealed class ServerModExtractorTests : IDisposable
         _fixture.Dispose();
     }
 }
+
+

@@ -21,7 +21,7 @@ public sealed class IgnoredUpdateOptions
     /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
     public static string DefaultDirectory
     {
-        get { return CheckModsExtended.Utils.AppConstants.AppDataDirectory; }
+        get { return new CheckModsExtended.Configuration.AppPaths().AppDataDirectory; }
     }
 
     /// <summary>The default local file path: <c>%AppData%/SptCheckModsExtended/ignored-updates.json</c>.</summary>
@@ -30,3 +30,4 @@ public sealed class IgnoredUpdateOptions
         get { return Path.Combine(DefaultDirectory, "ignored-updates.json"); }
     }
 }
+

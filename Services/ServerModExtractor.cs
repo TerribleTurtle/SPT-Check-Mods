@@ -32,7 +32,7 @@ namespace CheckModsExtended.Services;
     "IL2075",
     Justification = "We are inspecting dynamically loaded mod assemblies, not application code."
 )]
-public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : IServerModExtractor
+public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, CheckModsExtended.Utils.IFileSystem fileSystem) : IServerModExtractor
 {
     /// <inheritdoc />
     public Task<Mod?> ExtractServerModMetadataAsync(
@@ -49,7 +49,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
     {
         try
         {
-            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             using var module = Mono.Cecil.ModuleDefinition.ReadModule(stream);
 
             var metadataType = module.Types.FirstOrDefault(t =>
@@ -114,14 +114,14 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
     )
     {
         var packagePath = Path.Combine(modDirectory, "package.json");
-        if (!File.Exists(packagePath))
+        if (!fileSystem.FileExists(packagePath))
         {
             return null;
         }
 
         try
         {
-            using var packageStream = File.OpenRead(packagePath);
+            using var packageStream = fileSystem.OpenRead(packagePath);
             using var packageDocument = await JsonDocument.ParseAsync(
                 packageStream,
                 cancellationToken: cancellationToken
@@ -283,3 +283,4 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
         return SemVer.TryParse(version, "ServerModExtractor").IsT0;
     }
 }
+
