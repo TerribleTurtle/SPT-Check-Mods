@@ -128,8 +128,8 @@ public sealed class Program
             }
 
             var isHeadless =
-                runtimeConfig?.IsHeadless
-                ?? (Console.IsInputRedirected || args.Contains("--no-prompt") || args.Contains("-y"));
+                (runtimeConfig?.IsHeadless == true)
+                || Console.IsInputRedirected || args.Contains("--no-prompt") || args.Contains("-y");
 
             if (!_wasCancelled && !isHeadless)
             {

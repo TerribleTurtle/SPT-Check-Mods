@@ -211,27 +211,18 @@ public sealed partial class ForgeApiService(
                 return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
-            using var jsonDoc = await JsonDocument.ParseAsync(bodyStream, cancellationToken: cancellationToken);
-
-            if (
-                !jsonDoc.RootElement.TryGetProperty("success", out var successElement)
-                || !successElement.GetBoolean()
-                || !jsonDoc.RootElement.TryGetProperty("data", out var dataElement)
-            )
-            {
-                return new NotFound();
-            }
-
-            var result = JsonSerializer.Deserialize(
-                dataElement.GetRawText(),
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModSearchResult
+            var apiResponse = await JsonSerializer.DeserializeAsync(
+                bodyStream,
+                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ModByIdApiResponse,
+                cancellationToken
             );
-            if (result is null)
+
+            if (apiResponse?.Success != true || apiResponse.Data is null)
             {
                 return new NotFound();
             }
 
-            return result;
+            return apiResponse.Data;
         }
         catch (HttpRequestException ex)
         {

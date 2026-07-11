@@ -49,7 +49,7 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
     {
         try
         {
-            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var module = Mono.Cecil.ModuleDefinition.ReadModule(stream);
 
             var metadataType = module.Types.FirstOrDefault(t =>

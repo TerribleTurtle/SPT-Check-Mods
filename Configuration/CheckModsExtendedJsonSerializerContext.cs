@@ -14,6 +14,7 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(SptVersionApiResponse))]
 [JsonSerializable(typeof(ModSearchResult))]
 [JsonSerializable(typeof(ModSearchApiResponse))]
+[JsonSerializable(typeof(ModByIdApiResponse))]
 [JsonSerializable(typeof(ModUpdatesApiResponse))]
 [JsonSerializable(typeof(ModDependenciesApiResponse))]
 [JsonSerializable(typeof(List<IgnoreReportUrl.ReportEntry>))]

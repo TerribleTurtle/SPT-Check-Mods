@@ -29,7 +29,7 @@ public sealed class PluginMetadataExtractor(
     /// <inheritdoc />
     public List<string> GetValidClientDllFiles(string pluginsPath)
     {
-        var sptDir = Path.Combine(pluginsPath, "spt") + Path.DirectorySeparatorChar;
+        var sptDir = Path.GetFullPath(Path.Combine(pluginsPath, "spt")) + Path.DirectorySeparatorChar;
 
         return new DirectoryInfo(pluginsPath)
             .EnumerateFiles("*.dll", SearchOption.AllDirectories)
@@ -40,7 +40,7 @@ public sealed class PluginMetadataExtractor(
     }
 
     /// <inheritdoc />
-    public async Task<List<Mod>> ProcessClientDllsInParallelAsync(
+    public Task<List<Mod>> ProcessClientDllsInParallelAsync(
         List<string> dllFiles,
         CancellationToken cancellationToken = default
     )
@@ -48,27 +48,30 @@ public sealed class PluginMetadataExtractor(
         var warnings = new ConcurrentBag<(string FileName, string Reason)>();
         var results = new ConcurrentBag<Mod?>();
 
-        await Parallel.ForEachAsync(
-            dllFiles,
-            new ParallelOptions
-            {
-                MaxDegreeOfParallelism = Environment.ProcessorCount,
-                CancellationToken = cancellationToken,
-            },
-            async (dllPath, ct) =>
-            {
-                var mod = await ExtractClientModMetadataAsync(dllPath, warnings, ct);
-                results.Add(mod);
-            }
-        );
-
-        foreach (var (fileName, reason) in warnings)
+        return Task.Run(() =>
         {
-            logger.LogDebug("Could not extract client mod metadata from {FileName}: {Reason}", fileName, reason);
-        }
+            Parallel.ForEach(
+                dllFiles,
+                new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    CancellationToken = cancellationToken,
+                },
+                (dllPath, state) =>
+                {
+                    var mod = ExtractClientModMetadata(dllPath, warnings, cancellationToken);
+                    results.Add(mod);
+                }
+            );
 
-        var mods = results.Where(r => r is not null).Cast<Mod>().ToList();
-        return FilterDuplicateClientMods(mods);
+            foreach (var (fileName, reason) in warnings)
+            {
+                logger.LogDebug("Could not extract client mod metadata from {FileName}: {Reason}", fileName, reason);
+            }
+
+            var mods = results.Where(r => r is not null).Cast<Mod>().ToList();
+            return FilterDuplicateClientMods(mods);
+        }, cancellationToken);
     }
 
     private static List<Mod> FilterDuplicateClientMods(List<Mod> mods)
@@ -101,71 +104,23 @@ public sealed class PluginMetadataExtractor(
     }
 
     /// <inheritdoc />
-    public async Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default)
+    public Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var module = ModuleDefinition.ReadModule(stream);
-
-            foreach (var type in module.Types)
-            {
-                var plugin = ExtractBepInPluginAttribute(type);
-                if (plugin is not null)
-                {
-                    return CreateModFromBepInPlugin(plugin, dllPath);
-                }
-            }
-        }
-        catch (Exception ex)
-            when (ex
-                    is IOException
-                        or UnauthorizedAccessException
-                        or BadImageFormatException
-                        or System.Security.SecurityException
-            )
-        {
-            logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
-        }
-
-        return null;
-    }
-
-    /// <inheritdoc />
-    public async Task<List<PluginDll>> ReadPluginDllsAsync(
-        List<string> dllPaths,
-        CancellationToken cancellationToken = default
-    )
-    {
-        List<PluginDll> plugins = [];
-
-        foreach (var dllPath in dllPaths)
+        return Task.Run(() =>
         {
             try
             {
-                using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var module = ModuleDefinition.ReadModule(stream);
 
-                BepInPluginAttribute? plugin = null;
                 foreach (var type in module.Types)
                 {
-                    plugin = ExtractBepInPluginAttribute(type);
+                    var plugin = ExtractBepInPluginAttribute(type);
                     if (plugin is not null)
                     {
-                        break;
+                        return CreateModFromBepInPlugin(plugin, dllPath);
                     }
                 }
-
-                if (plugin is null)
-                {
-                    continue;
-                }
-
-                var referencedNames = module
-                    .AssemblyReferences.Select(r => r.Name)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                plugins.Add(new PluginDll(dllPath, plugin, module.Assembly.Name.Name, referencedNames));
             }
             catch (Exception ex)
                 when (ex
@@ -175,11 +130,65 @@ public sealed class PluginMetadataExtractor(
                             or System.Security.SecurityException
                 )
             {
-                logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
+                logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
             }
-        }
 
-        return plugins;
+            return null;
+        }, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<List<PluginDll>> ReadPluginDllsAsync(
+        List<string> dllPaths,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.Run(() =>
+        {
+            List<PluginDll> plugins = [];
+
+            foreach (var dllPath in dllPaths)
+            {
+                try
+                {
+                    using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var module = ModuleDefinition.ReadModule(stream);
+
+                    BepInPluginAttribute? plugin = null;
+                    foreach (var type in module.Types)
+                    {
+                        plugin = ExtractBepInPluginAttribute(type);
+                        if (plugin is not null)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (plugin is null)
+                    {
+                        continue;
+                    }
+
+                    var referencedNames = module
+                        .AssemblyReferences.Select(r => r.Name)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                    plugins.Add(new PluginDll(dllPath, plugin, module.Assembly.Name.Name, referencedNames));
+                }
+                catch (Exception ex)
+                    when (ex
+                            is IOException
+                                or UnauthorizedAccessException
+                                or BadImageFormatException
+                                or System.Security.SecurityException
+                    )
+                {
+                    logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
+                }
+            }
+
+            return plugins;
+        }, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -194,7 +203,7 @@ public sealed class PluginMetadataExtractor(
         return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
-    private static async Task<Mod?> ExtractClientModMetadataAsync(
+    private static Mod? ExtractClientModMetadata(
         string dllPath,
         ConcurrentBag<(string FileName, string Reason)> warnings,
         CancellationToken cancellationToken
@@ -202,7 +211,7 @@ public sealed class PluginMetadataExtractor(
     {
         try
         {
-            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var module = ModuleDefinition.ReadModule(stream);
 
             foreach (var type in module.Types)

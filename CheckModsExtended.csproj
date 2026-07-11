@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <ApplicationIcon>check-mods.ico</ApplicationIcon>
     <Copyright>2026 Refringe</Copyright>

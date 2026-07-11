@@ -60,6 +60,14 @@ public sealed class MisplacedModDetector(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // OPTIMIZATION: Check cache first to avoid double Mono.Cecil parses
+                var directory = GetModDirectory(dllPath, pluginsDir);
+                if (clientPluginCache.TryGetValue(directory, out var cachedPlugins) &&
+                    cachedPlugins.Any(p => string.Equals(p.DllPath, dllPath, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue; // Already a verified client mod
+                }
+
                 var serverMod = await Task.Run(
                     () => serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, cancellationToken),
                     cancellationToken

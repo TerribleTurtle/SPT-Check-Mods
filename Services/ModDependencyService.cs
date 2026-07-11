@@ -149,7 +149,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         );
 
         // Apply deltas
-        var modIndexMap = new Dictionary<Mod, int>();
+        var modIndexMap = new Dictionary<Mod, int>(ReferenceEqualityComparer.Instance);
         for (var i = 0; i < modList.Count; i++)
         {
             modIndexMap.TryAdd(modList[i], i);
@@ -162,14 +162,6 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
                 if (modIndexMap.TryGetValue(mod, out var idx))
                 {
                     modList[idx] = mod.WithUpdateDependencyChanges(delta);
-                }
-                else
-                {
-                    idx = modList.IndexOf(mod);
-                    if (idx >= 0)
-                    {
-                        modList[idx] = mod.WithUpdateDependencyChanges(delta);
-                    }
                 }
             }
         }
@@ -238,7 +230,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
 
         if (
             dependency.Conflict
-            && !conflicts.Any(c => c.ModGuid.Equals(dependency.Guid, StringComparison.OrdinalIgnoreCase))
+            && !conflicts.Any(c => string.Equals(c.ModGuid, dependency.Guid, StringComparison.OrdinalIgnoreCase))
         )
         {
             conflicts.Add(
@@ -254,7 +246,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
 
         // Try to find the installed mod for this dependency
         Mod? installedMod = null;
-        if (modByGuid.TryGetValue(dependency.Guid, out var foundByGuid))
+        if (!string.IsNullOrWhiteSpace(dependency.Guid) && modByGuid.TryGetValue(dependency.Guid, out var foundByGuid))
         {
             installedMod = foundByGuid;
         }
@@ -266,7 +258,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
         var isInstalled = installedMod != null || installedGuids.Contains(dependency.Guid);
 
         // Track missing dependencies
-        if (!isInstalled && !missingDeps.ContainsKey(dependency.Guid))
+        if (!isInstalled && !string.IsNullOrWhiteSpace(dependency.Guid) && !missingDeps.ContainsKey(dependency.Guid))
         {
             // Construct the Forge download URL
             string? downloadLink = null;

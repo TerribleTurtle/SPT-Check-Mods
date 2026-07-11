@@ -23,11 +23,18 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
         var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         var response = await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        try
+        {
+            var statusCode = response.StatusCode;
+            var body = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        var statusCode = response.StatusCode;
-        var body = await response.Content.ReadAsStreamAsync(cancellationToken);
-
-        var isSuccess = (int) statusCode is >= 200 and < 300;
-        return (statusCode, body, isSuccess);
+            var isSuccess = (int) statusCode is >= 200 and < 300;
+            return (statusCode, body, isSuccess);
+        }
+        catch
+        {
+            response.Dispose();
+            throw;
+        }
     }
 }

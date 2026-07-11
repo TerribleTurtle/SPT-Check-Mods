@@ -13,6 +13,16 @@ public sealed record ModSearchApiResponse(
 );
 
 /// <summary>
+/// Response from the Forge API mod by ID endpoint.
+/// </summary>
+/// <param name="Success">Whether the API request was successful.</param>
+/// <param name="Data">The mod search result.</param>
+public sealed record ModByIdApiResponse(
+    [property: JsonPropertyName("success")] bool Success,
+    [property: JsonPropertyName("data")] ModSearchResult? Data
+);
+
+/// <summary>
 /// Represents a mod search result from the Forge API.
 /// </summary>
 /// <param name="Id">The numeric ID of the mod.</param>
