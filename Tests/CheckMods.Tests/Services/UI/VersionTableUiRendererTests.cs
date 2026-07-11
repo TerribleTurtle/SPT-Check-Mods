@@ -132,7 +132,7 @@ public sealed class VersionTableUiRendererTests
             new ModUpdateVersion(null, 123, null, null, null, "2.0.0", null, null),
             "Major update"
         ));
-        
+
         mod = mod with
         {
             Update = mod.Update with

@@ -323,7 +323,7 @@ public sealed class ApplicationService(
         reporter.Blank();
         reporter.Heading($"Verifying Forge records for {mods.Count} mods...");
 
-        await reporter.RunForgeQueryProgressAsync(
+        var matchedMods = await reporter.RunForgeQueryProgressAsync(
             mods.Count,
             setValue =>
                 modMatchingService.MatchModsAsync(
@@ -331,8 +331,12 @@ public sealed class ApplicationService(
                     sptVersion,
                     (_, current, _) => setValue(current),
                     cancellationToken
-                )
+                ),
+            cancellationToken
         );
+
+        mods.Clear();
+        mods.AddRange(matchedMods);
 
         reporter.Success("Forge verification complete!");
         reporter.Blank();
@@ -409,11 +413,13 @@ public sealed class ApplicationService(
                     installedGuids,
                     (current, _) => setValue(current),
                     cancellationToken
-                )
+                ),
+            cancellationToken
         );
 
         // Merge updated mods back into the main list if needed, or reassign mods:
-        mods = updatedMods.ToList();
+        mods.Clear();
+        mods.AddRange(updatedMods);
 
         reporter.DependencyResults(result);
         return mods;

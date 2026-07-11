@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,13 +30,13 @@ public sealed class ModScannerService(
         logger.LogDebug("Scanning server mods at: {SptPath}", sptPath);
 
         var modsDir = Path.Combine(sptPath, "SPT", "user", "mods");
-        List<Mod> mods = [];
+        var concurrentMods = new ConcurrentBag<Mod>();
 
         if (!Directory.Exists(modsDir))
         {
             logger.LogDebug("Server mods directory not found: {ModsDir}", modsDir);
             reporter.Status("Scanning server mods... none found.");
-            return mods;
+            return [.. concurrentMods];
         }
 
         var modDirs = Directory.GetDirectories(modsDir);
@@ -43,37 +44,34 @@ public sealed class ModScannerService(
         reporter.Blank();
         reporter.Status($"Scanning {modDirs.Length} mod directories for server mods...");
 
-        foreach (var modDir in modDirs)
+        await Parallel.ForEachAsync(modDirs, cancellationToken, async (modDir, ct) =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var dllFiles = Directory.GetFiles(modDir, "*.dll", SearchOption.TopDirectoryOnly);
 
             foreach (var dllPath in dllFiles)
             {
                 try
                 {
-                    var mod = await serverExtractor.ExtractServerModMetadataAsync(dllPath, cancellationToken);
-                    if (mod is null)
+                    var mod = await serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, ct);
+                    if (mod is not null)
                     {
-                        continue;
+                        concurrentMods.Add(mod);
+                        break; // Only one mod per directory
                     }
-
-                    mods.Add(mod);
-                    break; // Only one mod per directory
                 }
                 catch (Exception ex)
                     when (ex
                             is IOException
                                 or UnauthorizedAccessException
-                                or BadImageFormatException
                                 or System.Security.SecurityException
                     )
                 {
                     reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
                 }
             }
-        }
+        });
+
+        var mods = concurrentMods.ToList();
 
         logger.LogInformation("Found {ModCount} server mods", mods.Count);
         reporter.Status($"Found {mods.Count} server mods.");

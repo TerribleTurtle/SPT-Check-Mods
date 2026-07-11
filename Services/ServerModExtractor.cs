@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
+using System.Threading;
+using System.Threading.Tasks;
 using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
 using Microsoft.Extensions.Logging;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
 using SPTarkov.DI.Annotations;
 
 namespace CheckMods.Services;
@@ -16,71 +18,47 @@ namespace CheckMods.Services;
 public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : IServerModExtractor
 {
     /// <inheritdoc />
-    public async Task<Mod?> ExtractServerModMetadataAsync(string dllPath, CancellationToken cancellationToken = default)
+    public Task<Mod?> ExtractServerModMetadataAsync(
+        string dllPath,
+        string sptDirectory,
+        CancellationToken cancellationToken = default
+    )
     {
+        // Extraction is CPU-bound and synchronous, so we run it in a task to avoid blocking the calling thread.
+        return Task.Run(() => ExtractServerModMetadata(dllPath, sptDirectory), cancellationToken);
+    }
+
+    private Mod? ExtractServerModMetadata(string dllPath, string sptDirectory)
+    {
+        var loadContext = new SptAssemblyLoadContext(sptDirectory);
+
         try
         {
-            var bytes = await File.ReadAllBytesAsync(dllPath, cancellationToken);
-            using var stream = new MemoryStream(bytes);
-            using var assemblyDef = AssemblyDefinition.ReadAssembly(stream);
+            using var stream = new MemoryStream(File.ReadAllBytes(dllPath));
+            var assembly = loadContext.LoadFromStream(stream);
+            var metadata = LoadSptMetadataFromAssembly(assembly);
 
-            var metadataType = GetSptMetadataType(assemblyDef);
-            if (metadataType is null)
+            if (metadata is null)
             {
                 return null;
             }
 
-            var modGuid = string.Empty;
-            var name = string.Empty;
-            var author = string.Empty;
-            var modVersion = string.Empty;
-            var sptVersion = string.Empty;
-
-            var ctor = metadataType.Methods.FirstOrDefault(m => m.IsConstructor && !m.IsStatic && !m.HasParameters);
-            if (ctor != null && ctor.HasBody)
-            {
-                var instructions = ctor.Body.Instructions;
-                for (int i = 0; i < instructions.Count; i++)
-                {
-                    if (instructions[i].OpCode == OpCodes.Ldstr)
-                    {
-                        var strValue = (string)instructions[i].Operand;
-                        for (int j = i + 1; j < Math.Min(i + 5, instructions.Count); j++)
-                        {
-                            if (instructions[j].OpCode == OpCodes.Call || instructions[j].OpCode == OpCodes.Callvirt)
-                            {
-                                if (
-                                    instructions[j].Operand is MethodReference methodRef
-                                    && methodRef.Name.StartsWith("set_")
-                                )
-                                {
-                                    var propName = methodRef.Name.Substring(4);
-                                    if (propName == "ModGuid")
-                                        modGuid = strValue;
-                                    else if (propName == "Name")
-                                        name = strValue;
-                                    else if (propName == "Author")
-                                        author = strValue;
-                                    else if (propName == "Version")
-                                        modVersion = strValue;
-                                    else if (propName == "SptVersion")
-                                        sptVersion = strValue;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Use reflection to access properties
+            var metadataType = metadata.GetType();
+            var modGuid = metadataType.GetProperty("ModGuid")?.GetValue(metadata)?.ToString();
+            var name = metadataType.GetProperty("Name")?.GetValue(metadata)?.ToString();
+            var author = metadataType.GetProperty("Author")?.GetValue(metadata)?.ToString();
+            var modVersion = metadataType.GetProperty("Version")?.GetValue(metadata)?.ToString();
+            var sptVersion = metadataType.GetProperty("SptVersion")?.GetValue(metadata)?.ToString();
 
             if (string.IsNullOrEmpty(modGuid))
             {
                 return null;
             }
 
-            var version = string.IsNullOrEmpty(modVersion) ? GetAssemblyVersion(assemblyDef) : modVersion;
+            var version = modVersion ?? GetAssemblyVersion(assembly);
 
-            var warnings = ValidateModMetadata(name, author, version, modGuid);
+            var warnings = ValidateModMetadata(name ?? string.Empty, author ?? string.Empty, version, modGuid);
 
             return new Mod
             {
@@ -89,10 +67,10 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
                     Guid = modGuid,
                     FilePath = dllPath,
                     IsServerMod = true,
-                    LocalName = name,
-                    LocalAuthor = author,
+                    LocalName = name ?? string.Empty,
+                    LocalAuthor = author ?? string.Empty,
                     LocalVersion = version,
-                    LocalSptVersion = string.IsNullOrEmpty(sptVersion) ? null : sptVersion,
+                    LocalSptVersion = sptVersion,
                 },
                 LoadWarnings = warnings,
             };
@@ -101,40 +79,56 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
             when (ex
                     is IOException
                         or UnauthorizedAccessException
-                        or BadImageFormatException
-                        or AssemblyResolutionException
                         or System.Security.SecurityException
+                        or BadImageFormatException
+                        or FileLoadException
             )
         {
-            logger.LogDebug(ex, "Could not inspect DLL as a server mod: {DllPath}", dllPath);
+            logger.LogDebug(ex, "Could not inspect DLL as a server mod: {Path}", dllPath);
             return null;
         }
-    }
-
-    private static TypeDefinition? GetSptMetadataType(AssemblyDefinition assembly)
-    {
-        foreach (var module in assembly.Modules)
+        finally
         {
-            foreach (var type in module.Types)
-            {
-                if (!type.IsAbstract && type.BaseType != null && type.BaseType.Name == "AbstractModMetadata")
-                {
-                    return type;
-                }
-            }
+            loadContext.Unload();
         }
-        return null;
     }
 
-    private static string GetAssemblyVersion(AssemblyDefinition assembly)
+    private static object? LoadSptMetadataFromAssembly(Assembly assembly)
     {
-        var infoVersionAttr = assembly.CustomAttributes.FirstOrDefault(a =>
-            a.AttributeType.Name == "AssemblyInformationalVersionAttribute"
-        );
+        var types = GetLoadableTypes(assembly);
+        var metadataType = types.FirstOrDefault(t => t.BaseType?.Name == "AbstractModMetadata" && !t.IsAbstract);
+
+        if (metadataType is null)
+        {
+            return null;
+        }
+
+        return Activator.CreateInstance(metadataType);
+    }
+
+    /// <summary>
+    /// Gets all types from an assembly that can be loaded, gracefully handling types with missing dependencies.
+    /// </summary>
+    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // Return only the types that loaded successfully (non-null entries)
+            return ex.Types.Where(t => t is not null)!;
+        }
+    }
+
+    private static string GetAssemblyVersion(Assembly assembly)
+    {
+        var infoVersionAttr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
         if (infoVersionAttr is null)
         {
-            var version = assembly.Name.Version;
+            var version = assembly.GetName().Version;
             if (version is null)
             {
                 return string.Empty;
@@ -143,10 +137,10 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
             return $"{version.Major}.{version.Minor}.{version.Build}";
         }
 
-        var fullVersion = (string)infoVersionAttr.ConstructorArguments[0].Value;
+        var fullVersion = infoVersionAttr.InformationalVersion;
         if (string.IsNullOrEmpty(fullVersion))
         {
-            var version = assembly.Name.Version;
+            var version = assembly.GetName().Version;
             if (version is null)
             {
                 return string.Empty;
@@ -198,5 +192,24 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
     private static bool IsValidVersion(string version)
     {
         return SemVer.TryParse(version, "ServerModExtractor").IsT0;
+    }
+
+    /// <summary>
+    /// Custom AssemblyLoadContext that resolves SPT assemblies from the SPT directory.
+    /// </summary>
+    private sealed class SptAssemblyLoadContext(string sptDirectory) : AssemblyLoadContext(true)
+    {
+        protected override Assembly? Load(AssemblyName assemblyName)
+        {
+            // Try to find the assembly in the SPT directory
+            var sptPath = Path.Combine(sptDirectory, "SPT", $"{assemblyName.Name}.dll");
+            if (File.Exists(sptPath))
+            {
+                using var stream = new MemoryStream(File.ReadAllBytes(sptPath));
+                return LoadFromStream(stream);
+            }
+
+            return null;
+        }
     }
 }

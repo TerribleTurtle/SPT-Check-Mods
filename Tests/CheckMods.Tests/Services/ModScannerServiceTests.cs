@@ -42,15 +42,26 @@ public sealed class ModScannerServiceTests : IDisposable
     [Fact]
     public async Task ScanServerModsAsync_ReturnsValidMods()
     {
-        var modPath = Path.Combine(_sptPath, "SPT", "user", "mods", "test-server-mod");
-        Directory.CreateDirectory(modPath);
-        File.WriteAllText(Path.Combine(modPath, "TestMod.dll"), "dummy");
+        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
+        var serverCode = @"
+            using System;
+            public abstract class AbstractModMetadata { }
+            public class ValidModMetadata : AbstractModMetadata 
+            {
+                public string ModGuid { get; } = ""ServerAuthor-Test Server Mod"";
+                public string Name { get; } = ""Test Server Mod"";
+                public string Author { get; } = ""ServerAuthor"";
+                public string Version { get; } = ""1.0.0"";
+                public string SptVersion { get; } = ""3.8.0"";
+            }
+        ";
+        _fixture.CompileDummyDll(modPath, serverCode);
 
         var fakeMod = new Mod
         {
             Local = new CheckMods.Models.LocalModIdentity
             {
-                Guid = "com.server.test",
+                Guid = "ServerAuthor-Test Server Mod",
                 FilePath = "test",
                 LocalName = "Test Server Mod",
                 LocalAuthor = "ServerAuthor",
@@ -158,25 +169,20 @@ namespace BepInEx {
         _fixture.CompileDummyDll(Path.Combine("BepInEx", "plugins", "TestClient.dll"), clientModCode);
 
         // Generate dummy server mod
-        var serverModCode =
-            @"
-public abstract class AbstractModMetadata {
-    public string ModGuid { get; set; }
-    public string Name { get; set; }
-    public string Author { get; set; }
-    public string Version { get; set; }
-    public string SptVersion { get; set; }
-}
-public class TestServerMod : AbstractModMetadata {
-    public TestServerMod() {
-        ModGuid = ""com.server.test"";
-        Name = ""Test Server Mod"";
-        Author = ""ServerAuthor"";
-        Version = ""1.0.0"";
-        SptVersion = ""3.8.0"";
-    }
-}";
-        _fixture.CompileDummyDll(Path.Combine("SPT", "user", "mods", "test-server-mod", "TestMod.dll"), serverModCode);
+        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
+        var serverCode = @"
+            using System;
+            public abstract class AbstractModMetadata { }
+            public class ValidModMetadata : AbstractModMetadata 
+            {
+                public string ModGuid { get; } = ""ServerAuthor-Test Server Mod"";
+                public string Name { get; } = ""Test Server Mod"";
+                public string Author { get; } = ""ServerAuthor"";
+                public string Version { get; } = ""1.0.0"";
+                public string SptVersion { get; } = ""3.8.0"";
+            }
+        ";
+        _fixture.CompileDummyDll(modPath, serverCode);
 
         // Run the real service
         var (serverMods, clientMods) = await realService.ScanAllModsAsync(_sptPath);
@@ -187,7 +193,7 @@ public class TestServerMod : AbstractModMetadata {
         Assert.Equal("Test Client Mod", clientMods[0].Local.LocalName);
 
         Assert.Single(serverMods);
-        Assert.Equal("com.server.test", serverMods[0].Local.Guid);
+        Assert.Equal("ServerAuthor-Test Server Mod", serverMods[0].Local.Guid);
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }

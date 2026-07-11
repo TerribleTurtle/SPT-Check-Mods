@@ -16,10 +16,15 @@ public sealed class TableRendererTests
         public bool VersionTableCalled { get; private set; }
         public bool VersionCompatibilityResultsCalled { get; private set; }
 
-        public void VersionTable(List<Mod> mods) => VersionTableCalled = true;
+        public void VersionTable(List<Mod> mods)
+        {
+            VersionTableCalled = true;
+        }
 
-        public void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion) =>
+        public void VersionCompatibilityResults(List<Mod> mods, SemanticVersioning.Version sptVersion)
+        {
             VersionCompatibilityResultsCalled = true;
+        }
     }
 
     private sealed class FakeReconciliationUiRenderer : IReconciliationUiRenderer
@@ -28,25 +33,40 @@ public sealed class TableRendererTests
         public bool LoadingWarningsCalled { get; private set; }
         public bool UnverifiedModsCalled { get; private set; }
 
-        public void ReconciliationResults(ModReconciliationResult result) => ReconciliationResultsCalled = true;
+        public void ReconciliationResults(ModReconciliationResult result)
+        {
+            ReconciliationResultsCalled = true;
+        }
 
-        public void LoadingWarnings(List<Mod> modsWithWarnings) => LoadingWarningsCalled = true;
+        public void LoadingWarnings(List<Mod> modsWithWarnings)
+        {
+            LoadingWarningsCalled = true;
+        }
 
-        public void UnverifiedMods(List<Mod> mods) => UnverifiedModsCalled = true;
+        public void UnverifiedMods(List<Mod> mods)
+        {
+            UnverifiedModsCalled = true;
+        }
     }
 
     private sealed class FakeMisplacedModUiRenderer : IMisplacedModUiRenderer
     {
         public bool MisplacedModsCalled { get; private set; }
 
-        public void MisplacedMods(MisplacedModReport report) => MisplacedModsCalled = true;
+        public void MisplacedMods(MisplacedModReport report)
+        {
+            MisplacedModsCalled = true;
+        }
     }
 
     private sealed class FakeDependencyUiRenderer : IDependencyUiRenderer
     {
         public bool DependencyResultsCalled { get; private set; }
 
-        public void DependencyResults(DependencyAnalysisResult result) => DependencyResultsCalled = true;
+        public void DependencyResults(DependencyAnalysisResult result)
+        {
+            DependencyResultsCalled = true;
+        }
     }
 
     [Fact]

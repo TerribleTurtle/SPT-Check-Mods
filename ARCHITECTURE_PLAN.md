@@ -1,67 +1,23 @@
-# SPT-Check-Mods Architecture Plan (V3: Documentation & Drift Resolution)
+# CheckMods Architecture Plan
 
-This document outlines the next phases of development for `SPT-Check-Mods`. Previous phases (V1/V2 - RCE Patch, UI Decoupling, Error Handling, and Object Deconstruction) are complete. 
+This document outlines the upcoming foundational, architectural, and performance improvements for the CheckMods project. 
+These tasks are grouped logically to ensure stability and strict rule adherence are established before performance optimizations are made.
 
-The current focus is resolving **Documentation Drift** (where the code has outpaced the documentation) and fixing underlying code anomalies discovered during the documentation audit.
+## Phase 1: Build & Quality Enforcement (Shift Left)
+Before we make any further code modifications, we must guarantee that all code strictly adheres to quality and style guidelines natively during the build process.
+- **Enforce Code Style on Build:** Update `CheckMods.csproj` to include `<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>`, `<EnableNETAnalyzers>true</EnableNETAnalyzers>`, and `<AnalysisLevel>latest-All</AnalysisLevel>`.
+- **Treat Warnings as Errors:** Add `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` to the `.csproj`. This ensures that any introduced warnings or `.editorconfig` violations will instantly fail the local `dotnet build`.
 
-All phases must maintain the strict `AGENTS.md` guidelines:
-- Strict `.editorconfig` formatting.
-- `OneOf` error handling.
-- `xUnit` testing with hand-crafted fakes (no mocking frameworks).
+## Phase 2: Network Resilience & Reliability
+The application relies heavily on external resources (the Forge API and community ignore-lists). We need to protect the application from transient network failures and rate limits.
+- **Implement Polly Resilience:** Install the `Microsoft.Extensions.Http.Resilience` package.
+- **Configure HTTP Clients:** Append `.AddStandardResilienceHandler()` to the `ForgeApi` and `IRemoteIgnoreFileClient` registrations in `ServiceCollectionExtensions.cs`. This provides industry-standard retries, exponential backoff, and circuit breakers out-of-the-box.
 
----
+## Phase 3: Performance Optimization
+Extracting metadata from DLLs is an I/O-heavy operation. The client (BepInEx) plugins are currently scanned in parallel, but the server (`user/mods`) mods are scanned sequentially.
+- **Parallelize Server Mod Scanning:** Refactor `ModScannerService.ScanServerModsAsync` to replace the synchronous `foreach` loop with `Parallel.ForEachAsync`.
+- **Thread Safety:** Utilize a `ConcurrentBag<Mod>` to ensure thread-safe accumulation of discovered mods during the parallel scan.
 
-## Phase 5: Core Infrastructure & Logging Synchronization
-
-This phase resolves severe discrepancies where the infrastructure code contradicts the documentation and project state.
-
-### 1. Serilog Migration Completion
-- **Issue:** `README.md` and `findings.md` state the app uses Serilog, but `ServiceCollectionExtensions.cs` still uses `builder.AddFileLogger()` (the custom `FileLogger.cs`).
-- **Action:** Wire up Serilog in Dependency Injection and deprecate/remove the 311-line custom `FileLogger.cs`.
-
-### 2. Upstream References & User-Agents
-- **Issue:** `User-Agent` HTTP headers in `ForgeApiService` and `RemoteIgnoreFileClient` still hardcode the upstream `refringe/SPT-Check-Mods` URL.
-- **Action:** Update all hardcoded references to the `TerribleTurtle` fork.
-
-### 3. README.md & Transparency Updates
-- **Action:** Update the README to reflect the accurate .NET version.
-- **Action:** Document the remote telemetry network call to `forge-static.sp-tarkov.com` for transparency (`ignored-updates.json`).
-- **Action:** Add CLI troubleshooting commands (enabling debug logs, overriding rate limits).
-- **Action:** Explain the "Magic Termination Logic" (`!Console.IsInputRedirected`) in `Program.cs` via comments.
-
----
-
-## Phase 6: Models & Configuration Documentation
-
-This phase focuses on documenting the newly decoupled data models and configuration classes.
-
-### 1. Extracted Composition Records
-- **Action:** Add class and property-level XML documentation to `LocalModIdentity.cs`, `ForgeApiMetadata.cs`, and `ModUpdateState.cs`.
-- **Action:** Document the new `Local`, `Api`, and `Update` properties in `Mod.cs`.
-
-### 2. Primary Constructors & Properties
-- **Action:** Add missing `<param>` tags for primary constructors in `ApiResponses.cs`, `PluginDll.cs`, and `IgnoredUpdate.cs`.
-- **Action:** Add missing `<summary>` tags in `DependencyChange.cs`, `SptVersionResponse.cs`, `ForgeApiOptions.cs`, and `LoggingOptions.cs`.
-
-### 3. Magic Constants Context
-- **Action:** Document the "why" behind thresholds in `MatchingConstants.cs` (`70` and `80`) and limits in `ModScannerOptions.cs` (`100MB`).
-- **Action:** Explicitly document how `RateLimitOptions.cs` maps to Forge API constraints.
-
----
-
-## Phase 7: Services & API Enhancements
-
-This phase addresses missing documentation in the core business logic and fixes a remaining silent error swallow.
-
-### 1. Error Handling Fix
-- **Issue:** `ModDependencyService.cs` silently swallows `SemVer.TryParse` errors by returning `0.0.0`, violating Phase 4 error handling rules.
-- **Action:** Refactor the dependency version comparison to bubble up `InvalidSemVer` natively via `OneOf`.
-
-### 2. API Usage Examples
-- **Action:** Add concrete usage examples to the `IForgeApiService` endpoint documentation.
-- **Action:** Remove outdated XML documentation on `ForgeApiService.GetJsonAsync` that incorrectly claims it caches responses by URL.
-
-### 3. Internal Service Documentation
-- **Action:** Rewrite the `TableRenderer.cs` class summary to explain its architectural shift into a Façade pattern delegating to 4 UI renderers.
-- **Action:** Add missing `<param>` documentation to utility methods in `ApplicationService.cs` and `ModScannerService.cs`.
-- **Action:** Review the unused `sptDirectory` parameter in `IServerModExtractor.cs` and remove it or document it for future use.
+## Phase 4: Rule Adherence & Cleanup
+The project `AGENTS.md` rule states: *"All classes public sealed — composition over inheritance."* While core models and services comply, the test project contains several unsealed stubs.
+- **Seal Test Classes:** Navigate through `Tests/CheckMods.Tests/` and apply the `sealed` modifier to all stub and fake classes (e.g., `TestServerMod`, `TestClientPlugin`, `BepInPluginAttribute`, `WrongServerMod`). This achieves 100% codebase-wide compliance.

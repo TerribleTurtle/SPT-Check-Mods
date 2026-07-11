@@ -14,4 +14,9 @@ public enum ModStatus
     /// No matching mod was found in the Forge API.
     /// </summary>
     NoMatch,
+
+    /// <summary>
+    /// A potential match was found, but requires user confirmation due to low confidence.
+    /// </summary>
+    NeedsConfirmation,
 }

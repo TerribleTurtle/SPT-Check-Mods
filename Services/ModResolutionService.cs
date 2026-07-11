@@ -181,7 +181,7 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
                 updatedServerMod = updatedServerMod.WithApiMatch(match);
                 updatedMods.Add(updatedServerMod);
             }
-            
+
             if (updatedClientMod != null)
             {
                 updatedClientMod = updatedClientMod.WithApiMatch(match);
@@ -215,7 +215,7 @@ public sealed class ModResolutionService(IForgeApiService forgeApiService) : IMo
             finalUpdatedServerMod = finalUpdatedServerMod.WithApiMatch(apiResult);
             finalUpdatedMods.Add(finalUpdatedServerMod);
         }
-        
+
         if (finalUpdatedClientMod != null)
         {
             finalUpdatedClientMod = finalUpdatedClientMod.WithApiMatch(apiResult);

@@ -41,10 +41,6 @@ jobs:
     - name: Build and Publish Windows x64
       run: |
         dotnet publish CheckMods.csproj -c Release -r win-x64 -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/win-x64
-
-    - name: Build and Publish Linux x64
-      run: |
-        dotnet publish CheckMods.csproj -c Release -r linux-x64 -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/linux-x64
     
     - name: Create Release
       uses: softprops/action-gh-release@v3
@@ -52,6 +48,5 @@ jobs:
         files: |
           ./publish/win-x64/CheckMods-*.exe
           ./publish/win-x64/CheckMods-*.zip
-          ./publish/linux-x64/CheckMods-*
         generate_release_notes: true
         prerelease: ${{ steps.version.outputs.prerelease == 'true' }}

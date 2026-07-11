@@ -121,7 +121,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
 
             // Skip the diff on a not-found/error response; an empty success list is a valid "no dependencies".
             var targetDeps = targetResult.Match(
-                dependencies => (List<ModDependency>?)dependencies,
+                dependencies => (List<ModDependency>?) dependencies,
                 _ => null,
                 _ => null
             );

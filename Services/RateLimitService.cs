@@ -35,11 +35,6 @@ public sealed class RateLimitService : IRateLimitService, IDisposable
     private DateTime _backoffUntil = DateTime.MinValue;
     private int _consecutiveBackoffs;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RateLimitService"/> class.
-    /// </summary>
-    /// <param name="options">Rate limiting configuration.</param>
-    /// <param name="logger">The logger instance.</param>
     public RateLimitService(IOptions<RateLimitOptions> options, ILogger<RateLimitService> logger)
     {
         _options = options.Value;
@@ -60,7 +55,14 @@ public sealed class RateLimitService : IRateLimitService, IDisposable
         _concurrencyGate = new SemaphoreSlim(_options.MaxConcurrentRequests, _options.MaxConcurrentRequests);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Executes an HTTP request, pacing it beneath the burst and general rate limits and retrying on rate limiting
+    /// (429) and transient failures (timeouts, network errors, and 5xx/408 responses).
+    /// </summary>
+    /// <param name="requestFunc">Function that executes the HTTP request.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The HTTP response from a successful or non-retryable request.</returns>
+    /// <exception cref="HttpRequestException">Thrown when retries are exhausted for rate limiting or transient errors.</exception>
     public async Task<HttpResponseMessage> ExecuteWithRetryAsync(
         Func<Task<HttpResponseMessage>> requestFunc,
         CancellationToken cancellationToken = default
@@ -86,9 +88,14 @@ public sealed class RateLimitService : IRateLimitService, IDisposable
                 {
                     response = await requestFunc();
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    throw;
+                    throw; // Caller-requested cancellation.
+                }
+                catch (OperationCanceledException ex)
+                {
+                    response = null;
+                    transientError = ex; // HttpClient timeout (token not cancelled).
                 }
                 catch (HttpRequestException ex)
                 {
@@ -155,7 +162,7 @@ public sealed class RateLimitService : IRateLimitService, IDisposable
                 {
                     _logger.LogWarning(
                         "Server error {StatusCode} persisted after {MaxRetries} retries",
-                        (int)response.StatusCode,
+                        (int) response.StatusCode,
                         _options.MaxRetries
                     );
                     return response; // Surface to the caller as an ApiError.
@@ -164,7 +171,7 @@ public sealed class RateLimitService : IRateLimitService, IDisposable
                 var delay = GetRetryAfterDelay(response) ?? GetExponentialDelay(retryCount);
                 _logger.LogWarning(
                     "Server error {StatusCode}. Retry {RetryCount}/{MaxRetries}",
-                    (int)response.StatusCode,
+                    (int) response.StatusCode,
                     retryCount,
                     _options.MaxRetries
                 );

@@ -208,7 +208,7 @@ public sealed class PluginMetadataExtractor(
         return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
-    private async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
+    private static async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
     {
         try
         {
@@ -238,7 +238,7 @@ public sealed class PluginMetadataExtractor(
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
-    private Mod? ScanAssemblyForBepInPlugin(Assembly assembly, string dllPath)
+    private static Mod? ScanAssemblyForBepInPlugin(Assembly assembly, string dllPath)
     {
         foreach (var type in assembly.GetTypes())
         {
@@ -323,7 +323,7 @@ public sealed class PluginMetadataExtractor(
         return new BepInPluginAttribute(guid, name, version);
     }
 
-    private Mod CreateConsolidatedMod(List<PluginDll> group, string directoryName)
+    private static Mod CreateConsolidatedMod(List<PluginDll> group, string directoryName)
     {
         var plugins = group.Select(item => (item.DllPath, item.Plugin)).ToList();
 
@@ -341,7 +341,7 @@ public sealed class PluginMetadataExtractor(
         return mod;
     }
 
-    private Mod CreateModFromBepInPlugin(BepInPluginAttribute plugin, string dllPath)
+    private static Mod CreateModFromBepInPlugin(BepInPluginAttribute plugin, string dllPath)
     {
         var (author, name) = ParseAuthorAndName(plugin.Name, plugin.Guid);
 

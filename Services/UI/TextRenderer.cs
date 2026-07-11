@@ -303,7 +303,9 @@ public sealed class TextRenderer : ITextRenderer
     public void UpdatePagesOpened(int opened, int total)
     {
         if (total == 0)
+        {
             return;
+        }
 
         if (opened == total)
         {

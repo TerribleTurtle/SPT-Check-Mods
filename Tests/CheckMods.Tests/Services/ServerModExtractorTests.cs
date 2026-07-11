@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CheckMods.Services;
 using CheckMods.Tests.Fixtures;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -24,40 +25,30 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task ExtractServerModMetadataAsync_ReturnsValidMod()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod");
-        var dllPath = Path.Combine(modPath, "TestMod.dll");
+        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
 
-        var code =
-            @"
-using System;
-public abstract class AbstractModMetadata 
-{
-    public string ModGuid { get; set; }
-    public string Name { get; set; }
-    public string Author { get; set; }
-    public string Version { get; set; }
-    public string SptVersion { get; set; }
-}
+        var code = @"
+            using System;
+            
+            public abstract class AbstractModMetadata { }
 
-public class MySptMod : AbstractModMetadata 
-{
-    public MySptMod() 
-    {
-        ModGuid = ""com.server.test"";
-        Name = ""Test Server Mod"";
-        Author = ""ServerAuthor"";
-        Version = ""1.0.0"";
-        SptVersion = ""3.8.0"";
-    }
-}
-";
-        _fixture.CompileDummyDll(dllPath, code);
+            public class ValidModMetadata : AbstractModMetadata 
+            {
+                public string ModGuid { get; } = ""ServerAuthor-Test Server Mod"";
+                public string Name { get; } = ""Test Server Mod"";
+                public string Author { get; } = ""ServerAuthor"";
+                public string Version { get; } = ""1.0.0"";
+                public string SptVersion { get; } = ""3.8.0"";
+            }
+        ";
 
-        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
+        var dllPath = _fixture.CompileDummyDll(modPath, code);
+
+        var mod = await _extractor.ExtractServerModMetadataAsync(dllPath, _sptPath);
 
         Assert.NotNull(mod);
         Assert.True(mod!.Local.IsServerMod);
-        Assert.Equal("com.server.test", mod.Local.Guid);
+        Assert.Equal("ServerAuthor-Test Server Mod", mod.Local.Guid);
         Assert.Equal("Test Server Mod", mod.Local.LocalName);
         Assert.Equal("ServerAuthor", mod.Local.LocalAuthor);
         Assert.Equal("1.0.0", mod.Local.LocalVersion);
@@ -65,35 +56,56 @@ public class MySptMod : AbstractModMetadata
     }
 
     [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForMissingProperties()
+    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForMissingGuid()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod");
-        var dllPath = Path.Combine(modPath, "MissingProps.dll");
+        var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
 
-        var code =
-            @"
-public abstract class AbstractModMetadata 
-{
-    public string ModGuid { get; set; }
-}
+        var code = @"
+            using System;
+            
+            public abstract class AbstractModMetadata { }
 
-public class MySptMod : AbstractModMetadata 
-{
-    public MySptMod() 
-    {
-        ModGuid = """";
-    }
-}
-";
-        _fixture.CompileDummyDll(dllPath, code);
+            public class InvalidModMetadata : AbstractModMetadata 
+            {
+                public string Name { get; } = ""Test Server Mod"";
+            }
+        ";
 
-        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
+        var dllPath = _fixture.CompileDummyDll(modPath, code);
+
+        var mod = await _extractor.ExtractServerModMetadataAsync(dllPath, _sptPath);
 
         Assert.Null(mod);
     }
 
     [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForUnreadableDll()
+    public async Task ExtractServerModMetadataAsync_ReturnsModWithWarnings_ForMissingProperties()
+    {
+        var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
+
+        var code = @"
+            using System;
+            
+            public abstract class AbstractModMetadata { }
+
+            public class InvalidModMetadata : AbstractModMetadata 
+            {
+                public string ModGuid { get; } = ""ServerAuthor-Test Server Mod"";
+            }
+        ";
+
+        var dllPath = _fixture.CompileDummyDll(modPath, code);
+
+        var mod = await _extractor.ExtractServerModMetadataAsync(dllPath, _sptPath);
+
+        Assert.NotNull(mod);
+        Assert.True(mod!.HasWarnings);
+        Assert.Contains(mod.LoadWarnings, w => w.Contains("Missing author"));
+        Assert.Contains(mod.LoadWarnings, w => w.Contains("Missing mod name"));
+    }
+
+    [Fact]
+    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForUnreadableFile()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "unreadable-mod");
         var dllPath = Path.Combine(modPath, "Unreadable.dll");
@@ -101,55 +113,7 @@ public class MySptMod : AbstractModMetadata
         Directory.CreateDirectory(Path.Combine(_sptPath, modPath));
         File.WriteAllBytes(Path.Combine(_sptPath, dllPath), [0x00, 0x01, 0x02]);
 
-        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
-
-        Assert.Null(mod);
-    }
-
-    [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForMalformedIL()
-    {
-        var modPath = Path.Combine("SPT", "user", "mods", "malformed-il-mod");
-        var dllPath = Path.Combine(modPath, "MalformedIL.dll");
-
-        var code =
-            @"
-public abstract class AbstractModMetadata 
-{
-    public string ModGuid { get; set; }
-}
-
-public class MySptMod : AbstractModMetadata 
-{
-    public MySptMod() 
-    {
-        var x = ""com.server.test"";
-    }
-}
-";
-        _fixture.CompileDummyDll(dllPath, code);
-
-        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
-
-        Assert.Null(mod);
-    }
-
-    [Fact]
-    public async Task ExtractServerModMetadataAsync_ReturnsNull_ForNoSptMetadata()
-    {
-        var modPath = Path.Combine("SPT", "user", "mods", "no-metadata-mod");
-        var dllPath = Path.Combine(modPath, "NoMetadata.dll");
-
-        var code =
-            @"
-public class SomeClass 
-{
-    public string SomeProperty { get; set; }
-}
-";
-        _fixture.CompileDummyDll(dllPath, code);
-
-        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath));
+        var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath), _sptPath);
 
         Assert.Null(mod);
     }

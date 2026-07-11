@@ -11,7 +11,10 @@ public sealed class FakeTextRenderer : ITextRenderer
 
     public void Banner() { }
 
-    public void Rule() => RuleCalled = true;
+    public void Rule()
+    {
+        RuleCalled = true;
+    }
 
     public void Blank() { }
 
@@ -47,20 +50,31 @@ public sealed class FakeTextRenderer : ITextRenderer
 
     public void NoModsFound() { }
 
-    public bool PromptFetchRemoteIgnores() => false;
+    public bool PromptFetchRemoteIgnores()
+    {
+        return false;
+    }
 
     public void RemoteIgnoresMerged(int added) { }
 
     public void RemoteIgnoresUnavailable() { }
 
-    public EndOfRunChoice PromptEndOfRun(int openableUpdateCount, bool canManageIgnoredUpdates) => EndOfRunChoice.Exit;
+    public EndOfRunChoice PromptEndOfRun(int openableUpdateCount, bool canManageIgnoredUpdates)
+    {
+        return EndOfRunChoice.Exit;
+    }
 
-    public IReadOnlyList<Mod> SelectUpdatesToIgnore(IReadOnlyList<Mod> candidates, ISet<int> preIgnoredApiModIds) =>
-        new List<Mod>();
+    public IReadOnlyList<Mod> SelectUpdatesToIgnore(IReadOnlyList<Mod> candidates, ISet<int> preIgnoredApiModIds)
+    {
+        return new List<Mod>();
+    }
 
     public void UpdatePagesOpened(int opened, int total) { }
 
-    public bool PromptReportIgnores() => false;
+    public bool PromptReportIgnores()
+    {
+        return false;
+    }
 
     public void IgnoreReportOpened(string url, bool browserOpened, bool prefilled) { }
 }

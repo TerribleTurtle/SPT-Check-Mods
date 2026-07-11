@@ -129,7 +129,7 @@ public static class ServiceCollectionExtensions
                     new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
                 );
             }
-        );
+        ).AddStandardResilienceHandler();
 
         return services;
     }

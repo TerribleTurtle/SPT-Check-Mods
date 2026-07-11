@@ -14,7 +14,7 @@ public interface IModMatchingService
     /// <param name="sptVersion">The SPT version for compatibility filtering.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The same mod instance, updated with API match data if found.</returns>
-    Task<Mod> MatchModAsync(
+    Task<(Mod Mod, PendingConfirmation? Confirmation)> MatchModAsync(
         Mod mod,
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default

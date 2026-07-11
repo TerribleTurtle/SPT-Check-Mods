@@ -3,6 +3,7 @@ using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
 using Microsoft.Extensions.Logging;
+using Spectre.Console;
 using SPTarkov.DI.Annotations;
 
 namespace CheckMods.Services;
@@ -21,7 +22,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
     private const int MinimumModsForSystemicFailure = 3;
 
     /// <inheritdoc />
-    public async Task<Mod> MatchModAsync(
+    public async Task<(Mod Mod, PendingConfirmation? Confirmation)> MatchModAsync(
         Mod mod,
         SemanticVersioning.Version sptVersion,
         CancellationToken cancellationToken = default
@@ -40,7 +41,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             if (guidResult.TryPickT0(out var guidMatch, out _))
             {
                 logger.LogDebug("Mod matched by GUID: {ModName} -> {ApiName}", mod.Local.LocalName, guidMatch.Name);
-                return mod.WithApiMatch(guidMatch);
+                return (mod.WithApiMatch(guidMatch), null);
             }
 
             if (guidResult.TryPickT2(out var guidNoCompat, out _))
@@ -58,7 +59,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
 
             if (altGuidResult.TryPickT0(out var altGuidMatch, out _))
             {
-                return mod.WithApiMatch(altGuidMatch);
+                return (mod.WithApiMatch(altGuidMatch), null);
             }
 
             if (altGuidResult.TryPickT2(out var altNoCompat, out _))
@@ -96,7 +97,17 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                 continue;
             }
 
-            return mod.WithApiMatch(bestMatch);
+            if (bestMatch.Value.Score >= MatchingConstants.NameSearchFuzzyThreshold)
+            {
+                return (mod.WithApiMatch(bestMatch.Value.Result), null);
+            }
+            else
+            {
+                var matchedMod = mod.WithApiMatch(bestMatch.Value.Result);
+                matchedMod = matchedMod with { Status = ModStatus.NeedsConfirmation };
+                var confirmation = new PendingConfirmation(mod, bestMatch.Value.Result, bestMatch.Value.Score);
+                return (matchedMod, confirmation);
+            }
         }
 
         // Nothing compatible turned up. If a GUID matched a mod that has no SPT-compatible version, keep it as a match.
@@ -107,11 +118,11 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                 mod.Local.LocalName,
                 incompatibleMatch.Name
             );
-            return mod.WithApiMatch(incompatibleMatch);
+            return (mod.WithApiMatch(incompatibleMatch), null);
         }
 
         logger.LogDebug("No match found for mod: {ModName}", mod.Local.LocalName);
-        return mod.MarkUnmatched();
+        return (mod.MarkUnmatched(), null);
     }
 
     /// <summary>
@@ -207,11 +218,18 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
         var failureCount = 0;
         Exception? firstFailure = null;
 
-        var tasks = modList.Select(async mod =>
+        var tasks = modList.Select(async (mod, index) =>
         {
+            PendingConfirmation? confirmation = null;
             try
             {
-                mod = await MatchModAsync(mod, sptVersion, cancellationToken);
+                var matchResult = await MatchModAsync(mod, sptVersion, cancellationToken);
+                mod = matchResult.Mod;
+                confirmation = matchResult.Confirmation;
+                if (confirmation != null)
+                {
+                    confirmation.ResultIndex = index;
+                }
             }
             catch (OperationCanceledException)
             {
@@ -230,10 +248,10 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             var current = Interlocked.Increment(ref completedCount);
             progressCallback?.Invoke(mod, current, totalCount);
 
-            return mod;
+            return (Mod: mod, Confirmation: confirmation);
         });
 
-        var results = await Task.WhenAll(tasks);
+        var resultsWithConfirmations = await Task.WhenAll(tasks);
 
         // When every mod fails and enough mods are involved to be meaningful, throw a systemic failure.
         if (totalCount >= MinimumModsForSystemicFailure && failureCount == totalCount)
@@ -244,20 +262,85 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             );
         }
 
+        var results = resultsWithConfirmations.Select(r => r.Mod).ToList();
+        var pendingConfirmations = resultsWithConfirmations
+            .Where(r => r.Confirmation != null)
+            .Select(r => r.Confirmation!)
+            .OrderBy(c => c.ResultIndex)
+            .ToList();
+
+        if (pendingConfirmations.Count > 0)
+        {
+            await HandlePendingConfirmationsAsync(pendingConfirmations, results);
+        }
+
         return results;
+    }
+
+    /// <summary>
+    /// Handles user confirmations for low-confidence mod matches.
+    /// </summary>
+    private static async Task HandlePendingConfirmationsAsync(
+        List<PendingConfirmation> pendingConfirmations,
+        List<Mod> orderedResults
+    )
+    {
+        AnsiConsole.MarkupLine($"\n[yellow]Found {pendingConfirmations.Count} match(es) that need confirmation...[/]");
+
+        var table = new Table();
+        table.AddColumn("Local Server Mod");
+        table.AddColumn("Author");
+        table.AddColumn("API Match");
+        table.AddColumn("API Author");
+        table.AddColumn("Confidence");
+
+        foreach (var pending in pendingConfirmations)
+        {
+            table.AddRow(
+                pending.OriginalMod.Local.LocalName.EscapeMarkup(),
+                pending.OriginalMod.Local.LocalAuthor?.EscapeMarkup() ?? "Unknown",
+                pending.ApiMatch.Name.EscapeMarkup(),
+                pending.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A",
+                $"{pending.ConfidenceScore}%"
+            );
+        }
+        AnsiConsole.Write(table);
+
+        foreach (var pending in pendingConfirmations)
+        {
+            var displayMod = pending.OriginalMod.Local;
+            var isMatch = await AnsiConsole.ConfirmAsync(
+                $"[yellow]Is '[white]{displayMod.LocalName.EscapeMarkup()}[/]' by '[white]{displayMod.LocalAuthor?.EscapeMarkup() ?? "Unknown"}[/]' the same as '[white]{pending.ApiMatch.Name.EscapeMarkup()}[/]' by '[white]{pending.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A"}[/]'? ([grey]Confidence: {pending.ConfidenceScore}%[/])[/]"
+            );
+
+            var resultIndex = orderedResults.FindIndex(r => r.Local.LocalName == pending.OriginalMod.Local.LocalName);
+            if (resultIndex >= 0)
+            {
+                if (isMatch)
+                {
+                    orderedResults[resultIndex] = orderedResults[resultIndex].WithApiMatch(pending.ApiMatch);
+                }
+                else
+                {
+                    orderedResults[resultIndex] = orderedResults[resultIndex].MarkUnmatched();
+                }
+            }
+        }
+
+        AnsiConsole.WriteLine();
     }
 
     /// <summary>
     /// Finds the best matching API result for a given mod using multiple comparison strategies.
     /// </summary>
-    private static ModSearchResult? FindBestMatch(Mod mod, List<ModSearchResult> searchResults)
+    private static (ModSearchResult Result, int Score)? FindBestMatch(Mod mod, List<ModSearchResult> searchResults)
     {
         // 1. Try exact normalized name match
         foreach (var result in searchResults)
         {
             if (ModNameNormalizer.IsExactMatch(mod.Local.LocalName, result.Name))
             {
-                return result;
+                return (result, 100);
             }
         }
 
@@ -269,7 +352,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             {
                 if (ModNameNormalizer.IsExactMatch(nameWithoutSuffix, result.Name, removeComponentSuffixes: true))
                 {
-                    return result;
+                    return (result, 100);
                 }
             }
         }
@@ -282,7 +365,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                 // Compare normalized slug to normalized local name
                 if (ModNameNormalizer.IsExactMatch(mod.Local.LocalName, result.Slug, removeComponentSuffixes: true))
                 {
-                    return result;
+                    return (result, 100);
                 }
 
                 // Also compare GUID name part to slug
@@ -291,7 +374,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                     var guidName = ModNameNormalizer.ExtractNameFromGuid(mod.Local.Guid);
                     if (ModNameNormalizer.IsExactMatch(guidName, result.Slug, removeComponentSuffixes: true))
                     {
-                        return result;
+                        return (result, 100);
                     }
                 }
             }
@@ -311,7 +394,7 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
                     && ModNameNormalizer.IsExactMatch(mod.Local.LocalName, result.Name, removeComponentSuffixes: true)
                 )
                 {
-                    return result;
+                    return (result, 100);
                 }
             }
         }
@@ -331,6 +414,11 @@ public sealed class ModMatchingService(IForgeApiService forgeApiService, ILogger
             .OrderByDescending(x => x.Score)
             .FirstOrDefault();
 
-        return bestFuzzyMatch?.Result;
+        if (bestFuzzyMatch is not null)
+        {
+            return (bestFuzzyMatch.Result, bestFuzzyMatch.Score);
+        }
+
+        return null;
     }
 }

@@ -144,6 +144,19 @@ csharp_space_between_square_brackets = false
 resharper_wrap_object_and_collection_initializer_style = chop_always
 resharper_merge_into_pattern_highlighting = none
 
+# Suppress noisy analyzer rules
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
+dotnet_diagnostic.CA1305.severity = none
+dotnet_diagnostic.CA1720.severity = none
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1310.severity = none
+dotnet_diagnostic.CA1859.severity = none
+dotnet_diagnostic.CA1711.severity = none
+
+# Enforce class sealing (Composition over Inheritance)
+dotnet_diagnostic.CA1852.severity = error
+
 # XML project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
 indent_size = 2

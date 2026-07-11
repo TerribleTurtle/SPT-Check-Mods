@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CheckMods.Configuration;
@@ -52,7 +54,12 @@ public sealed partial class ForgeApiService(
     {
         logger.LogDebug("API Request: GET {Url}", url);
         var response = await rateLimitService.ExecuteWithRetryAsync(
-            () => httpClient.GetAsync(url, cancellationToken),
+            async () =>
+            {
+                var req = new HttpRequestMessage(HttpMethod.Get, url);
+                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                return await httpClient.SendAsync(req, cancellationToken);
+            },
             cancellationToken
         );
 
@@ -60,7 +67,7 @@ public sealed partial class ForgeApiService(
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         response.Dispose();
 
-        var isSuccess = (int)statusCode is >= 200 and < 300;
+        var isSuccess = (int) statusCode is >= 200 and < 300;
         return (statusCode, body, isSuccess);
     }
 
@@ -109,7 +116,7 @@ public sealed partial class ForgeApiService(
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("SPT version validation failed: {StatusCode}", response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.SptVersionApiResponse);
@@ -154,7 +161,7 @@ public sealed partial class ForgeApiService(
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to fetch SPT versions: {StatusCode}", response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.SptVersionApiResponse);
@@ -226,7 +233,7 @@ public sealed partial class ForgeApiService(
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             using var jsonDoc = JsonDocument.Parse(response.Body);
@@ -283,7 +290,7 @@ public sealed partial class ForgeApiService(
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModSearchApiResponse);
@@ -345,7 +352,7 @@ public sealed partial class ForgeApiService(
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModSearchApiResponse);
@@ -463,7 +470,7 @@ public sealed partial class ForgeApiService(
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModUpdatesApiResponse);
@@ -511,7 +518,7 @@ public sealed partial class ForgeApiService(
 
             if (!response.IsSuccessStatusCode)
             {
-                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
             }
 
             var apiResponse = JsonSerializer.Deserialize(response.Body, CheckMods.Configuration.CheckModsJsonSerializerContext.Default.ModDependenciesApiResponse);

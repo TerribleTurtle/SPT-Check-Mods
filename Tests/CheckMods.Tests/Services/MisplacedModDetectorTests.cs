@@ -44,21 +44,17 @@ public class Plugin {}
         _fixture.CompileDummyDll(misplacedClientPath, clientCode);
 
         var misplacedServerPath = Path.Combine("BepInEx", "plugins", "wrong-server", "WrongServer.dll");
-        var serverCode =
-            @"
-public abstract class AbstractModMetadata 
-{
-    public string ModGuid { get; set; }
-    public string Name { get; set; }
-    public string Author { get; set; }
-    public string Version { get; set; }
-    public string SptVersion { get; set; }
-}
-public class WrongServerMod : AbstractModMetadata 
-{
-    public WrongServerMod() { ModGuid = ""com.wrong.server""; Name = ""Wrong""; Author = ""Author""; Version = ""1.0""; }
-}
-";
+        var serverCode = @"
+            using System;
+            public abstract class AbstractModMetadata { }
+            public class ValidModMetadata : AbstractModMetadata 
+            {
+                public string ModGuid { get; } = ""Author-Wrong"";
+                public string Name { get; } = ""Wrong"";
+                public string Author { get; } = ""Author"";
+                public string Version { get; } = ""1.0"";
+            }
+        ";
         _fixture.CompileDummyDll(misplacedServerPath, serverCode);
 
         var report = await _detector.DetectMisplacedModsAsync(_sptPath);
@@ -68,7 +64,7 @@ public class WrongServerMod : AbstractModMetadata
         var wrongClient = report.WrongFolder.Single(m => m.Guid == "com.wrong.client");
         Assert.False(wrongClient.IsServerMod);
 
-        var wrongServer = report.WrongFolder.Single(m => m.Guid == "com.wrong.server");
+        var wrongServer = report.WrongFolder.Single(m => m.Guid == "Author-Wrong");
         Assert.True(wrongServer.IsServerMod);
     }
 

@@ -33,16 +33,28 @@ public sealed record Mod
     /// <summary>
     /// The preferred display name (API name if available, otherwise local name).
     /// </summary>
-    public string DisplayName => Api.ApiName ?? Local.LocalName;
+    public string DisplayName
+    {
+        get { return Api.ApiName ?? Local.LocalName; }
+    }
 
     /// <summary>
     /// The preferred display author (API author if available, otherwise local author).
     /// </summary>
-    public string DisplayAuthor => Api.ApiAuthor?.Name ?? Local.LocalAuthor;
+    public string DisplayAuthor
+    {
+        get { return Api.ApiAuthor?.Name ?? Local.LocalAuthor; }
+    }
 
-    public bool HasWarnings => LoadWarnings.Count > 0;
+    public bool HasWarnings
+    {
+        get { return LoadWarnings.Count > 0; }
+    }
 
-    public bool IsMatched => Status == ModStatus.Verified && Api.ApiModId.HasValue;
+    public bool IsMatched
+    {
+        get { return Status == ModStatus.Verified && Api.ApiModId.HasValue; }
+    }
 
     #endregion
 }
