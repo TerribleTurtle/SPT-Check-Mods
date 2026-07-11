@@ -22,10 +22,10 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- ✨ **Faster Scans**: Completely rebuilt the internal engine to check your mods in parallel, making it significantly faster (especially for massive mod lists) without triggering API rate limits.
-- ✨ **Better Error Messages**: When a mod fails to load or your internet connection drops, you'll now get a clear, easy-to-read warning explaining exactly what went wrong instead of a silent crash.
-- ✨ **Smarter Version Checking**: Improved how mod versions are read to fix several bugs where mods were falsely flagged as outdated.
-- ✨ **Reliable Logging**: Upgraded the internal logging system so if you ever need to share a log file for support, it will always be complete and well-organized.
+- ✨ **Faster Scans**: Completely rebuilt the internal engine to check your mods in parallel, making it significantly faster (especially for massive mod lists) while respecting Forge API limits.
+- ✨ **Enhanced Error Messages**: When a mod fails to load or your internet connection drops, the tool now provides detailed, easy-to-read warnings explaining exactly what happened.
+- ✨ **Smarter Version Checking**: Improved how mod versions are read to ensure high accuracy when determining if a mod is outdated.
+- ✨ **Reliable Logging**: Upgraded the internal logging system so if you ever need to share a log file for support, it will be incredibly complete and well-organized.
 
 ## Requirements
 
