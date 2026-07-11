@@ -19,7 +19,7 @@ graph TD
 ## Phase 1 — Low Effort (Immutability & Bug Fixes)
 > **Goal:** Address all quick-wins identified across the domains. Safe, isolated changes.
 - **Services:** `ApplicationService` Immutability Update (return `IReadOnlyList<Mod>`), `ModMatchingService` Consolidate Matching Logic.
-- **Models:** Add `sealed` to `CheckModsJsonSerializerContext`, Cache Statics in `IgnoredUpdateOptions`, make `PendingConfirmation` an immutable record.
+- **Models:** Add `sealed` to `CheckModsExtendedJsonSerializerContext`, Cache Statics in `IgnoredUpdateOptions`, make `PendingConfirmation` an immutable record.
 - **Infrastructure:** Fix JSON Options bug in `IgnoreReportUrl`, Consolidate Assembly reflection in `ServiceCollectionExtensions`, harden `SuffixesToRemove` in `ModNameNormalizer`.
 - **Tests:** Normalize Project Structure (relocate fakes/fixtures), Strict Naming Rules.
 
