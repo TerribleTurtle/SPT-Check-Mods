@@ -22,10 +22,13 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- ✨ **Faster Scans**: Completely rebuilt the internal engine to check your mods in parallel, making it significantly faster (especially for massive mod lists) while respecting Forge API limits.
-- ✨ **Enhanced Error Messages**: When a mod fails to load or your internet connection drops, the tool now provides detailed, easy-to-read warnings explaining exactly what happened.
-- ✨ **Smarter Version Checking**: Improved how mod versions are read to ensure high accuracy when determining if a mod is outdated.
-- ✨ **Reliable Logging**: Upgraded the internal logging system so if you ever need to share a log file for support, it will be incredibly complete and well-organized.
+- ✨ **Static Bytecode Analysis**: Eliminated an Arbitrary Code Execution (RCE) vulnerability by replacing dynamic `AssemblyLoadContext` module loading with static IL bytecode analysis via `Mono.Cecil` for both client and server mod `.dll` files.
+- ✨ **Rate-Limited Concurrency**: Migrated sequential and unbounded network loops to `Parallel.ForEachAsync` governed by a token-bucket rate limiter. This maximizes network throughput for bulk dependency checks while strictly preventing Forge API `429 Too Many Requests` timeouts.
+- ✨ **AOT Trimming & Size Reduction**: Enabled .NET 9 Native AOT trimming to reduce the standalone executable footprint from ~65MB to ~15MB, utilizing custom P/Invokes to successfully retain `Spectre.Console` terminal colors.
+- ✨ **Strict Error Handling**: Replaced silent generic exception handling with strict `OneOf<T, Error>` result types across all API boundaries, surfacing HTTP failures and malformed semantic versions as explicit warnings in the UI.
+- ✨ **Pipeline Architecture & Offline CLI**: Refactored the monolithic application into a 13-step workflow pipeline driven by `Spectre.Console.Cli`. Introduced new offline commands (`list` and `ignore`) that operate instantly without network access.
+- ✨ **Path Security**: Hardened file-system interactions by patching CWD-relative and cross-volume path traversal vulnerabilities during local config and cache directory resolution.
+- ✨ **Resilient Metadata Extraction**: Upgraded metadata parsing to extract fallback URLs directly from local `package.json` files and SPT 3.10+ `.dll` assemblies, ensuring GitHub issue links remain available even when a mod is filtered out by the Forge API.
 
 ## Requirements
 
