@@ -22,13 +22,11 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
 - **SPT Update Checking**: Notifies you when a new SPT version is available
 - **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- ✨ **Pipeline Architecture Rewrite**: Tearing down the monolith into 13 decoupled `IWorkflowStep` classes
-- ✨ **High-Performance Concurrency**: Using `Parallel.ForEachAsync` instead of bounded `Task.WhenAll` to drastically speed up dependency fetching and protect against rate limits
-- ✨ **Trimming-Safe UI**: Using `WindowsConsoleHelper` to force VT mode, preserving Spectre.Console colors even in heavily trimmed binaries
-- ✨ **Robust Error Handling**: Implemented `OneOf` error boundaries to explicitly catch and surface API network failures instead of relying on silent exceptions
-- ✨ **Enhanced Data Models**: Restructured the domain models to explicitly separate remote API states from local filesystem states
-- ✨ **Strict Semantic Versioning**: Improved version parsing to explicitly capture and surface Mod Load Warnings, helping users understand exactly why a mod failed a version check
-- ✨ **Standardized Logging**: Transitioned to Serilog for the internal logging engine, providing robust, high-concurrency log rotation
+- ✨ **Faster Scans**: Completely rebuilt the internal engine to check your mods in parallel, making it significantly faster (especially for massive mod lists) without triggering API rate limits.
+- ✨ **Better Error Messages**: When a mod fails to load or your internet connection drops, you'll now get a clear, easy-to-read warning explaining exactly what went wrong instead of a silent crash.
+- ✨ **Smaller Download Size**: The app is now highly compressed and much faster to download, while still keeping all the beautiful terminal colors and formatting.
+- ✨ **Smarter Version Checking**: Improved how mod versions are read to fix several bugs where mods were falsely flagged as outdated.
+- ✨ **Reliable Logging**: Upgraded the internal logging system so if you ever need to share a log file for support, it will always be complete and well-organized.
 
 ## Requirements
 
