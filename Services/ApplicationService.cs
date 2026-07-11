@@ -12,6 +12,7 @@ namespace CheckMods.Services;
 /// </summary>
 [Injectable(InjectionType.Transient)]
 public sealed class ApplicationService(
+    IInitializationService initializationService,
     IForgeApiService forgeApiService,
     ISptInstallationService sptInstallationService,
     IModScannerService modScannerService,
@@ -39,10 +40,10 @@ public sealed class ApplicationService(
         try
         {
             // Remove any legacy API key file from previous versions.
-            RemoveLegacyApiKeyFile();
+            initializationService.RemoveLegacyApiKeyFile();
 
             logger.LogDebug("Validating SPT path");
-            var sptPath = GetValidatedSptPath(args);
+            var sptPath = initializationService.GetValidatedSptPath(args);
             if (sptPath is null)
             {
                 logger.LogWarning("SPT path validation failed, exiting");
@@ -125,6 +126,7 @@ public sealed class ApplicationService(
         {
             logger.LogInformation("Operation was cancelled");
             reporter.Warning("Operation cancelled.");
+            throw;
         }
         catch (Exception ex)
         {
@@ -183,39 +185,6 @@ public sealed class ApplicationService(
                 mod.SetUpdateSuppressed(true);
             }
         }
-    }
-
-    /// <summary>
-    /// Validates and returns the SPT installation path from arguments or current directory.
-    /// </summary>
-    /// <param name="args">Command line arguments.</param>
-    /// <returns>Validated SPT path or null if validation failed.</returns>
-    private string? GetValidatedSptPath(string[] args)
-    {
-        reporter.Heading("Validating SPT installation...");
-
-        if (args.Length == 0)
-        {
-            var currentPath = Directory.GetCurrentDirectory();
-            reporter.UsingPath(currentPath);
-            return currentPath;
-        }
-
-        var safePath = SecurityHelper.GetSafePath(args[0]);
-        if (safePath is null)
-        {
-            reporter.Error("Error: Invalid path provided.");
-            return null;
-        }
-
-        if (!Directory.Exists(safePath))
-        {
-            reporter.DirectoryDoesNotExist(safePath);
-            return null;
-        }
-
-        reporter.UsingPath(safePath);
-        return safePath;
     }
 
     /// <summary>
@@ -291,7 +260,15 @@ public sealed class ApplicationService(
         {
             throw;
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
+        {
+            logger.LogWarning(ex, "Check Mods update check failed unexpectedly");
+            reporter.Status("Could not check for Check Mods updates.");
+            reporter.Blank();
+            reporter.Rule();
+            return;
+        }
+        catch (System.Text.Json.JsonException ex)
         {
             logger.LogWarning(ex, "Check Mods update check failed unexpectedly");
             reporter.Status("Could not check for Check Mods updates.");
@@ -649,16 +626,7 @@ public sealed class ApplicationService(
 
         foreach (var mod in matchedMods)
         {
-            try
-            {
-                CheckModSptCompatibility(mod, sptVersion);
-            }
-            catch (Exception ex)
-            {
-                // Skip this mod and carry on with the rest.
-                logger.LogWarning(ex, "Failed to check SPT compatibility for mod: {ModName}", mod.DisplayName);
-                reporter.Warning($"Could not verify SPT compatibility for {mod.DisplayName}.");
-            }
+            CheckModSptCompatibility(mod, sptVersion);
         }
 
         reporter.VersionCompatibilityResults(mods, sptVersion);
@@ -765,35 +733,5 @@ public sealed class ApplicationService(
         );
 
         reporter.DependencyResults(result);
-    }
-
-    /// <summary>
-    /// Removes the legacy API key file written by previous versions. Best-effort: any failure is logged and ignored.
-    /// </summary>
-    private void RemoveLegacyApiKeyFile()
-    {
-        try
-        {
-            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var configDirectory = Path.GetFullPath(Path.Combine(appDataFolder, "SptCheckMods"));
-            var configFilePath = Path.GetFullPath(Path.Combine(configDirectory, "apikey.txt"));
-
-            if (!configFilePath.StartsWith(configDirectory + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            if (!File.Exists(configFilePath))
-            {
-                return;
-            }
-
-            File.Delete(configFilePath);
-            logger.LogInformation("Removed legacy API key file.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to remove legacy API key file");
-        }
     }
 }

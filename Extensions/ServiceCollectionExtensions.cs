@@ -3,7 +3,9 @@ using System.Reflection;
 using CheckMods.Configuration;
 using CheckMods.Logging;
 using CheckMods.Services;
+using CheckMods.Services.Decorators;
 using CheckMods.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -45,7 +47,7 @@ public static class ServiceCollectionExtensions
         diHandler.InjectAll();
 
         // Register ForgeApiService as a typed HttpClient.
-        services.AddHttpClient<IForgeApiService, ForgeApiService>(
+        services.AddHttpClient<ForgeApiService>(
             (serviceProvider, client) =>
             {
                 var rateLimitOptions = serviceProvider.GetRequiredService<IOptions<RateLimitOptions>>().Value;
@@ -58,6 +60,19 @@ public static class ServiceCollectionExtensions
                 );
             }
         );
+
+        services.AddTransient<IForgeApiService, CachedForgeApiService>(sp =>
+        {
+            var inner = sp.GetRequiredService<ForgeApiService>();
+            return new CachedForgeApiService(inner, sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ILogger<CachedForgeApiService>>());
+        });
+
+        services.AddTransient<ModDependencyService>();
+        services.AddTransient<IModDependencyService, CachedModDependencyService>(sp =>
+        {
+            var inner = sp.GetRequiredService<ModDependencyService>();
+            return new CachedModDependencyService(inner, sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ILogger<CachedModDependencyService>>());
+        });
 
         // Register the remote ignore-list client as a typed HttpClient.
         services.AddHttpClient<IRemoteIgnoreFileClient, RemoteIgnoreFileClient>(

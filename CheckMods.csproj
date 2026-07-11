@@ -22,12 +22,7 @@
   </PropertyGroup>
   <Target Name="GetGitHash" BeforeTargets="GetAssemblyAttributes;Publish">
     <!-- Capture the current Git commit hash and set it as a property. -->
-    <Exec
-      Command="git rev-parse --short=6 HEAD"
-      ConsoleToMSBuild="true"
-      IgnoreExitCode="true"
-      EchoOff="true"
-    >
+    <Exec Command="git rev-parse --short=6 HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" EchoOff="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="GitHash" />
     </Exec>
     <PropertyGroup>
@@ -63,24 +58,12 @@
   <!-- Rename the published executable to include the runtime identifier. -->
   <Target Name="RenamePublishedExe" AfterTargets="Publish">
     <!-- Windows target (RID starts with 'win') -->
-    <Move
-      Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))"
-      SourceFiles="$(PublishDir)$(AssemblyName).exe"
-      DestinationFiles="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe"
-    />
+    <Move Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))" SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFiles="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe" />
     <!-- Non-Windows target (Linux, macOS, etc.) -->
-    <Move
-      Condition="'$(RuntimeIdentifier)' != '' AND !$(RuntimeIdentifier.StartsWith('win'))"
-      SourceFiles="$(PublishDir)$(AssemblyName)"
-      DestinationFiles="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier)"
-    />
+    <Move Condition="'$(RuntimeIdentifier)' != '' AND !$(RuntimeIdentifier.StartsWith('win'))" SourceFiles="$(PublishDir)$(AssemblyName)" DestinationFiles="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier)" />
   </Target>
   <!-- Compress the Windows executable into a zip file with optimal compression. -->
-  <UsingTask
-    TaskName="ZipFileWithCompression"
-    TaskFactory="RoslynCodeTaskFactory"
-    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll"
-  >
+  <UsingTask TaskName="ZipFileWithCompression" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <SourceFile ParameterType="System.String" Required="true" />
       <DestinationArchive ParameterType="System.String" Required="true" />
@@ -97,15 +80,8 @@
       </Code>
     </Task>
   </UsingTask>
-  <Target
-    Name="ZipWindowsExe"
-    AfterTargets="RenamePublishedExe"
-    Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))"
-  >
-    <ZipFileWithCompression
-      SourceFile="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe"
-      DestinationArchive="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).zip"
-    />
+  <Target Name="ZipWindowsExe" AfterTargets="RenamePublishedExe" Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))">
+    <ZipFileWithCompression SourceFile="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe" DestinationArchive="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).zip" />
   </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="CheckMods.Tests" />
@@ -118,6 +94,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="OneOf" Version="3.0.271" />
     <PackageReference Include="SemanticVersioning" Version="3.0.0" />
     <PackageReference Include="Spectre.Console" Version="0.57.0" />

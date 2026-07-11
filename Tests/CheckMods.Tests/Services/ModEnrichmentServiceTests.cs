@@ -1,0 +1,104 @@
+using CheckMods.Models;
+using CheckMods.Services;
+using CheckMods.Tests.Fakes;
+using Xunit;
+using Version = SemanticVersioning.Version;
+
+namespace CheckMods.Tests.Services;
+
+public sealed class ModEnrichmentServiceTests
+{
+    private readonly CheckMods.Tests.Fakes.FakeForgeApiService _forgeApiService = new();
+    private readonly FakeLogger<ModEnrichmentService> _logger = new();
+    private readonly ModEnrichmentService _service;
+    private readonly Version _sptVersion = Version.Parse("3.9.0");
+
+    public ModEnrichmentServiceTests()
+    {
+        _service = new ModEnrichmentService(_forgeApiService, _logger);
+    }
+
+    [Fact]
+    public async Task Skips_unmatched_mods()
+    {
+        // Arrange
+        var unmatchedMod = new Mod
+        {
+            Guid = "com.test.mod",
+            FilePath = "test.dll",
+            IsServerMod = true,
+            LocalName = "Test Mod",
+            LocalAuthor = "Author",
+            LocalVersion = "1.0.0"
+        };
+        
+        // Act
+        await _service.EnrichAllWithVersionDataAsync([unmatchedMod], _sptVersion);
+
+        // Assert
+        Assert.Contains("No matched mods to enrich", _logger.LoggedMessages);
+        Assert.Null(unmatchedMod.LatestVersion);
+    }
+
+    [Fact]
+    public async Task Handles_api_error_gracefully()
+    {
+        // Arrange
+        var matchedMod = new Mod
+        {
+            Guid = "com.test.mod",
+            FilePath = "test.dll",
+            IsServerMod = true,
+            LocalName = "Test Mod",
+            LocalAuthor = "Author",
+            LocalVersion = "1.0.0"
+        };
+        matchedMod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
+        
+        _forgeApiService.GetModUpdatesResult = new ApiError("Failed to fetch");
+
+        // Act
+        await _service.EnrichAllWithVersionDataAsync([matchedMod], _sptVersion);
+
+        // Assert
+        Assert.Null(matchedMod.LatestVersion);
+        Assert.Equal(UpdateStatus.Unknown, matchedMod.UpdateStatus);
+    }
+
+    [Fact]
+    public async Task Maps_safe_to_update_payload_correctly()
+    {
+        // Arrange
+        var matchedMod = new Mod
+        {
+            Guid = "com.test.mod",
+            FilePath = "test.dll",
+            IsServerMod = true,
+            LocalName = "Test Mod",
+            LocalAuthor = "Author",
+            LocalVersion = "1.0.0"
+        };
+        matchedMod.UpdateFromApiMatch(new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null));
+        
+        _forgeApiService.GetModUpdatesResult = new ModUpdatesData(
+            SafeToUpdate: [
+                new SafeToUpdateMod(
+                    CurrentVersion: new ModUpdateVersion(10, 123, null, null, null, "1.0.0", null, null),
+                    RecommendedVersion: new ModUpdateVersion(11, 123, null, null, null, "2.0.0", "http://download", null),
+                    UpdateReason: null
+                )
+            ],
+            Blocked: null,
+            UpToDate: null,
+            Incompatible: null
+        );
+
+        // Act
+        await _service.EnrichAllWithVersionDataAsync([matchedMod], _sptVersion);
+
+        // Assert
+        Assert.Equal("2.0.0", matchedMod.LatestVersion);
+        Assert.Equal("http://download", matchedMod.DownloadLink);
+        Assert.Equal(UpdateStatus.UpdateAvailable, matchedMod.UpdateStatus);
+    }
+}

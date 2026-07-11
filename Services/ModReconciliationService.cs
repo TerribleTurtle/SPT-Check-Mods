@@ -26,18 +26,160 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         var matchedServerIndices = new HashSet<int>();
         var matchedClientIndices = new HashSet<int>();
 
-        // Exact GUID pairs first.
-        MatchComponents(
-            serverMods,
-            clientMods,
-            matchedServerIndices,
-            matchedClientIndices,
-            reconciledPairs,
-            GuidsMatch
-        );
+        var serverByGuid = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+        var serverByNormName = new Dictionary<string, List<int>>(StringComparer.Ordinal);
+        var serverByNormGuidName = new Dictionary<string, List<int>>(StringComparer.Ordinal);
+        var serverHasGuidName = new bool[serverMods.Count];
 
-        // Pair the rest by name.
-        MatchComponents(serverMods, clientMods, matchedServerIndices, matchedClientIndices, reconciledPairs, ModsMatch);
+        for (int i = 0; i < serverMods.Count; i++)
+        {
+            var serverMod = serverMods[i];
+            
+            if (!string.IsNullOrWhiteSpace(serverMod.Guid))
+            {
+                if (!serverByGuid.TryGetValue(serverMod.Guid, out var list))
+                {
+                    list = [];
+                    serverByGuid[serverMod.Guid] = list;
+                }
+                list.Add(i);
+            }
+
+            var normName = ModNameNormalizer.Normalize(serverMod.LocalName, removeComponentSuffixes: true);
+            if (!string.IsNullOrEmpty(normName))
+            {
+                if (!serverByNormName.TryGetValue(normName, out var list))
+                {
+                    list = [];
+                    serverByNormName[normName] = list;
+                }
+                list.Add(i);
+            }
+
+            var guidName = ModNameNormalizer.ExtractNameFromGuid(serverMod.Guid);
+            if (!string.IsNullOrEmpty(guidName))
+            {
+                serverHasGuidName[i] = true;
+                var normGuidName = ModNameNormalizer.Normalize(guidName, removeComponentSuffixes: true);
+                if (!string.IsNullOrEmpty(normGuidName))
+                {
+                    if (!serverByNormGuidName.TryGetValue(normGuidName, out var list))
+                    {
+                        list = [];
+                        serverByNormGuidName[normGuidName] = list;
+                    }
+                    list.Add(i);
+                }
+            }
+        }
+
+        void Match(int serverIdx, int clientIdx)
+        {
+            var serverMod = serverMods[serverIdx];
+            var clientMod = clientMods[clientIdx];
+            var (selectedMod, notes) = SelectBestMod(serverMod, clientMod);
+
+            selectedMod.PairedComponentPath = selectedMod == serverMod ? clientMod.FilePath : serverMod.FilePath;
+
+            reconciledPairs.Add(
+                new ModPair
+                {
+                    ServerMod = serverMod,
+                    ClientMod = clientMod,
+                    SelectedMod = selectedMod,
+                    Notes = notes,
+                }
+            );
+
+            matchedServerIndices.Add(serverIdx);
+            matchedClientIndices.Add(clientIdx);
+        }
+
+        // Pass 1: Exact GUID pairs first.
+        for (int clientIdx = 0; clientIdx < clientMods.Count; clientIdx++)
+        {
+            var clientMod = clientMods[clientIdx];
+            if (string.IsNullOrWhiteSpace(clientMod.Guid))
+            {
+                continue;
+            }
+
+            if (serverByGuid.TryGetValue(clientMod.Guid, out var serverIndices))
+            {
+                foreach (var serverIdx in serverIndices)
+                {
+                    if (!matchedServerIndices.Contains(serverIdx))
+                    {
+                        Match(serverIdx, clientIdx);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Pass 2: Pair the rest by name.
+        var candidateIndices = new HashSet<int>();
+        for (int clientIdx = 0; clientIdx < clientMods.Count; clientIdx++)
+        {
+            if (matchedClientIndices.Contains(clientIdx))
+            {
+                continue;
+            }
+
+            var clientMod = clientMods[clientIdx];
+            var normName = ModNameNormalizer.Normalize(clientMod.LocalName, removeComponentSuffixes: true);
+            var guidName = ModNameNormalizer.ExtractNameFromGuid(clientMod.Guid);
+            var hasGuidName = !string.IsNullOrEmpty(guidName);
+            var normGuidName = hasGuidName ? ModNameNormalizer.Normalize(guidName, removeComponentSuffixes: true) : null;
+
+            candidateIndices.Clear();
+
+            if (!string.IsNullOrEmpty(normName) && serverByNormName.TryGetValue(normName, out var nameMatches))
+            {
+                candidateIndices.UnionWith(nameMatches);
+            }
+
+            if (hasGuidName)
+            {
+                if (!string.IsNullOrEmpty(normGuidName) && serverByNormGuidName.TryGetValue(normGuidName, out var guidNameMatches))
+                {
+                    candidateIndices.UnionWith(guidNameMatches);
+                }
+
+                if (!string.IsNullOrEmpty(normName) && serverByNormGuidName.TryGetValue(normName, out var guidNameToNameMatches))
+                {
+                    candidateIndices.UnionWith(guidNameToNameMatches);
+                }
+
+                if (!string.IsNullOrEmpty(normGuidName) && serverByNormName.TryGetValue(normGuidName, out var nameToGuidNameMatches))
+                {
+                    foreach (var idx in nameToGuidNameMatches)
+                    {
+                        if (serverHasGuidName[idx])
+                        {
+                            candidateIndices.Add(idx);
+                        }
+                    }
+                }
+            }
+
+            int bestIdx = -1;
+            foreach (var idx in candidateIndices)
+            {
+                if (!matchedServerIndices.Contains(idx))
+                {
+                    if (bestIdx == -1 || idx < bestIdx)
+                    {
+                        bestIdx = idx;
+                    }
+                }
+            }
+
+            if (bestIdx != -1)
+            {
+                Match(bestIdx, clientIdx);
+            }
+        }
 
         var unmatchedServerMods = serverMods.Where((_, idx) => !matchedServerIndices.Contains(idx)).ToList();
         var unmatchedClientMods = clientMods.Where((_, idx) => !matchedClientIndices.Contains(idx)).ToList();
@@ -63,116 +205,6 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
             UnmatchedServerMods = unmatchedServerMods,
             UnmatchedClientMods = unmatchedClientMods,
         };
-    }
-
-    /// <summary>
-    /// Mod matching. Each unmatched client claims the first unmatched server where <paramref name="isMatch"/> holds.
-    /// Matched indices are shared across passes.
-    /// </summary>
-    private static void MatchComponents(
-        List<Mod> serverMods,
-        List<Mod> clientMods,
-        HashSet<int> matchedServerIndices,
-        HashSet<int> matchedClientIndices,
-        List<ModPair> reconciledPairs,
-        Func<Mod, Mod, bool> isMatch
-    )
-    {
-        for (var clientIdx = 0; clientIdx < clientMods.Count; clientIdx++)
-        {
-            if (matchedClientIndices.Contains(clientIdx))
-            {
-                continue;
-            }
-
-            var clientMod = clientMods[clientIdx];
-
-            for (var serverIdx = 0; serverIdx < serverMods.Count; serverIdx++)
-            {
-                if (matchedServerIndices.Contains(serverIdx))
-                {
-                    continue;
-                }
-
-                var serverMod = serverMods[serverIdx];
-
-                if (!isMatch(serverMod, clientMod))
-                {
-                    continue;
-                }
-
-                var (selectedMod, notes) = SelectBestMod(serverMod, clientMod);
-
-                // Update the selected mod with the paired component path
-                selectedMod.PairedComponentPath = selectedMod == serverMod ? clientMod.FilePath : serverMod.FilePath;
-
-                reconciledPairs.Add(
-                    new ModPair
-                    {
-                        ServerMod = serverMod,
-                        ClientMod = clientMod,
-                        SelectedMod = selectedMod,
-                        Notes = notes,
-                    }
-                );
-
-                matchedServerIndices.Add(serverIdx);
-                matchedClientIndices.Add(clientIdx);
-                break;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Determines whether two parts carry the same non-empty, case-insensitive GUID.
-    /// </summary>
-    private static bool GuidsMatch(Mod serverMod, Mod clientMod)
-    {
-        return !string.IsNullOrWhiteSpace(serverMod.Guid)
-            && !string.IsNullOrWhiteSpace(clientMod.Guid)
-            && string.Equals(serverMod.Guid, clientMod.Guid, StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Determines if two mods are the same mod (server and client components).
-    /// </summary>
-    private static bool ModsMatch(Mod serverMod, Mod clientMod)
-    {
-        // Case-insensitive GUID match
-        if (GuidsMatch(serverMod, clientMod))
-        {
-            return true;
-        }
-
-        // Normalized name matching (with server/client suffix removal)
-        if (ModNameNormalizer.IsExactMatch(serverMod.LocalName, clientMod.LocalName, removeComponentSuffixes: true))
-        {
-            return true;
-        }
-
-        // Try matching a GUID name component against a mod name
-        var serverGuidName = ModNameNormalizer.ExtractNameFromGuid(serverMod.Guid);
-        var clientGuidName = ModNameNormalizer.ExtractNameFromGuid(clientMod.Guid);
-
-        if (!string.IsNullOrEmpty(serverGuidName) && !string.IsNullOrEmpty(clientGuidName))
-        {
-            // Compare GUID names
-            if (ModNameNormalizer.IsExactMatch(serverGuidName, clientGuidName, removeComponentSuffixes: true))
-            {
-                return true;
-            }
-
-            // Compare GUID name to local name
-            if (
-                ModNameNormalizer.IsExactMatch(serverGuidName, clientMod.LocalName, removeComponentSuffixes: true)
-                || ModNameNormalizer.IsExactMatch(serverMod.LocalName, clientGuidName, removeComponentSuffixes: true)
-            )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>

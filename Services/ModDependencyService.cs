@@ -2,24 +2,16 @@ using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
 using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
 
 namespace CheckMods.Services;
 
 /// <summary>
 /// Service responsible for analyzing mod dependencies and building a dependency tree.
 /// </summary>
-[Injectable(InjectionType.Transient)]
 public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogger<ModDependencyService> logger)
     : IModDependencyService
 {
-    /// <summary>
-    /// Analyzes dependencies for a collection of mods.
-    /// </summary>
-    /// <param name="mods">The mods to analyze dependencies for.</param>
-    /// <param name="installedModGuids">Set of GUIDs for mods that are currently installed.</param>
-    /// <param name="progressCallback">Optional callback for progress updates (current, total).</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <inheritdoc />
     public async Task<DependencyAnalysisResult> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
         HashSet<string> installedModGuids,

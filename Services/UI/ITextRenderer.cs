@@ -1,0 +1,92 @@
+using System;
+using System.Collections.Generic;
+using CheckMods.Models;
+
+namespace CheckMods.Services.UI;
+
+/// <summary>
+/// Renders standard text output, headings, and prompts for the CLI.
+/// </summary>
+public interface ITextRenderer
+{
+    /// <summary>Writes the application banner and introductory information.</summary>
+    void Banner();
+
+    /// <summary>Writes a horizontal rule separator.</summary>
+    void Rule();
+
+    /// <summary>Writes a blank line.</summary>
+    void Blank();
+
+    /// <summary>Writes a section heading.</summary>
+    void Heading(string text);
+
+    /// <summary>Writes a muted status line.</summary>
+    void Status(string text);
+
+    /// <summary>Writes a success line.</summary>
+    void Success(string text);
+
+    /// <summary>Writes a warning line.</summary>
+    void Warning(string text);
+
+    /// <summary>Writes an error line.</summary>
+    void Error(string text);
+
+    /// <summary>Displays an unhandled exception.</summary>
+    void Exception(Exception ex);
+
+    /// <summary>Warns that a mod DLL could not be read during scanning.</summary>
+    void CouldNotReadModDll(string fileName, string reason);
+
+    /// <summary>Warns that the SPT version could not be read.</summary>
+    void CouldNotReadSptVersion(string reason);
+
+    /// <summary>Warns that the BepInEx plugins directory could not be found during scanning.</summary>
+    void PluginsDirectoryNotFound(string path);
+
+    /// <summary>Reports the resolved SPT installation path.</summary>
+    void UsingPath(string path);
+
+    /// <summary>Reports that the provided directory does not exist.</summary>
+    void DirectoryDoesNotExist(string path);
+
+    /// <summary>Reports the local SPT version and that validation is in progress (no trailing newline).</summary>
+    void ValidatingSptVersion(string version);
+
+    /// <summary>Reports that the SPT version was validated.</summary>
+    void SptVersionValidated(string version);
+
+    /// <summary>Reports the latest available SPT update.</summary>
+    void SptUpdateAvailable(SptVersionResult latest);
+
+    /// <summary>Displays the outcome of the Check Mods self-update check.</summary>
+    void CheckModsUpdate(CheckModsUpdateResult result, SemanticVersioning.Version sptVersion);
+
+    /// <summary>Reports that no mods were found, with the expected install locations.</summary>
+    void NoModsFound();
+
+    /// <summary>Asks whether to fetch the author-maintained remote ignore list. Defaults to no.</summary>
+    bool PromptFetchRemoteIgnores();
+
+    /// <summary>Reports the outcome of merging the remote ignore list (number of new entries added).</summary>
+    void RemoteIgnoresMerged(int added);
+
+    /// <summary>Reports that the remote ignore list couldn't be fetched and the local list is unchanged.</summary>
+    void RemoteIgnoresUnavailable();
+
+    /// <summary>Shows the end-of-run menu and returns the chosen action.</summary>
+    EndOfRunChoice PromptEndOfRun(int openableUpdateCount, bool canManageIgnoredUpdates);
+
+    /// <summary>Shows a checklist of update candidates (those in <paramref name="preIgnoredApiModIds"/> pre-checked) and returns the mods the user chose to ignore.</summary>
+    IReadOnlyList<Mod> SelectUpdatesToIgnore(IReadOnlyList<Mod> candidates, ISet<int> preIgnoredApiModIds);
+
+    /// <summary>Reports the outcome of opening update pages in the browser (how many of the total opened).</summary>
+    void UpdatePagesOpened(int opened, int total);
+
+    /// <summary>Prompts whether to submit new ignore entries as a GitHub issue, defaulting to no.</summary>
+    bool PromptReportIgnores();
+
+    /// <summary>Reports the outcome of opening the ignore-suggestion issue: whether the browser opened, the link (for manual use), and whether the entries were pre-filled.</summary>
+    void IgnoreReportOpened(string url, bool browserOpened, bool prefilled);
+}

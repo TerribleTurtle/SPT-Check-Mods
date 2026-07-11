@@ -1,0 +1,198 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using CheckMods.Models;
+using CheckMods.Services.Interfaces;
+using Microsoft.Extensions.Logging;
+using SPTarkov.DI.Annotations;
+
+namespace CheckMods.Services;
+
+[Injectable(InjectionType.Transient)]
+public sealed class MisplacedModDetector(
+    IPluginMetadataExtractor pluginExtractor,
+    IServerModExtractor serverExtractor,
+    ILogger<MisplacedModDetector> logger
+) : IMisplacedModDetector
+{
+    /// <inheritdoc />
+    public MisplacedModReport DetectMisplacedMods(string sptPath, CancellationToken cancellationToken = default)
+    {
+        List<MisplacedMod> wrongFolder = [];
+
+        var serverModsDir = Path.Combine(sptPath, "SPT", "user", "mods");
+        if (Directory.Exists(serverModsDir))
+        {
+            foreach (var dllPath in Directory.GetFiles(serverModsDir, "*.dll", SearchOption.AllDirectories))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var clientMod = pluginExtractor.TryDetectClientMod(dllPath);
+                if (clientMod is not null)
+                {
+                    wrongFolder.Add(
+                        new MisplacedMod(false, clientMod.Guid, clientMod.LocalName, clientMod.LocalVersion, dllPath)
+                    );
+                }
+            }
+        }
+
+        var pluginsDir = Path.Combine(sptPath, "BepInEx", "plugins");
+        if (Directory.Exists(pluginsDir))
+        {
+            foreach (var dllPath in pluginExtractor.GetValidClientDllFiles(pluginsDir))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var serverMod = serverExtractor.ExtractServerModMetadata(dllPath, sptPath);
+                if (serverMod is not null)
+                {
+                    wrongFolder.Add(
+                        new MisplacedMod(true, serverMod.Guid, serverMod.LocalName, serverMod.LocalVersion, dllPath)
+                    );
+                }
+            }
+        }
+
+        var crossInstalled = DetectCrossInstalledDirectories(pluginsDir, cancellationToken);
+
+        logger.LogDebug(
+            "Detected {WrongFolder} misplaced mods and {CrossInstalled} cross-installed directories",
+            wrongFolder.Count,
+            crossInstalled.Count
+        );
+
+        return new MisplacedModReport(wrongFolder, crossInstalled);
+    }
+
+    private List<CrossInstalledDirectory> DetectCrossInstalledDirectories(
+        string pluginsDir,
+        CancellationToken cancellationToken
+    )
+    {
+        List<CrossInstalledDirectory> crossInstalled = [];
+
+        if (!Directory.Exists(pluginsDir))
+        {
+            return crossInstalled;
+        }
+
+        var dllsByDirectory = GroupDllsByDirectory(pluginExtractor.GetValidClientDllFiles(pluginsDir), pluginsDir);
+        dllsByDirectory.Remove(pluginsDir);
+
+        foreach (var (directory, directoryDlls) in dllsByDirectory)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var plugins = pluginExtractor.ReadPluginDlls(directoryDlls);
+            if (plugins.Count < 2)
+            {
+                continue;
+            }
+
+            var components = pluginExtractor.PartitionByRelatedness(plugins);
+            if (components.Count < 2)
+            {
+                continue;
+            }
+
+            crossInstalled.Add(AttributeCrossInstall(directory, components));
+        }
+
+        return crossInstalled;
+    }
+
+    private CrossInstalledDirectory AttributeCrossInstall(string directory, List<List<PluginDll>> components)
+    {
+        var directoryName = Path.GetFileName(directory);
+        var allMods = components.Select(group => pluginExtractor.ToMisplacedMod(group, directoryName)).ToList();
+
+        int? legitimateIndex = null;
+
+        var folderMatches = components
+            .Select((group, index) => (group, index))
+            .Where(item =>
+                item.group.Any(plugin =>
+                    MatchesFolderName(Path.GetFileNameWithoutExtension(plugin.DllPath), directoryName)
+                )
+            )
+            .Select(item => item.index)
+            .ToList();
+
+        if (folderMatches.Count == 1)
+        {
+            legitimateIndex = folderMatches[0];
+        }
+        else
+        {
+            var maxSize = components.Max(group => group.Count);
+            var largest = components
+                .Select((group, index) => (group, index))
+                .Where(item => item.group.Count == maxSize)
+                .Select(item => item.index)
+                .ToList();
+
+            if (largest.Count == 1)
+            {
+                legitimateIndex = largest[0];
+            }
+        }
+
+        if (legitimateIndex is null)
+        {
+            return new CrossInstalledDirectory(directory, [], allMods, Ambiguous: true);
+        }
+
+        var misplaced = allMods.Where((_, index) => index != legitimateIndex).ToList();
+        return new CrossInstalledDirectory(directory, misplaced, allMods, Ambiguous: false);
+    }
+
+    private static bool MatchesFolderName(string fileName, string directoryName)
+    {
+        var file = NormalizeIdentifier(fileName);
+        var directory = NormalizeIdentifier(directoryName);
+
+        if (file.Length == 0 || directory.Length == 0)
+        {
+            return false;
+        }
+
+        return file.StartsWith(directory, StringComparison.Ordinal)
+            || directory.StartsWith(file, StringComparison.Ordinal);
+    }
+
+    private static string NormalizeIdentifier(string value)
+    {
+        return new string(value.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+    }
+
+    private static Dictionary<string, List<string>> GroupDllsByDirectory(List<string> dllFiles, string pluginsDir)
+    {
+        return dllFiles
+            .GroupBy(dllPath => GetModDirectory(dllPath, pluginsDir), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string GetModDirectory(string dllPath, string pluginsDir)
+    {
+        var directory = Path.GetDirectoryName(dllPath);
+
+        if (directory is null || directory.Equals(pluginsDir, StringComparison.OrdinalIgnoreCase))
+        {
+            return pluginsDir;
+        }
+
+        while (true)
+        {
+            var parent = Path.GetDirectoryName(directory);
+            if (parent is null || parent.Equals(pluginsDir, StringComparison.OrdinalIgnoreCase))
+            {
+                return directory;
+            }
+
+            directory = parent;
+        }
+    }
+}

@@ -5,7 +5,6 @@ using CheckMods.Configuration;
 using CheckMods.Models;
 using CheckMods.Services.Interfaces;
 using CheckMods.Utils;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf;
@@ -22,7 +21,6 @@ namespace CheckMods.Services;
 public sealed partial class ForgeApiService(
     HttpClient httpClient,
     IRateLimitService rateLimitService,
-    IMemoryCache cache,
     IOptions<ForgeApiOptions> options,
     ILogger<ForgeApiService> logger
 ) : IForgeApiService
@@ -37,38 +35,13 @@ public sealed partial class ForgeApiService(
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// Cache lifetime for API responses.
-    /// </summary>
-    private static readonly MemoryCacheEntryOptions _cacheEntryOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
-    };
-
-    /// <summary>
-    /// A cached HTTP response: the status code and body text from a completed request.
-    /// </summary>
-    private sealed record CachedResponse(HttpStatusCode StatusCode, string Body)
-    {
-        public bool IsSuccessStatusCode
-        {
-            get { return (int)StatusCode is >= 200 and < 300; }
-        }
-    }
-
-    /// <summary>
     /// Issues a rate-limited GET request and returns its status code and body. Successful (2xx) and NotFound (404)
     /// responses are cached by URL; server errors are not cached.
     /// </summary>
     /// <param name="url">The request URL, which doubles as the cache key.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    private async Task<CachedResponse> GetJsonAsync(string url, CancellationToken cancellationToken)
+    private async Task<(HttpStatusCode StatusCode, string Body, bool IsSuccessStatusCode)> GetJsonAsync(string url, CancellationToken cancellationToken)
     {
-        if (cache.TryGetValue(url, out CachedResponse? cached) && cached is not null)
-        {
-            logger.LogDebug("Cache hit: GET {Url}", url);
-            return cached;
-        }
-
         logger.LogDebug("API Request: GET {Url}", url);
         var response = await rateLimitService.ExecuteWithRetryAsync(
             () => httpClient.GetAsync(url, cancellationToken),
@@ -79,13 +52,8 @@ public sealed partial class ForgeApiService(
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         response.Dispose();
 
-        var result = new CachedResponse(statusCode, body);
-        if (result.IsSuccessStatusCode || statusCode == HttpStatusCode.NotFound)
-        {
-            cache.Set(url, result, _cacheEntryOptions);
-        }
-
-        return result;
+        var isSuccess = (int)statusCode is >= 200 and < 300;
+        return (statusCode, body, isSuccess);
     }
 
     /// <summary>
@@ -115,17 +83,7 @@ public sealed partial class ForgeApiService(
         return ConvertCamelCaseRegex().Replace(input, " ").Trim();
     }
 
-    /// <summary>
-    /// Validates that an SPT version exists in the Forge API.
-    /// </summary>
-    /// <param name="sptVersion">The SPT version to validate.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>
-    /// One of:
-    /// - bool (true): The SPT version is valid
-    /// - InvalidSptVersion: The SPT version does not exist
-    /// - ApiError: An error occurred during validation
-    /// </returns>
+    /// <inheritdoc />
     public async Task<OneOf<bool, InvalidSptVersion, ApiError>> ValidateSptVersionAsync(
         string sptVersion,
         CancellationToken cancellationToken = default
@@ -172,11 +130,7 @@ public sealed partial class ForgeApiService(
         }
     }
 
-    /// <summary>
-    /// Retrieves all available SPT versions from the Forge API.
-    /// </summary>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>List of all available SPT versions or an error.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<List<SptVersionResult>, ApiError>> GetAllSptVersionsAsync(
         CancellationToken cancellationToken = default
     )
@@ -211,13 +165,7 @@ public sealed partial class ForgeApiService(
         }
     }
 
-    /// <summary>
-    /// Searches for server mods using the Forge API search results.
-    /// </summary>
-    /// <param name="modName">The name of the mod to search for.</param>
-    /// <param name="sptVersion">The SPT version to filter by.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>List of matching mod search results or an error.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<List<ModSearchResult>, ApiError>> SearchModsAsync(
         string modName,
         SemanticVersioning.Version sptVersion,
@@ -230,13 +178,7 @@ public sealed partial class ForgeApiService(
         return await SearchModsInternalAsync(searchQuery, sptVersion, cancellationToken);
     }
 
-    /// <summary>
-    /// Searches for client mods using the Forge API.
-    /// </summary>
-    /// <param name="modName">The name of the client mod to search for.</param>
-    /// <param name="sptVersion">The SPT version to filter by.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>List of matching client mod search results or an error.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<List<ModSearchResult>, ApiError>> SearchClientModsAsync(
         string modName,
         SemanticVersioning.Version sptVersion,
@@ -249,12 +191,7 @@ public sealed partial class ForgeApiService(
         return await SearchModsInternalAsync(searchQuery, sptVersion, cancellationToken);
     }
 
-    /// <summary>
-    /// Retrieves a specific mod by its ID from the Forge API.
-    /// </summary>
-    /// <param name="modId">The ID of the mod to retrieve.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The mod search result or an error type.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<ModSearchResult, NotFound, InvalidInput, ApiError>> GetModByIdAsync(
         int modId,
         CancellationToken cancellationToken = default
@@ -313,13 +250,7 @@ public sealed partial class ForgeApiService(
         }
     }
 
-    /// <summary>
-    /// Retrieves a mod by its GUID from the Forge API.
-    /// </summary>
-    /// <param name="modGuid">The GUID of the mod (e.g., "com.author.modname").</param>
-    /// <param name="sptVersion">The SPT version to filter by.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The mod search result or an error type.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<ModSearchResult, NotFound, NoCompatibleVersion, ApiError>> GetModByGuidAsync(
         string modGuid,
         SemanticVersioning.Version sptVersion,
@@ -423,13 +354,7 @@ public sealed partial class ForgeApiService(
         }
     }
 
-    /// <summary>
-    /// Retrieves batch update information for multiple mods in a single API call.
-    /// </summary>
-    /// <param name="modUpdates">Collection of mod ID and current version pairs to check.</param>
-    /// <param name="sptVersion">The SPT version to check compatibility against.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>Categorized update information for the requested mods or an error.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<ModUpdatesData, NotFound, ApiError>> GetModUpdatesAsync(
         IEnumerable<(int ModId, string CurrentVersion)> modUpdates,
         SemanticVersioning.Version sptVersion,
@@ -552,12 +477,7 @@ public sealed partial class ForgeApiService(
         }
     }
 
-    /// <summary>
-    /// Retrieves dependency information for multiple mods in a single API call.
-    /// </summary>
-    /// <param name="modVersions">Collection of identifier (mod ID or GUID) and version pairs.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>Flattened dependency tree with recursive structure or an error.</returns>
+    /// <inheritdoc />
     public async Task<OneOf<List<ModDependency>, NotFound, ApiError>> GetModDependenciesAsync(
         IEnumerable<(string Identifier, string Version)> modVersions,
         CancellationToken cancellationToken = default

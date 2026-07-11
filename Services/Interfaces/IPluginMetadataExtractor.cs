@@ -1,0 +1,47 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using CheckMods.Models;
+
+namespace CheckMods.Services.Interfaces;
+
+/// <summary>
+/// Extracts BepInEx metadata reflection.
+/// </summary>
+public interface IPluginMetadataExtractor
+{
+    /// <summary>
+    /// Gets a list of valid client DLL files from the given plugins path.
+    /// </summary>
+    List<string> GetValidClientDllFiles(string pluginsPath);
+
+    /// <summary>
+    /// Processes client DLLs in parallel and returns valid mods.
+    /// </summary>
+    Task<List<Mod>> ProcessClientDllsInParallelAsync(List<string> dllFiles, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Turns a directory's DLLs into mods. DLLs that reference each other become one mod, while unrelated DLLs stay separate.
+    /// </summary>
+    List<Mod> ConsolidateDirectoryMods(string directory, List<string> dllPaths);
+
+    /// <summary>
+    /// Attempts to read the DLL as a client (BepInEx) mod. Returns the mod if a BepInPlugin attribute is found, otherwise null.
+    /// </summary>
+    Mod? TryDetectClientMod(string dllPath);
+
+    /// <summary>
+    /// Reads plugin metadata and assembly references from each BepInPlugin DLL.
+    /// </summary>
+    List<PluginDll> ReadPluginDlls(List<string> dllPaths);
+
+    /// <summary>
+    /// Groups plugin DLLs that belong to the same mod and separates those that don't.
+    /// </summary>
+    List<List<PluginDll>> PartitionByRelatedness(List<PluginDll> plugins);
+
+    /// <summary>
+    /// Describes a relatedness component as a single mod, using its primary plugin for the name, GUID, and path.
+    /// </summary>
+    MisplacedMod ToMisplacedMod(List<PluginDll> group, string directoryName);
+}

@@ -2,7 +2,6 @@ using System.Net;
 using CheckMods.Configuration;
 using CheckMods.Services;
 using CheckMods.Services.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -20,13 +19,11 @@ public sealed class ForgeApiServiceTests
     private static ForgeApiService CreateService(Func<HttpRequestMessage, HttpResponseMessage> responder)
     {
         var httpClient = new HttpClient(new StubHandler(responder));
-        var cache = new MemoryCache(new MemoryCacheOptions());
         var options = Options.Create(new ForgeApiOptions());
 
         return new ForgeApiService(
             httpClient,
             new PassThroughRateLimitService(),
-            cache,
             options,
             NullLogger<ForgeApiService>.Instance
         );
