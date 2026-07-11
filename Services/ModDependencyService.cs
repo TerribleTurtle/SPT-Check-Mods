@@ -16,7 +16,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
     public async Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
         ISet<string> installedModGuids,
-        Action<int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -97,7 +97,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
 
                 modDependencyCache[modId] = deps;
                 var current = Interlocked.Increment(ref fetchedCount);
-                progressCallback?.Invoke(current, totalToFetch);
+                progress?.Report(current);
             }
         );
 
@@ -120,7 +120,7 @@ public sealed class ModDependencyService(IForgeApiService forgeApiService, ILogg
                 );
 
                 var current = Interlocked.Increment(ref fetchedCount);
-                progressCallback?.Invoke(current, totalToFetch);
+                progress?.Report(current);
 
                 // Skip the diff on a not-found/error response; an empty success list is a valid "no dependencies".
                 var targetDeps = targetResult.Match(

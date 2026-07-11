@@ -30,7 +30,7 @@ public sealed class MatchModsWithApiStep(
                 modMatchingService.MatchModsAsync(
                     context.Mods,
                     context.SptVersion!,
-                    (_, current, _) => setValue(current),
+                    new Progress<int>(current => setValue(current)),
                     cancellationToken
                 ),
             cancellationToken

@@ -55,7 +55,7 @@ public sealed class CheckModDependenciesStep(
                 modDependencyService.AnalyzeDependenciesAsync(
                     context.Mods,
                     installedGuids,
-                    (current, _) => setValue(current),
+                    new Progress<int>(current => setValue(current)),
                     cancellationToken
                 ),
             cancellationToken

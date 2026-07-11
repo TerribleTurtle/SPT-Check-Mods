@@ -20,7 +20,7 @@ public sealed class ModMatchingServiceTests
 
     private static ModMatchingService CreateService(FakeForgeApiService api)
     {
-        return new ModMatchingService(new ModLookupStrategy(api), NullLogger<ModMatchingService>.Instance);
+        return new ModMatchingService(new ModLookupStrategy(api), Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.ModMatchingOptions()), new CheckModsExtended.Tests.Fakes.FakeModCheckReporter(), NullLogger<ModMatchingService>.Instance);
     }
 
     private static Mod ClientMod(string guid, string name = "Mod", string version = "1.0.0")
@@ -202,24 +202,23 @@ public sealed class ModMatchingServiceTests
     {
         var api = new FakeForgeApiService { OnGetModByGuid = _ => Match(1, "Mod", "mod") };
         var mods = new[] { ClientMod("com.a.one"), ClientMod("com.a.two"), ClientMod("com.a.three") };
-        var progressCalls = new List<(int Current, int Total)>();
+        var progressCalls = new List<int>();
 
         await CreateService(api)
             .MatchModsAsync(
                 mods,
                 SptVersion,
-                (_, current, total) =>
+                new Progress<int>(current =>
                 {
                     lock (progressCalls)
                     {
-                        progressCalls.Add((current, total));
+                        progressCalls.Add(current);
                     }
-                }
+                })
             );
 
         Assert.Equal(3, progressCalls.Count);
-        Assert.All(progressCalls, c => Assert.Equal(3, c.Total));
-        Assert.Contains((3, 3), progressCalls);
+        Assert.Contains(3, progressCalls);
     }
 
     // --- FindBestMatch strategies (GUID misses, so matching falls through to the name search) ---

@@ -3,7 +3,7 @@ using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
-using Spectre.Console;
+using Microsoft.Extensions.Options;
 using SPTarkov.DI.Annotations;
 using System;
 using System.Collections.Generic;
@@ -19,13 +19,14 @@ namespace CheckModsExtended.Services;
 /// Uses the configured <see cref="IModLookupStrategy"/> for lookup.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILogger<ModMatchingService> logger)
+public sealed class ModMatchingService(
+    IModLookupStrategy modLookupStrategy,
+    IOptions<ModMatchingOptions> options,
+    IModCheckReporter reporter,
+    ILogger<ModMatchingService> logger)
     : IModMatchingService
 {
-    /// <summary>
-    /// Minimum number of mods that must all fail before an all-failed batch is treated as a systemic fault.
-    /// </summary>
-    private const int MinimumModsForSystemicFailure = 3;
+    private readonly ModMatchingOptions _options = options.Value;
 
     /// <inheritdoc />
     public async Task<(Mod Mod, PendingConfirmation? Confirmation)> MatchModAsync(
@@ -65,7 +66,7 @@ public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILo
     public async Task<IReadOnlyList<Mod>> MatchModsAsync(
         IEnumerable<Mod> mods,
         SemanticVersioning.Version sptVersion,
-        Action<Mod, int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -116,11 +117,11 @@ public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILo
                 resultsWithConfirmations[index] = (Mod: mod, Confirmation: confirmation);
 
                 var current = Interlocked.Increment(ref completedCount);
-                progressCallback?.Invoke(mod, current, totalCount);
+                progress?.Report(current);
             });
 
         // When every mod fails and enough mods are involved to be meaningful, throw a systemic failure.
-        if (totalCount >= MinimumModsForSystemicFailure && failureCount == totalCount)
+        if (totalCount >= _options.MinimumModsForSystemicFailure && failureCount == totalCount)
         {
             throw new InvalidOperationException(
                 $"Failed to match any of the {totalCount} mods against the Forge API.",
@@ -146,38 +147,16 @@ public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILo
     /// <summary>
     /// Handles user confirmations for low-confidence mod matches.
     /// </summary>
-    private static async Task HandlePendingConfirmationsAsync(
+    private async Task HandlePendingConfirmationsAsync(
         List<PendingConfirmation> pendingConfirmations,
         List<Mod> orderedResults
     )
     {
-        AnsiConsole.MarkupLine($"\n[yellow]Found {pendingConfirmations.Count} match(es) that need confirmation...[/]");
-
-        var table = new Table();
-        table.AddColumn("Local Server Mod");
-        table.AddColumn("Author");
-        table.AddColumn("API Match");
-        table.AddColumn("API Author");
-        table.AddColumn("Confidence");
+        reporter.PendingConfirmationsSummary(pendingConfirmations);
 
         foreach (var pending in pendingConfirmations)
         {
-            table.AddRow(
-                pending.OriginalMod.Local.LocalName.EscapeMarkup(),
-                pending.OriginalMod.Local.LocalAuthor?.EscapeMarkup() ?? "Unknown",
-                pending.ApiMatch.Name.EscapeMarkup(),
-                pending.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A",
-                $"{pending.ConfidenceScore}%"
-            );
-        }
-        AnsiConsole.Write(table);
-
-        foreach (var pending in pendingConfirmations)
-        {
-            var displayMod = pending.OriginalMod.Local;
-            var isMatch = await AnsiConsole.ConfirmAsync(
-                $"[yellow]Is '[white]{displayMod.LocalName.EscapeMarkup()}[/]' by '[white]{displayMod.LocalAuthor?.EscapeMarkup() ?? "Unknown"}[/]' the same as '[white]{pending.ApiMatch.Name.EscapeMarkup()}[/]' by '[white]{pending.ApiMatch.Owner?.Name.EscapeMarkup() ?? "N/A"}[/]'? ([grey]Confidence: {pending.ConfidenceScore}%[/])[/]"
-            );
+            var isMatch = await reporter.PromptForConfirmationAsync(pending);
 
             var resultIndex = orderedResults.FindIndex(r => r.Local.LocalName == pending.OriginalMod.Local.LocalName);
             if (resultIndex >= 0)
@@ -192,8 +171,8 @@ public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILo
                 }
             }
         }
-
-        AnsiConsole.WriteLine();
+        
+        reporter.Blank();
     }
 }
 

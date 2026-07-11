@@ -16,6 +16,15 @@ namespace CheckModsExtended;
 /// <summary>
 /// Main entry point for the CheckModsExtended application.
 /// </summary>
+/// <summary>
+/// Exit codes for the application.
+/// </summary>
+public static class ExitCodes
+{
+    public const int Success = 0;
+    public const int Error = 2;
+}
+
 public sealed class Program
 {
     private static CancellationTokenSource? _cts;
@@ -35,7 +44,7 @@ public sealed class Program
     /// <param name="args">Command line arguments. The only argument is the SPT installation path.</param>
     public static async Task<int> Main(string[] args)
     {
-        int exitCode = 0;
+        int exitCode = ExitCodes.Success;
 
         _wasCancelled = false;
         _cts = new CancellationTokenSource();
@@ -92,12 +101,12 @@ public sealed class Program
         catch (OperationCanceledException)
         {
             // Usually cancelled is a zero exit code
-            exitCode = 0; 
+            exitCode = ExitCodes.Success; 
         }
         catch (Exception ex)
         {
             AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
-            exitCode = 2;
+            exitCode = ExitCodes.Error;
         }
         finally
         {

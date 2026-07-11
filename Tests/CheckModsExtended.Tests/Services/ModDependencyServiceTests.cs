@@ -183,13 +183,13 @@ public sealed class ModDependencyServiceTests
         // Two mods sharing one ApiModId should trigger a single dependency fetch.
         var m1 = MatchedMod("com.a.one", "One", 100);
         var m2 = MatchedMod("com.a.two", "Two", 100);
-        var calls = new List<(int Fetched, int Total)>();
+        var calls = new List<int>();
         var api = new FakeForgeApiService { OnGetModDependencies = _ => new List<ModDependency>() };
 
         await CreateService(api)
-            .AnalyzeDependenciesAsync([m1, m2], new HashSet<string>(), (fetched, total) => calls.Add((fetched, total)));
+            .AnalyzeDependenciesAsync([m1, m2], new HashSet<string>(), new Progress<int>(fetched => calls.Add(fetched)));
 
-        Assert.Equal((1, 1), Assert.Single(calls));
+        Assert.Equal(1, Assert.Single(calls));
     }
 
     [Fact]

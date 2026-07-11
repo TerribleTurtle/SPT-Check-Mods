@@ -17,15 +17,15 @@ public sealed class FakeModDependencyService : IModDependencyService
     public Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
         ISet<string> installedModGuids,
-        Action<int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (progressCallback != null)
+        if (progress != null)
         {
-            progressCallback(1, 1);
+            progress.Report(1);
         }
 
         return Task.FromResult<(IReadOnlyList<Mod>, DependencyAnalysisResult)>((mods.ToList(), ResultToReturn));

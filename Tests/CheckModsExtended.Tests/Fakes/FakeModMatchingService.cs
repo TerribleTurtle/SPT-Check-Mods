@@ -31,7 +31,7 @@ public sealed class FakeModMatchingService : IModMatchingService
     public Task<IReadOnlyList<Mod>> MatchModsAsync(
         IEnumerable<Mod> mods,
         Version sptVersion,
-        Action<Mod, int, int>? progressCallback = null,
+        IProgress<int>? progress = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -48,9 +48,9 @@ public sealed class FakeModMatchingService : IModMatchingService
             var matchedMod = MatchModAction != null ? MatchModAction(m) : m;
             result.Add(matchedMod);
 
-            if (progressCallback != null)
+            if (progress != null)
             {
-                progressCallback(matchedMod, i + 1, modList.Count);
+                progress.Report(i + 1);
             }
         }
 
