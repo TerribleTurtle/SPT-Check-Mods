@@ -1,32 +1,30 @@
 # Check Mods Extended v2.0.0
 
-Welcome to the first official release of **Check Mods Extended**! 
+Welcome to the first release of **Check Mods Extended**. 
 
-First and foremost, a massive thank you to Refringe for their incredible foundational work on the original SPT-Check-Mods. This fork builds directly upon their excellent vision, expanding it with new features, better performance, and enhanced security.
+First, a sincere thank you to Refringe for the foundational work on the original SPT-Check-Mods. This fork builds directly upon that project, expanding it with new architectural changes, performance improvements, and security features.
 
 ### What's Changed
 
 - **Modernized Mod Scanning**
-  We've updated how mod data is read under the hood. The tool now analyzes mod files statically rather than dynamically loading them into memory, providing an extra layer of security and peace of mind when checking large mod lists.
+  We've updated how mod data is read. The tool now analyzes mod files statically rather than dynamically loading them into memory, providing an extra layer of security when checking large mod lists.
   
-- **Guaranteed Safe Downloads**
-  Every release is now automatically scanned by over 70 antivirus engines (via VirusTotal) and cryptographically signed. You can download with 100% confidence that the files are safe and untampered.
+- **Verifiable & Scanned Releases**
+  All releases are now automatically scanned by over 70 antivirus engines via VirusTotal and cryptographically signed using GitHub Artifact Attestations (Build Provenance). You can view the scan reports directly at the bottom of these release notes.
   
-- **Much Faster Update Checks**
-  Checking massive mod lists is now significantly faster because the application fetches updates for multiple mods at the exact same time rather than one by one.
+- **Parallel Update Checks**
+  The update checker has been refactored to fetch mod updates concurrently, which reduces the total time required to process large mod lists.
   
-- **No More Connection Drops**
-  We added smart, automated rate-limiting. If you are checking hundreds of mods, the tool will gracefully pace itself so it doesn't get blocked by the servers for asking too quickly.
+- **API Rate Limiting**
+  Added automated rate-limiting. When checking hundreds of mods, the tool now paces its API requests to prevent the host servers from blocking the connection.
   
-- **More Reliable Foundations**
-  The underlying code has been completely rewritten from the ground up to be far more stable, testable, and easier to update in the future.
+- **Pipeline Architecture**
+  The core codebase has been restructured into discrete, testable workflow steps to make it easier to maintain and extend.
   
-- **New Name**
-  Officially renamed to "Check Mods Extended" to reflect the massive divergence and distinguish it as a major standalone upgrade from the original tool.
+- **Project Rename**
+  Renamed to "Check Mods Extended" to reflect the structural divergence from the original repository and establish it as an independent fork.
   
 - **Linux & Steam Deck Support**
-  The application is now officially cross-platform! Releases include a native Linux version so you can easily run it on Linux servers, WSL, or your Steam Deck.
-
-Enjoy the update!
+  The application is now cross-platform. Releases include a pre-compiled Linux binary for running natively on Linux servers, WSL, and the Steam Deck.
 
 **Full Changelog**: https://github.com/TerribleTurtle/CheckModsExtended/compare/v1.2.1...v2.0.0
