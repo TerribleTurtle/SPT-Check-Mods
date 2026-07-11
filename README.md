@@ -37,7 +37,12 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 ## Installation
 
 ### Option 1: Download Release
-Download the latest release (`CheckModsExtended-win-x64.exe`) from the [Releases](https://github.com/TerribleTurtle/CheckModsExtended/releases) page, then move it into the root of your SPT installation directory. Running it from there checks the mods in that installation.
+Download the latest release for your operating system (`CheckModsExtended-win-x64.exe` or `CheckModsExtended-linux-x64`) from the [Releases](https://github.com/TerribleTurtle/CheckModsExtended/releases) page.
+
+- **Windows**: Move the `.exe` into the root of your SPT installation directory.
+- **Linux**: Move the binary into your SPT directory and make it executable: `chmod +x CheckModsExtended-linux-x64`.
+
+Running the application from the root directory will automatically check the mods in that installation.
 
 ### Option 2: Build from Source
 ```bash
@@ -51,13 +56,21 @@ dotnet build
 If you downloaded the release executable and placed it in your SPT installation directory, run it from there:
 
 ```bash
+# Windows
 CheckModsExtended-win-x64.exe
+
+# Linux
+./CheckModsExtended-linux-x64
 ```
 
 It checks the mods in the current directory. You can also point it at an SPT installation elsewhere by passing the path:
 
 ```bash
+# Windows
 CheckModsExtended-win-x64.exe "C:\path\to\spt"
+
+# Linux
+./CheckModsExtended-linux-x64 "/path/to/spt"
 ```
 
 If you built from source, use `dotnet run` instead. The `--` passes the path through to the application rather than to the .NET CLI:
@@ -80,9 +93,12 @@ You can override application settings using environment variables. This is parti
 set LoggingOptions__MinimumLogLevel=Debug
 CheckModsExtended-win-x64.exe
 
-# PowerShell
+# Windows PowerShell
 $env:LoggingOptions__MinimumLogLevel="Debug"
 .\CheckModsExtended-win-x64.exe
+
+# Linux Bash
+LoggingOptions__MinimumLogLevel=Debug ./CheckModsExtended-linux-x64
 ```
 
 

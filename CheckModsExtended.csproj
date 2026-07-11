@@ -88,8 +88,12 @@
       </Code>
     </Task>
   </UsingTask>
-  <Target Name="ZipWindowsExe" AfterTargets="RenamePublishedExe" Condition="'$(RuntimeIdentifier)' != '' AND $(RuntimeIdentifier.StartsWith('win'))">
-    <ZipFileWithCompression SourceFile="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).exe" DestinationArchive="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).zip" />
+  <Target Name="ZipPublishedExe" AfterTargets="RenamePublishedExe" Condition="'$(RuntimeIdentifier)' != ''">
+    <PropertyGroup>
+      <ExeExt Condition="$(RuntimeIdentifier.StartsWith('win'))">.exe</ExeExt>
+      <ExeExt Condition="!$(RuntimeIdentifier.StartsWith('win'))"></ExeExt>
+    </PropertyGroup>
+    <ZipFileWithCompression SourceFile="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier)$(ExeExt)" DestinationArchive="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).zip" />
   </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="CheckModsExtended.Tests" />

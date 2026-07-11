@@ -18,6 +18,8 @@ First and foremost, a massive thank you to Refringe for their incredible foundat
   The core mod-checking logic has been restructured into discrete, testable workflow steps to make the codebase easier to maintain and extend over time.
 - **Project Rename**
   Officially renamed to Check Mods Extended to reflect the massive divergence and distinguish it as a standalone, independent fork.
+- **Official Linux Support**
+  The application is now officially cross-platform! Releases include a pre-compiled, trimmed Linux binary (`linux-x64`) for running natively on Linux servers, WSL, and Steam Deck. Both Windows and Linux builds have feature parity and will run flawlessly.
 
 Enjoy the update!
 

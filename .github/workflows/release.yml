@@ -43,23 +43,32 @@ jobs:
     - name: Build and Publish Windows x64
       run: |
         dotnet publish CheckModsExtended.csproj -c Release -r win-x64 -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/win-x64
+
+    - name: Build and Publish Linux x64
+      run: |
+        dotnet publish CheckModsExtended.csproj -c Release -r linux-x64 -p:PublishTrimmed=true -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/linux-x64
     
     - name: Generate Checksums
-      working-directory: ./publish/win-x64
-      run: sha256sum CheckModsExtended-* > checksums.txt
+      run: |
+        mkdir -p ./publish/artifacts
+        cp ./publish/win-x64/CheckModsExtended-win-x64.exe ./publish/artifacts/
+        cp ./publish/win-x64/CheckModsExtended-win-x64.zip ./publish/artifacts/
+        cp ./publish/linux-x64/CheckModsExtended-linux-x64 ./publish/artifacts/
+        cp ./publish/linux-x64/CheckModsExtended-linux-x64.zip ./publish/artifacts/
+        cd ./publish/artifacts
+        sha256sum CheckModsExtended-* > checksums.txt
         
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: './publish/win-x64/CheckModsExtended-*'
+        subject-path: './publish/artifacts/CheckModsExtended-*'
 
     - name: Create Release
       uses: softprops/action-gh-release@v3
       with:
         files: |
-          ./publish/win-x64/CheckModsExtended-*.exe
-          ./publish/win-x64/CheckModsExtended-*.zip
-          ./publish/win-x64/checksums.txt
+          ./publish/artifacts/CheckModsExtended-*
+          ./publish/artifacts/checksums.txt
         generate_release_notes: true
         body_path: release_notes.md
         prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
@@ -69,8 +78,7 @@ jobs:
       with:
         vt_api_key: ${{ secrets.VT_API_KEY }}
         files: |
-          ./publish/win-x64/CheckModsExtended-*.exe
-          ./publish/win-x64/CheckModsExtended-*.zip
+          ./publish/artifacts/CheckModsExtended-*
         update_release_body: true
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
