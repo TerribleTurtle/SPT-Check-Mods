@@ -35,7 +35,8 @@ public sealed class ModScannerServiceTests : IDisposable
             _serverExtractor,
             _misplacedDetector,
             _reporter,
-            NullLogger<ModScannerService>.Instance
+            NullLogger<ModScannerService>.Instance,
+            _fixture.FileSystem
         );
     }
 
@@ -77,8 +78,8 @@ public sealed class ModScannerServiceTests : IDisposable
     public async Task Scanservermodsasync_includes_package_only_server_mods()
     {
         var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
-        Directory.CreateDirectory(modDir);
-        File.WriteAllText(Path.Combine(modDir, "package.json"), "{}");
+        _fixture.FileSystem.CreateDirectory(modDir);
+        _fixture.FileSystem.WriteAllTextAsync(Path.Combine(modDir, "package.json"), "{}").GetAwaiter().GetResult();
 
         var fakeMod = ModFixture.CreateServerMod("PackageOnlyMod", "PackageOnlyMod", "1.0.0", "Unknown");
         fakeMod = fakeMod with { Local = fakeMod.Local with { FilePath = "test.json", LocalSptVersion = "3.8.0" } };
@@ -96,10 +97,10 @@ public sealed class ModScannerServiceTests : IDisposable
     public async Task Scanclientmodsasync_returnsvalidmods()
     {
         var pluginsDir = Path.Combine(_sptPath, "BepInEx", "plugins");
-        Directory.CreateDirectory(pluginsDir);
+        _fixture.FileSystem.CreateDirectory(pluginsDir);
 
         var dllPath = Path.Combine(pluginsDir, "TestClient.dll");
-        File.WriteAllText(dllPath, "dummy");
+        _fixture.FileSystem.WriteAllTextAsync(dllPath, "dummy").GetAwaiter().GetResult();
 
         _pluginExtractor.ValidClientDllFilesToReturn = [dllPath];
 
@@ -148,9 +149,10 @@ public sealed class ModScannerServiceTests : IDisposable
         var realPluginExtractor = new PluginMetadataExtractor(
             new ModPartitioner(),
             options,
-            NullLogger<PluginMetadataExtractor>.Instance
+            NullLogger<PluginMetadataExtractor>.Instance,
+            _fixture.FileSystem
         );
-        var realServerExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, new CheckModsExtended.Utils.FileSystem());
+        var realServerExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, _fixture.FileSystem);
         var realMisplacedDetector = new MisplacedModDetector(
             new ModPartitioner(),
             realPluginExtractor,
@@ -162,7 +164,8 @@ public sealed class ModScannerServiceTests : IDisposable
             realServerExtractor,
             realMisplacedDetector,
             _reporter,
-            NullLogger<ModScannerService>.Instance
+            NullLogger<ModScannerService>.Instance,
+            _fixture.FileSystem
         );
 
         // Generate dummy client mod (BepInEx Plugin)
@@ -209,5 +212,8 @@ namespace BepInEx {
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
+
+
+
 
 

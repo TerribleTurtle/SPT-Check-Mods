@@ -21,21 +21,22 @@ namespace CheckModsExtended.Services;
 public sealed class PluginMetadataExtractor(
     IModPartitioner partitioner,
     IOptions<ModScannerOptions> options,
-    ILogger<PluginMetadataExtractor> logger
+    ILogger<PluginMetadataExtractor> logger,
+    IFileSystem fileSystem
 ) : IPluginMetadataExtractor
 {
     private readonly ModScannerOptions _options = options.Value;
+    private readonly IFileSystem _fileSystem = fileSystem;
 
     /// <inheritdoc />
     public List<string> GetValidClientDllFiles(string pluginsPath)
     {
         var sptDir = Path.GetFullPath(Path.Combine(pluginsPath, "spt")) + Path.DirectorySeparatorChar;
 
-        return new DirectoryInfo(pluginsPath)
-            .EnumerateFiles("*.dll", SearchOption.AllDirectories)
-            .Where(file => !file.FullName.StartsWith(sptDir, StringComparison.OrdinalIgnoreCase))
-            .Where(file => file.Length <= _options.MaxDllSizeBytes)
-            .Select(file => file.FullName)
+        return _fileSystem.GetFiles(pluginsPath, "*", SearchOption.AllDirectories)
+            .Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            .Where(f => !f.StartsWith(sptDir, StringComparison.OrdinalIgnoreCase))
+            .Where(f => _fileSystem.GetFileLength(f) <= _options.MaxDllSizeBytes)
             .ToList();
     }
 
@@ -110,7 +111,7 @@ public sealed class PluginMetadataExtractor(
         {
             try
             {
-                using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var module = ModuleDefinition.ReadModule(stream);
 
                 foreach (var type in module.Types)
@@ -151,7 +152,7 @@ public sealed class PluginMetadataExtractor(
             {
                 try
                 {
-                    using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     using var module = ModuleDefinition.ReadModule(stream);
 
                     BepInPluginAttribute? plugin = null;
@@ -203,7 +204,7 @@ public sealed class PluginMetadataExtractor(
         return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
-    private static Mod? ExtractClientModMetadata(
+    private Mod? ExtractClientModMetadata(
         string dllPath,
         ConcurrentBag<(string FileName, string Reason)> warnings,
         CancellationToken cancellationToken
@@ -211,7 +212,7 @@ public sealed class PluginMetadataExtractor(
     {
         try
         {
-            using var stream = new FileStream(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var module = ModuleDefinition.ReadModule(stream);
 
             foreach (var type in module.Types)
@@ -446,3 +447,6 @@ public sealed class PluginMetadataExtractor(
         return SemVer.TryParse(version, "PluginMetadataExtractor").IsT0;
     }
 }
+
+
+

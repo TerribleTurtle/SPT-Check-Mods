@@ -19,7 +19,7 @@ public sealed class ServerModExtractorTests : IDisposable
     {
         _fixture = new SptSandboxFixture();
         _sptPath = _fixture.SandboxPath;
-        _extractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, new CheckModsExtended.Utils.FileSystem());
+        _extractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, _fixture.FileSystem);
     }
 
     [Fact]
@@ -60,9 +60,9 @@ public sealed class ServerModExtractorTests : IDisposable
     public async Task ExtractServerModPackageMetadataAsync_returns_valid_mod()
     {
         var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
-        Directory.CreateDirectory(modDir);
+        _fixture.FileSystem.CreateDirectory(modDir);
         var packagePath = Path.Combine(modDir, "package.json");
-        File.WriteAllText(
+        _fixture.FileSystem.WriteAllTextAsync(
             packagePath,
             """
             {
@@ -144,7 +144,7 @@ public sealed class ServerModExtractorTests : IDisposable
         var modPath = Path.Combine("SPT", "user", "mods", "unreadable-mod");
         var dllPath = Path.Combine(modPath, "Unreadable.dll");
 
-        Directory.CreateDirectory(Path.Combine(_sptPath, modPath));
+        _fixture.FileSystem.CreateDirectory(Path.Combine(_sptPath, modPath));
         File.WriteAllBytes(Path.Combine(_sptPath, dllPath), [0x00, 0x01, 0x02]);
 
         var mod = await _extractor.ExtractServerModMetadataAsync(Path.Combine(_sptPath, dllPath), _sptPath);
@@ -157,5 +157,7 @@ public sealed class ServerModExtractorTests : IDisposable
         _fixture.Dispose();
     }
 }
+
+
 
 

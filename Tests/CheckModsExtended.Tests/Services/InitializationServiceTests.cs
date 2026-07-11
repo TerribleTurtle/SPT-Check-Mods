@@ -1,6 +1,9 @@
 using CheckModsExtended.Services;
 using CheckModsExtended.Tests.Fakes;
 using CheckModsExtended.Tests.Fixtures;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace CheckModsExtended.Tests.Services;
@@ -9,11 +12,12 @@ public sealed class InitializationServiceTests
 {
     private readonly FakeModCheckReporter _reporter = new();
     private readonly FakeLogger<InitializationService> _logger = new();
+    private readonly FakeFileSystem _fileSystem = new();
     private readonly InitializationService _sut;
 
     public InitializationServiceTests()
     {
-        _sut = new InitializationService(_reporter, _logger, Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.AppPaths()));
+        _sut = new InitializationService(_reporter, _logger, Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.AppPaths()), _fileSystem);
     }
 
     [Fact]
@@ -33,7 +37,7 @@ public sealed class InitializationServiceTests
         var result = _sut.GetValidatedSptPath([]);
 
         // Assert
-        Assert.Equal(Directory.GetCurrentDirectory(), result);
+        Assert.Equal(_fileSystem.GetCurrentDirectory(), result);
     }
 
     [Fact]
@@ -67,20 +71,13 @@ public sealed class InitializationServiceTests
     public void Get_validated_spt_path_returns_path_if_directory_exists()
     {
         // Arrange
-        var tempDirectory = TempWorkspace.CreateDirectory("InitTests");
+        var tempDirectory = Path.GetFullPath("InitTests");
+        _fileSystem.CreateDirectory(tempDirectory);
 
-        try
-        {
-            // Act
-            var result = _sut.GetValidatedSptPath([tempDirectory]);
+        // Act
+        var result = _sut.GetValidatedSptPath([tempDirectory]);
 
-            // Assert
-            Assert.Equal(Path.GetFullPath(tempDirectory), result);
-        }
-        finally
-        {
-            TempWorkspace.SafeDelete(tempDirectory);
-        }
+        // Assert
+        Assert.Equal(Path.GetFullPath(tempDirectory), result);
     }
 }
-

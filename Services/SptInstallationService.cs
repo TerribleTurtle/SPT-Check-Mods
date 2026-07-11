@@ -14,7 +14,8 @@ public sealed class SptInstallationService(
     IForgeApiService forgeApiService,
     IModScannerService scannerService,
     IModCheckReporter reporter,
-    ILogger<SptInstallationService> logger
+    ILogger<SptInstallationService> logger,
+    IFileSystem fileSystem
 ) : ISptInstallationService
 {
     /// <inheritdoc />
@@ -26,7 +27,7 @@ public sealed class SptInstallationService(
         logger.LogDebug("Validating SPT installation at: {SptPath}", sptPath);
 
         var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
-        if (!File.Exists(coreDllPath))
+        if (!fileSystem.FileExists(coreDllPath))
         {
             logger.LogError("SPT core DLL not found: {CoreDllPath}", coreDllPath);
             reporter.Error(
@@ -115,3 +116,4 @@ public sealed class SptInstallationService(
         );
     }
 }
+

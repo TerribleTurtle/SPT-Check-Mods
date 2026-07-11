@@ -15,6 +15,16 @@ public interface IFileSystem
     Stream Open(string path, FileMode mode, FileAccess access, FileShare share);
     void DeleteFile(string path);
     Task DeleteFileAsync(string path, CancellationToken cancellationToken = default);
+    Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default);
+    Task WriteAllTextAsync(string path, string contents, CancellationToken cancellationToken = default);
+    void MoveFile(string sourceFileName, string destFileName, bool overwrite);
+    void CreateDirectory(string path);
+    bool DirectoryExists(string path);
+    string[] GetDirectories(string path);
+    string[] GetFiles(string path, string searchPattern, SearchOption searchOption);
+    string GetCurrentDirectory();
+    string? GetFileVersion(string path);
+    long GetFileLength(string path);
 }
 
 /// <summary>
@@ -47,4 +57,57 @@ public sealed class FileSystem : IFileSystem
     {
         return Task.Run(() => File.Delete(path), cancellationToken);
     }
+
+    public Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default)
+    {
+        return File.ReadAllTextAsync(path, cancellationToken);
+    }
+
+    public Task WriteAllTextAsync(string path, string contents, CancellationToken cancellationToken = default)
+    {
+        return File.WriteAllTextAsync(path, contents, cancellationToken);
+    }
+
+    public void MoveFile(string sourceFileName, string destFileName, bool overwrite)
+    {
+        File.Move(sourceFileName, destFileName, overwrite);
+    }
+
+    public void CreateDirectory(string path)
+    {
+        Directory.CreateDirectory(path);
+    }
+
+    public bool DirectoryExists(string path)
+    {
+        return Directory.Exists(path);
+    }
+
+    public string[] GetDirectories(string path)
+    {
+        return Directory.GetDirectories(path);
+    }
+
+    public string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
+    {
+        return Directory.GetFiles(path, searchPattern, searchOption);
+    }
+
+    public string GetCurrentDirectory()
+    {
+        return Directory.GetCurrentDirectory();
+    }
+
+    public string? GetFileVersion(string path)
+    {
+        return System.Diagnostics.FileVersionInfo.GetVersionInfo(path).FileVersion;
+    }
+
+    public long GetFileLength(string path)
+    {
+        return new FileInfo(path).Length;
+    }
 }
+
+
+

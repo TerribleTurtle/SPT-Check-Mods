@@ -4,6 +4,7 @@ using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Options;
 using SPTarkov.DI.Annotations;
 
@@ -14,10 +15,11 @@ namespace CheckModsExtended.Services;
 /// caches it in memory for the lifetime of the run.
 /// </summary>
 [Injectable(InjectionType.Singleton)]
-public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, ILogger<IgnoredUpdateStore> logger)
+public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, ILogger<IgnoredUpdateStore> logger, IFileSystem fileSystem)
     : IIgnoredUpdateStore
 {
     private readonly IgnoredUpdateOptions _options = options.Value;
+    private readonly IFileSystem _fileSystem = fileSystem;
 
     private List<IgnoredUpdate>? _cache;
     private HashSet<string> _keys = new(StringComparer.OrdinalIgnoreCase);
@@ -112,12 +114,12 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     {
         try
         {
-            if (!File.Exists(_options.FilePath))
+            if (!_fileSystem.FileExists(_options.FilePath))
             {
                 return [];
             }
 
-            var json = await File.ReadAllTextAsync(_options.FilePath, cancellationToken);
+            var json = await _fileSystem.ReadAllTextAsync(_options.FilePath, cancellationToken);
             var file = JsonSerializer.Deserialize(
                 json,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
@@ -148,7 +150,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             var directory = Path.GetDirectoryName(_options.FilePath);
             if (!string.IsNullOrEmpty(directory))
             {
-                Directory.CreateDirectory(directory);
+                _fileSystem.CreateDirectory(directory);
             }
 
             var file = new IgnoredUpdatesFile(IgnoredUpdatesFile.CurrentSchemaVersion, entries);
@@ -159,8 +161,8 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
 
             // Atomic write: stage to a temp file then move into place.
             var tempPath = _options.FilePath + ".tmp";
-            await File.WriteAllTextAsync(tempPath, json, cancellationToken);
-            File.Move(tempPath, _options.FilePath, overwrite: true);
+            await _fileSystem.WriteAllTextAsync(tempPath, json, cancellationToken);
+            _fileSystem.MoveFile(tempPath, _options.FilePath, true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
@@ -178,3 +180,4 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
         return $"{apiModId}|{localVersion}|{latestVersion}";
     }
 }
+

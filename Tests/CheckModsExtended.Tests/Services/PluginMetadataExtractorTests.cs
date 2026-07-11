@@ -25,7 +25,8 @@ public sealed class PluginMetadataExtractorTests : IDisposable
         _extractor = new PluginMetadataExtractor(
             new ModPartitioner(),
             options,
-            NullLogger<PluginMetadataExtractor>.Instance
+            NullLogger<PluginMetadataExtractor>.Instance,
+            _fixture.FileSystem
         );
     }
 
@@ -170,18 +171,18 @@ public class ModulePlugin {}
     public void Getvalidclientdllfiles_filterscorrectly()
     {
         var pluginsPath = Path.Combine(_sptPath, "BepInEx", "plugins");
-        Directory.CreateDirectory(pluginsPath);
+        _fixture.FileSystem.CreateDirectory(pluginsPath);
 
         var validDll = Path.Combine(pluginsPath, "Valid.dll");
-        File.WriteAllBytes(validDll, new byte[100]);
+        _fixture.FileSystem.Files[validDll] = new byte[100];
 
         var sptDir = Path.Combine(pluginsPath, "spt");
-        Directory.CreateDirectory(sptDir);
+        _fixture.FileSystem.CreateDirectory(sptDir);
         var sptDll = Path.Combine(sptDir, "SptCore.dll");
-        File.WriteAllBytes(sptDll, new byte[100]);
+        _fixture.FileSystem.Files[sptDll] = new byte[100];
 
         var largeDll = Path.Combine(pluginsPath, "Large.dll");
-        File.WriteAllBytes(largeDll, new byte[10 * 1024 * 1024 + 1]);
+        _fixture.FileSystem.Files[largeDll] = new byte[10 * 1024 * 1024 + 1];
 
         var validDlls = _extractor.GetValidClientDllFiles(pluginsPath);
 
@@ -193,8 +194,8 @@ public class ModulePlugin {}
     public async Task Trydetectclientmodasync_returnsnull_wheninvaliddll()
     {
         var dllPath = Path.Combine(_sptPath, "BepInEx", "plugins", "Invalid.dll");
-        Directory.CreateDirectory(Path.GetDirectoryName(dllPath)!);
-        File.WriteAllBytes(dllPath, [0x00, 0x01, 0x02]);
+        _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(dllPath)!);
+        _fixture.FileSystem.Files[dllPath] = [0x00, 0x01, 0x02];
 
         var mod = await _extractor.TryDetectClientModAsync(dllPath);
 
@@ -206,3 +207,4 @@ public class ModulePlugin {}
         _fixture.Dispose();
     }
 }
+

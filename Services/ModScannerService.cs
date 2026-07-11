@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CheckModsExtended.Utils;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -21,7 +22,8 @@ public sealed class ModScannerService(
     IServerModExtractor serverExtractor,
     IMisplacedModDetector misplacedDetector,
     IModCheckReporter reporter,
-    ILogger<ModScannerService> logger
+    ILogger<ModScannerService> logger,
+    IFileSystem fileSystem
 ) : IModScannerService
 {
     private readonly ConcurrentDictionary<string, IReadOnlyList<PluginDll>> _pluginCache = new(StringComparer.OrdinalIgnoreCase);
@@ -34,14 +36,14 @@ public sealed class ModScannerService(
         var modsDir = Path.Combine(sptPath, "SPT", "user", "mods");
         var concurrentMods = new ConcurrentBag<Mod>();
 
-        if (!Directory.Exists(modsDir))
+        if (!fileSystem.DirectoryExists(modsDir))
         {
             logger.LogDebug("Server mods directory not found: {ModsDir}", modsDir);
             reporter.Status("Scanning server mods... none found.");
             return [.. concurrentMods];
         }
 
-        var modDirs = Directory.GetDirectories(modsDir);
+        var modDirs = fileSystem.GetDirectories(modsDir);
         logger.LogDebug("Found {DirCount} mod directories", modDirs.Length);
         reporter.Blank();
         reporter.Status($"Scanning {modDirs.Length} mod directories for server mods...");
@@ -51,7 +53,7 @@ public sealed class ModScannerService(
             cancellationToken,
             async (modDir, ct) =>
             {
-                var dllFiles = Directory.GetFiles(modDir, "*.dll", SearchOption.TopDirectoryOnly);
+                var dllFiles = fileSystem.GetFiles(modDir, "*.dll", SearchOption.TopDirectoryOnly);
                 bool foundMod = false;
 
                 foreach (var dllPath in dllFiles)
@@ -99,7 +101,7 @@ public sealed class ModScannerService(
         var pluginsDir = Path.Combine(sptPath, "BepInEx", "plugins");
         List<Mod> mods = [];
 
-        if (!Directory.Exists(pluginsDir))
+        if (!fileSystem.DirectoryExists(pluginsDir))
         {
             logger.LogWarning("BepInEx plugins directory not found: {PluginsDir}", pluginsDir);
             reporter.PluginsDirectoryNotFound(pluginsDir);
@@ -211,7 +213,7 @@ public sealed class ModScannerService(
     {
         var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
 
-        if (!File.Exists(coreDllPath))
+        if (!fileSystem.FileExists(coreDllPath))
         {
             return null;
         }
@@ -244,3 +246,5 @@ public sealed class ModScannerService(
         return await misplacedDetector.DetectMisplacedModsAsync(sptPath, _pluginCache, cancellationToken);
     }
 }
+
+

@@ -2,6 +2,7 @@ using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services;
 using CheckModsExtended.Tests.Fixtures;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -13,25 +14,25 @@ namespace CheckModsExtended.Tests.Services;
 /// </summary>
 public sealed class IgnoredUpdateStoreTests : IDisposable
 {
-    private readonly string _dir;
+    private readonly FakeFileSystem _fileSystem;
     private readonly string _path;
 
     public IgnoredUpdateStoreTests()
     {
-        _dir = TempWorkspace.CreateDirectory("CheckModsExtended-tests");
-        _path = Path.Combine(_dir, "ignored-updates.json");
+        _fileSystem = new FakeFileSystem();
+        _path = "/mock/ignored-updates.json";
     }
 
     public void Dispose()
     {
-        TempWorkspace.SafeDelete(_dir);
     }
 
     private IgnoredUpdateStore CreateStore()
     {
         return new IgnoredUpdateStore(
             Options.Create(new IgnoredUpdateOptions { FilePath = _path, RemoteUrl = null }),
-            NullLogger<IgnoredUpdateStore>.Instance
+            NullLogger<IgnoredUpdateStore>.Instance,
+            _fileSystem
         );
     }
 
@@ -83,7 +84,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     [Fact]
     public async Task Load_returns_empty_on_corrupt_file()
     {
-        await File.WriteAllTextAsync(_path, "{ this is not valid json ");
+        await _fileSystem.WriteAllTextAsync(_path, "{ this is not valid json ");
 
         Assert.Empty(await CreateStore().LoadAsync());
     }
@@ -112,6 +113,8 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     {
         await CreateStore().SaveAsync([Entry(1, "1.0.0", "1.0.1")]);
 
-        Assert.False(File.Exists(_path + ".tmp"));
+        Assert.False(_fileSystem.FileExists(_path + ".tmp"));
     }
 }
+
+

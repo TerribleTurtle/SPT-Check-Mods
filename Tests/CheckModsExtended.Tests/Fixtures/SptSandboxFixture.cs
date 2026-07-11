@@ -6,30 +6,18 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace CheckModsExtended.Tests.Fixtures;
 
-/// <summary>
-/// A test fixture that creates a temporary directory for tests to use as an SPT sandbox.
-/// </summary>
 public sealed class SptSandboxFixture : IDisposable
 {
-    /// <summary>
-    /// Gets the path to the temporary sandbox directory.
-    /// </summary>
     public string SandboxPath { get; }
+    public FakeFileSystem FileSystem { get; } = new();
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SptSandboxFixture"/> class.
-    /// </summary>
     public SptSandboxFixture()
     {
-        SandboxPath = TempWorkspace.CreateDirectory("SptSandbox");
+        SandboxPath = Path.Combine(Path.GetTempPath(), "SptSandbox_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(SandboxPath);
+        FileSystem.CreateDirectory(SandboxPath);
     }
 
-    /// <summary>
-    /// Compiles a C# code string into a DLL at the specified path within the sandbox.
-    /// </summary>
-    /// <param name="relativePath">The relative path within the sandbox where the DLL will be created.</param>
-    /// <param name="code">The C# code to compile.</param>
-    /// <returns>The absolute path to the compiled DLL.</returns>
     public string CompileDummyDll(string relativePath, string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);
@@ -53,10 +41,11 @@ public sealed class SptSandboxFixture : IDisposable
         if (dir is not null)
         {
             Directory.CreateDirectory(dir);
+            FileSystem.CreateDirectory(dir);
         }
 
-        using var fileStream = File.Create(fullPath);
-        var result = compilation.Emit(fileStream);
+        using var ms = new MemoryStream();
+        var result = compilation.Emit(ms);
 
         if (!result.Success)
         {
@@ -64,15 +53,18 @@ public sealed class SptSandboxFixture : IDisposable
             throw new InvalidOperationException($"Failed to compile dummy DLL:\n{errors}");
         }
 
+        FileSystem.Files[fullPath] = ms.ToArray();
+        File.WriteAllBytes(fullPath, ms.ToArray());
         return fullPath;
     }
 
-    /// <inheritdoc />
     public void Dispose()
     {
         if (Directory.Exists(SandboxPath))
         {
-            TempWorkspace.SafeDelete(SandboxPath);
+            Directory.Delete(SandboxPath, recursive: true);
         }
     }
 }
+
+

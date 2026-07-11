@@ -9,7 +9,7 @@ namespace CheckModsExtended.Services;
 /// Implementation of <see cref="IInitializationService"/>.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class InitializationService(IModCheckReporter reporter, ILogger<InitializationService> logger, Microsoft.Extensions.Options.IOptions<CheckModsExtended.Configuration.AppPaths> appPaths)
+public sealed class InitializationService(IModCheckReporter reporter, ILogger<InitializationService> logger, Microsoft.Extensions.Options.IOptions<CheckModsExtended.Configuration.AppPaths> appPaths, IFileSystem fileSystem)
     : IInitializationService
 {
     /// <inheritdoc />
@@ -20,12 +20,12 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
             var configDirectory = Path.GetFullPath(appPaths.Value.AppDataDirectory);
             var configFilePath = Path.GetFullPath(Path.Combine(configDirectory, "apikey.txt"));
 
-            if (!File.Exists(configFilePath))
+            if (!fileSystem.FileExists(configFilePath))
             {
                 return;
             }
 
-            await Task.Run(() => File.Delete(configFilePath));
+            await Task.Run(() => fileSystem.DeleteFile(configFilePath));
             logger.LogInformation("Removed legacy API key file.");
         }
         catch (IOException ex)
@@ -45,7 +45,7 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
 
         if (args.Length == 0)
         {
-            var currentPath = Directory.GetCurrentDirectory();
+            var currentPath = fileSystem.GetCurrentDirectory();
             reporter.UsingPath(currentPath);
             return currentPath;
         }
@@ -57,7 +57,7 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
             return null;
         }
 
-        if (!Directory.Exists(safePath))
+        if (!fileSystem.DirectoryExists(safePath))
         {
             reporter.DirectoryDoesNotExist(safePath);
             return null;
@@ -67,4 +67,5 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
         return safePath;
     }
 }
+
 

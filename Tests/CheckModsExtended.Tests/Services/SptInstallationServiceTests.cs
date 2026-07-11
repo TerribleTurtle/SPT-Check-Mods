@@ -32,7 +32,8 @@ public sealed class SptInstallationServiceTests : IDisposable
             _forgeApiService,
             _scannerService,
             _reporter,
-            NullLogger<SptInstallationService>.Instance
+            NullLogger<SptInstallationService>.Instance,
+            _fixture.FileSystem
         );
     }
 
@@ -40,8 +41,8 @@ public sealed class SptInstallationServiceTests : IDisposable
     public async Task Getandvalidatesptversionasync_withvalidversion_returnsparsedversion()
     {
         var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
-        Directory.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
-        File.WriteAllText(coreDllPath, "dummy content");
+        _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
+        _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content").GetAwaiter().GetResult();
 
         _scannerService.SptVersionToReturn = "3.8.0";
         _forgeApiService.OnValidateSptVersion = _ => true;
@@ -64,8 +65,8 @@ public sealed class SptInstallationServiceTests : IDisposable
     public async Task Getandvalidatesptversionasync_invalidversion_returnsnull()
     {
         var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
-        Directory.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
-        File.WriteAllText(coreDllPath, "dummy content");
+        _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
+        _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content").GetAwaiter().GetResult();
 
         _scannerService.SptVersionToReturn = "3.8.0";
         _forgeApiService.OnValidateSptVersion = _ => false;
@@ -80,3 +81,4 @@ public sealed class SptInstallationServiceTests : IDisposable
         _fixture.Dispose();
     }
 }
+

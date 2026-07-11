@@ -25,9 +25,10 @@ public sealed class MisplacedModDetectorTests : IDisposable
         var pluginExtractor = new PluginMetadataExtractor(
             new ModPartitioner(),
             options,
-            NullLogger<PluginMetadataExtractor>.Instance
+            NullLogger<PluginMetadataExtractor>.Instance,
+            _fixture.FileSystem
         );
-        var serverExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, new CheckModsExtended.Utils.FileSystem());
+        var serverExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, _fixture.FileSystem);
         _detector = new MisplacedModDetector(
             new ModPartitioner(),
             pluginExtractor,
@@ -144,5 +145,8 @@ public class Plugin2 {}
         _fixture.Dispose();
     }
 }
+
+
+
 
 
