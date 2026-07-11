@@ -53,6 +53,8 @@ dotnet build
 
 ## Usage
 
+### Basic Usage
+
 If you downloaded the release executable and placed it in your SPT installation directory, run it from there:
 
 ```bash
@@ -82,6 +84,37 @@ dotnet run
 # Or specify the SPT path as an argument
 dotnet run -- /path/to/spt
 ```
+
+### Headless Mode
+
+You can run the tool in headless mode using the `-y` or `--no-prompt` flags. This will bypass all interactive prompts (like the end-of-run menu or pause before exit), making it ideal for automated scripting or CI environments:
+
+```bash
+CheckModsExtended-win-x64.exe --no-prompt
+```
+
+### CLI Commands
+
+The application supports additional commands for specific tasks:
+
+- **List Local Mods**: Instantly prints a table of locally installed client and server mods without checking the internet for updates.
+  ```bash
+  CheckModsExtended-win-x64.exe list [SptPath]
+  ```
+
+- **Ignore Updates**: Manually manage the list of ignored updates to suppress false-positive "update available" notifications.
+  - **List ignored updates**: Prints all currently ignored updates.
+    ```bash
+    CheckModsExtended-win-x64.exe ignore list
+    ```
+  - **Add ignored update**: Manually ignores an update.
+    ```bash
+    CheckModsExtended-win-x64.exe ignore add <ApiModId> <LocalVersion> <LatestVersion>
+    ```
+  - **Remove ignored update**: Removes an ignored update.
+    ```bash
+    CheckModsExtended-win-x64.exe ignore remove <ApiModId>
+    ```
 
 ## Troubleshooting
 
