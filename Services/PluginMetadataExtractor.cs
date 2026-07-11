@@ -44,11 +44,20 @@ public sealed class PluginMetadataExtractor(
     )
     {
         var warnings = new ConcurrentBag<(string FileName, string Reason)>();
-        var tasks = dllFiles.Select(dllPath =>
-            ExtractClientModMetadataAsync(dllPath, warnings, cancellationToken)
-        );
+        var results = new ConcurrentBag<Mod?>();
 
-        var results = await Task.WhenAll(tasks);
+        await Parallel.ForEachAsync(
+            dllFiles,
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                CancellationToken = cancellationToken
+            },
+            async (dllPath, ct) =>
+            {
+                var mod = await ExtractClientModMetadataAsync(dllPath, warnings, ct);
+                results.Add(mod);
+            });
 
         foreach (var (fileName, reason) in warnings)
         {
@@ -99,9 +108,9 @@ public sealed class PluginMetadataExtractor(
                         return CreateModFromBepInPlugin(plugin, dllPath);
                     }
                 }
-                catch
+                catch (Exception ex) when (ex is TypeLoadException or BadImageFormatException or ReflectionTypeLoadException or IOException or UnauthorizedAccessException)
                 {
-                    // Skip types that can't be inspected
+                    logger.LogDebug(ex, "Could not inspect type");
                 }
             }
         }
@@ -208,7 +217,7 @@ public sealed class PluginMetadataExtractor(
         return new MisplacedMod(false, mod.Local.Guid, mod.Local.LocalName, mod.Local.LocalVersion, primaryDll);
     }
 
-    private static async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
+    private async Task<Mod?> ExtractClientModMetadataAsync(string dllPath, ConcurrentBag<(string FileName, string Reason)> warnings, CancellationToken cancellationToken)
     {
         try
         {
@@ -238,7 +247,7 @@ public sealed class PluginMetadataExtractor(
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
-    private static Mod? ScanAssemblyForBepInPlugin(Assembly assembly, string dllPath)
+    private Mod? ScanAssemblyForBepInPlugin(Assembly assembly, string dllPath)
     {
         foreach (var type in assembly.GetTypes())
         {
@@ -252,9 +261,9 @@ public sealed class PluginMetadataExtractor(
 
                 return CreateModFromBepInPlugin(bepInPlugin, dllPath);
             }
-            catch
+            catch (Exception ex) when (ex is TypeLoadException or BadImageFormatException or ReflectionTypeLoadException or IOException or UnauthorizedAccessException)
             {
-                // Skip types that can't be inspected
+                logger.LogDebug(ex, "Skipping type due to load exception");
             }
         }
 
@@ -262,7 +271,7 @@ public sealed class PluginMetadataExtractor(
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "We are inspecting dynamically loaded mod assemblies, not application code.")]
-    private static BepInPluginAttribute? ScanAssemblyForBepInPluginAttribute(Assembly assembly)
+    private BepInPluginAttribute? ScanAssemblyForBepInPluginAttribute(Assembly assembly)
     {
         foreach (var type in assembly.GetTypes())
         {
@@ -276,9 +285,9 @@ public sealed class PluginMetadataExtractor(
 
                 return bepInPlugin;
             }
-            catch
+            catch (Exception ex) when (ex is TypeLoadException or BadImageFormatException or ReflectionTypeLoadException or IOException or UnauthorizedAccessException)
             {
-                // Skip types that can't be inspected
+                logger.LogDebug(ex, "Skipping type due to load exception");
             }
         }
         return null;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -32,19 +33,22 @@ public sealed class ModResolutionService(IModLookupStrategy modLookupStrategy) :
             return modsList;
         }
 
-        var updatedModsDict = modsList.ToDictionary(m => m.Local.Guid);
+        var updatedModsDict = new ConcurrentDictionary<string, Mod>(
+            modsList.ToDictionary(m => m.Local.Guid)
+        );
 
-        var tasks = modsWithNames.Select(async mod =>
-        {
-            var updatedMod = await ResolveAndFetchUrlAsync(mod, sptVersion, cancellationToken);
-            return (OriginalGuid: mod.Local.Guid, UpdatedMod: updatedMod);
-        });
-
-        var results = await Task.WhenAll(tasks);
-        foreach (var (guid, updatedMod) in results)
-        {
-            updatedModsDict[guid] = updatedMod;
-        }
+        await Parallel.ForEachAsync(
+            modsWithNames,
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 5,
+                CancellationToken = cancellationToken
+            },
+            async (mod, ct) =>
+            {
+                var updatedMod = await ResolveAndFetchUrlAsync(mod, sptVersion, ct);
+                updatedModsDict[mod.Local.Guid] = updatedMod;
+            });
 
         return updatedModsDict.Values.ToList();
     }
@@ -69,23 +73,29 @@ public sealed class ModResolutionService(IModLookupStrategy modLookupStrategy) :
             return (pairsList, []);
         }
 
-        var updatedPairsDict = pairsList.ToDictionary(p => p.SelectedMod.Local.Guid);
-        var allUpdatedMods = new List<Mod>();
+        var updatedPairsDict = new ConcurrentDictionary<string, ModPair>(
+            pairsList.ToDictionary(p => p.SelectedMod.Local.Guid)
+        );
+        var allUpdatedMods = new ConcurrentBag<Mod>();
 
-        var tasks = validPairs.Select(async pair =>
-        {
-            var (updatedPair, updatedMods) = await ResolveAndFetchUrlForPairAsync(pair, sptVersion, cancellationToken);
-            return (OriginalGuid: pair.SelectedMod.Local.Guid, UpdatedPair: updatedPair, UpdatedMods: updatedMods);
-        });
+        await Parallel.ForEachAsync(
+            validPairs,
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 5,
+                CancellationToken = cancellationToken
+            },
+            async (pair, ct) =>
+            {
+                var (updatedPair, updatedMods) = await ResolveAndFetchUrlForPairAsync(pair, sptVersion, ct);
+                updatedPairsDict[pair.SelectedMod.Local.Guid] = updatedPair;
+                foreach (var mod in updatedMods)
+                {
+                    allUpdatedMods.Add(mod);
+                }
+            });
 
-        var results = await Task.WhenAll(tasks);
-        foreach (var (guid, updatedPair, updatedMods) in results)
-        {
-            updatedPairsDict[guid] = updatedPair;
-            allUpdatedMods.AddRange(updatedMods);
-        }
-
-        return (updatedPairsDict.Values.ToList(), allUpdatedMods);
+        return (updatedPairsDict.Values.ToList(), allUpdatedMods.ToList());
     }
 
     private async Task<Mod> ResolveAndFetchUrlAsync(

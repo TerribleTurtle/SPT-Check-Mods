@@ -75,40 +75,50 @@ public sealed class ModMatchingService(IModLookupStrategy modLookupStrategy, ILo
         var failureCount = 0;
         Exception? firstFailure = null;
 
-        var tasks = modList.Select(async (mod, index) =>
-        {
-            PendingConfirmation? confirmation = null;
-            try
+        var resultsWithConfirmations = new (Mod Mod, PendingConfirmation? Confirmation)[totalCount];
+
+        await Parallel.ForEachAsync(
+            modList.Select((mod, index) => (mod, index)),
+            new ParallelOptions
             {
-                var matchResult = await MatchModAsync(mod, sptVersion, cancellationToken);
-                mod = matchResult.Mod;
-                confirmation = matchResult.Confirmation;
-                if (confirmation != null)
+                MaxDegreeOfParallelism = 5,
+                CancellationToken = cancellationToken
+            },
+            async (item, ct) =>
+            {
+                var mod = item.mod;
+                var index = item.index;
+                PendingConfirmation? confirmation = null;
+
+                try
                 {
-                    confirmation = confirmation with { ResultIndex = index };
+                    var matchResult = await MatchModAsync(mod, sptVersion, ct);
+                    mod = matchResult.Mod;
+                    confirmation = matchResult.Confirmation;
+                    if (confirmation != null)
+                    {
+                        confirmation = confirmation with { ResultIndex = index };
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-                when (ex is HttpRequestException or System.Text.Json.JsonException or InvalidOperationException)
-            {
-                // Isolate per-mod failures: mark this mod unmatched and record the failure.
-                logger.LogWarning(ex, "Failed to match mod: {ModName}", mod.Local.LocalName);
-                mod = mod.MarkUnmatched();
-                Interlocked.Increment(ref failureCount);
-                Interlocked.CompareExchange(ref firstFailure, ex, null);
-            }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                    when (ex is HttpRequestException or System.Text.Json.JsonException or InvalidOperationException)
+                {
+                    // Isolate per-mod failures: mark this mod unmatched and record the failure.
+                    logger.LogWarning(ex, "Failed to match mod: {ModName}", mod.Local.LocalName);
+                    mod = mod.MarkUnmatched();
+                    Interlocked.Increment(ref failureCount);
+                    Interlocked.CompareExchange(ref firstFailure, ex, null);
+                }
 
-            var current = Interlocked.Increment(ref completedCount);
-            progressCallback?.Invoke(mod, current, totalCount);
+                resultsWithConfirmations[index] = (Mod: mod, Confirmation: confirmation);
 
-            return (Mod: mod, Confirmation: confirmation);
-        });
-
-        var resultsWithConfirmations = await Task.WhenAll(tasks);
+                var current = Interlocked.Increment(ref completedCount);
+                progressCallback?.Invoke(mod, current, totalCount);
+            });
 
         // When every mod fails and enough mods are involved to be meaningful, throw a systemic failure.
         if (totalCount >= MinimumModsForSystemicFailure && failureCount == totalCount)

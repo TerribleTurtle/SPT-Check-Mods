@@ -382,11 +382,20 @@ public sealed partial class ForgeApiService(
         }
 
         // Split larger batches into chunks and dispatch them concurrently.
-        var chunkResults = await Task.WhenAll(
-            modList
-                .Chunk(MaxModsPerUpdateRequest)
-                .Select(chunk => GetModUpdatesChunkAsync(chunk, sptVersion, cancellationToken))
-        );
+        var chunks = modList.Chunk(MaxModsPerUpdateRequest).ToArray();
+        var chunkResults = new OneOf<ModUpdatesData, NotFound, ApiError>[chunks.Length];
+
+        await Parallel.ForEachAsync(
+            chunks.Select((chunk, index) => (chunk, index)),
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 5,
+                CancellationToken = cancellationToken
+            },
+            async (item, ct) =>
+            {
+                chunkResults[item.index] = await GetModUpdatesChunkAsync(item.chunk, sptVersion, ct);
+            });
 
         // Combine results across chunks.
         var safeToUpdate = new List<SafeToUpdateMod>();
