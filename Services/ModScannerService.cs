@@ -47,6 +47,7 @@ public sealed class ModScannerService(
         await Parallel.ForEachAsync(modDirs, cancellationToken, async (modDir, ct) =>
         {
             var dllFiles = Directory.GetFiles(modDir, "*.dll", SearchOption.TopDirectoryOnly);
+            bool foundMod = false;
 
             foreach (var dllPath in dllFiles)
             {
@@ -56,6 +57,7 @@ public sealed class ModScannerService(
                     if (mod is not null)
                     {
                         concurrentMods.Add(mod);
+                        foundMod = true;
                         break; // Only one mod per directory
                     }
                 }
@@ -67,6 +69,15 @@ public sealed class ModScannerService(
                     )
                 {
                     reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
+                }
+            }
+
+            if (!foundMod)
+            {
+                var packageMod = await serverExtractor.ExtractServerModPackageMetadataAsync(modDir, ct);
+                if (packageMod is not null)
+                {
+                    concurrentMods.Add(packageMod);
                 }
             }
         });

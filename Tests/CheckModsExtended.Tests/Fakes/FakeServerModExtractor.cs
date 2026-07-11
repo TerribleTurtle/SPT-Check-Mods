@@ -15,5 +15,13 @@ public sealed class FakeServerModExtractor : IServerModExtractor
     {
         return Task.FromResult(ExtractedMod);
     }
+
+    public Task<Mod?> ExtractServerModPackageMetadataAsync(
+        string modDirectory,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(ExtractedMod);
+    }
 }
 

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
@@ -90,6 +91,68 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger) : ISe
             logger.LogDebug(ex, "Could not inspect DLL as a server mod: {Path}", dllPath);
             return null;
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<Mod?> ExtractServerModPackageMetadataAsync(
+        string modDirectory,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var packagePath = Path.Combine(modDirectory, "package.json");
+        if (!File.Exists(packagePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var packageStream = File.OpenRead(packagePath);
+            using var packageDocument = await JsonDocument.ParseAsync(packageStream, cancellationToken: cancellationToken);
+            var root = packageDocument.RootElement;
+            var directoryName = Path.GetFileName(modDirectory);
+            var name = GetStringPropertyFromJson(root, "name") ?? directoryName;
+            var author = GetStringPropertyFromJson(root, "author") ?? "Unknown";
+            var version = GetStringPropertyFromJson(root, "version") ?? string.Empty;
+            var sptVersion = GetStringPropertyFromJson(root, "sptVersion") ?? GetStringPropertyFromJson(root, "akiVersion");
+            
+            var warnings = ValidateModMetadata(name, author, version, name);
+
+            return new Mod
+            {
+                Local = new LocalModIdentity
+                {
+                    Guid = name,
+                    FilePath = packagePath,
+                    IsServerMod = true,
+                    LocalName = name,
+                    LocalAuthor = author,
+                    LocalVersion = version,
+                    LocalSptVersion = sptVersion,
+                },
+                LoadWarnings = warnings,
+            };
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            logger.LogDebug(ex, "Could not parse package.json as a server mod: {Path}", packagePath);
+            return null;
+        }
+    }
+
+    private static string? GetStringPropertyFromJson(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var value))
+        {
+            return null;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString(),
+            JsonValueKind.Number => value.GetRawText(),
+            _ => null,
+        };
     }
 
     private static string? GetStringProperty(Mono.Cecil.TypeDefinition type, string propertyName)

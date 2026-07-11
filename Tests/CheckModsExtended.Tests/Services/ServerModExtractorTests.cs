@@ -56,6 +56,37 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
+    public async Task ExtractServerModPackageMetadataAsync_returns_valid_mod()
+    {
+        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
+        Directory.CreateDirectory(modDir);
+        var packagePath = Path.Combine(modDir, "package.json");
+        File.WriteAllText(
+            packagePath,
+            """
+            {
+              "name": "PackageOnlyMod",
+              "author": "CheckMods",
+              "version": "2.3.4",
+              "sptVersion": "~4.0",
+              "main": "src/mod.js"
+            }
+            """
+        );
+
+        var mod = await _extractor.ExtractServerModPackageMetadataAsync(modDir);
+
+        Assert.NotNull(mod);
+        Assert.True(mod!.Local.IsServerMod);
+        Assert.Equal("PackageOnlyMod", mod.Local.Guid);
+        Assert.Equal("PackageOnlyMod", mod.Local.LocalName);
+        Assert.Equal("CheckMods", mod.Local.LocalAuthor);
+        Assert.Equal("2.3.4", mod.Local.LocalVersion);
+        Assert.Equal("~4.0", mod.Local.LocalSptVersion);
+        Assert.Equal(packagePath, mod.Local.FilePath);
+    }
+
+    [Fact]
     public async Task Extractservermodmetadataasync_returnsnull_formissingguid()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");

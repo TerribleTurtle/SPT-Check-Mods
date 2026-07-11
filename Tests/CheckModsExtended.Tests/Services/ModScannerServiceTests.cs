@@ -77,6 +77,35 @@ public sealed class ModScannerServiceTests : IDisposable
         Assert.Single(mods);
         Assert.Same(fakeMod, mods[0]);
     }
+    [Fact]
+    public async Task Scanservermodsasync_includes_package_only_server_mods()
+    {
+        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
+        Directory.CreateDirectory(modDir);
+        File.WriteAllText(Path.Combine(modDir, "package.json"), "{}");
+
+        var fakeMod = new Mod
+        {
+            Local = new CheckModsExtended.Models.LocalModIdentity
+            {
+                Guid = "PackageOnlyMod",
+                FilePath = "test.json",
+                LocalName = "PackageOnlyMod",
+                LocalAuthor = "Unknown",
+                LocalVersion = "1.0.0",
+                LocalSptVersion = "3.8.0",
+                IsServerMod = true,
+            },
+        };
+        // FakeServerModExtractor returns this mod for BOTH metadata extraction methods.
+        // Because there are no DLLs in the directory, it will skip the DLL loop and hit the package fallback.
+        _serverExtractor.ExtractedMod = fakeMod;
+
+        var mods = await _service.ScanServerModsAsync(_sptPath);
+
+        Assert.Single(mods);
+        Assert.Same(fakeMod, mods[0]);
+    }
 
     [Fact]
     public async Task Scanclientmodsasync_returnsvalidmods()
