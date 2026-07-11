@@ -117,9 +117,9 @@ public static class ServiceCollectionExtensions
                 client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
                 var version = CheckModsExtended.Utils.VersionInfo.SemVer;
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CheckModsExtended", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
+                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/CheckModsExtended)")
                 );
             }
         );
@@ -182,9 +182,9 @@ public static class ServiceCollectionExtensions
                 client.Timeout = TimeSpan.FromSeconds(ignoredOptions.RemoteTimeoutSeconds);
 
                 var version = CheckModsExtended.Utils.VersionInfo.SemVer;
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SPT-Check-Mods", version));
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CheckModsExtended", version));
                 client.DefaultRequestHeaders.UserAgent.Add(
-                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/SPT-Check-Mods)")
+                    new ProductInfoHeaderValue("(+https://github.com/TerribleTurtle/CheckModsExtended)")
                 );
             }
         ).AddStandardResilienceHandler();
@@ -206,4 +206,5 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
+
 

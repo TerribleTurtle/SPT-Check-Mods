@@ -195,7 +195,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
         AnsiConsole.MarkupLine("[grey]Expert tip: Read the mod page before installing or updating mods.[/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine(
-            "[white]Find an issue [italic]with this tool[/]? Submit a bug report on the [link=https://github.com/TerribleTurtle/SPT-Check-Mods/issues/new]TerribleTurtle fork[/].[/]"
+            "[white]Find an issue [italic]with this tool[/]? Submit a bug report on the [link=https://github.com/TerribleTurtle/CheckModsExtended/issues/new]TerribleTurtle fork[/].[/]"
         );
         AnsiConsole.WriteLine();
     }
@@ -288,4 +288,5 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
             .ToList();
     }
 }
+
 

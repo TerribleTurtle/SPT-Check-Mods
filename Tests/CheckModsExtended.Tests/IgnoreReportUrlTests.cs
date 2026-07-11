@@ -10,7 +10,7 @@ namespace CheckModsExtended.Tests;
 public sealed class IgnoreReportUrlTests
 {
     private const string BareUrl =
-        "https://github.com/TerribleTurtle/SPT-Check-Mods/issues/new?template=report-ignored-updates.yml";
+        "https://github.com/TerribleTurtle/CheckModsExtended/issues/new?template=report-ignored-updates.yml";
 
     private static IgnoredUpdate Entry(int id, string name, string local, string latest)
     {
@@ -44,4 +44,5 @@ public sealed class IgnoreReportUrlTests
         Assert.Equal(BareUrl, url);
     }
 }
+
 

@@ -13,7 +13,7 @@
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <ApplicationIcon>check-mods.ico</ApplicationIcon>
     <Copyright>2026 Refringe</Copyright>
-    <Product>https://github.com/TerribleTurtle/SPT-Check-Mods</Product>
+    <Product>https://github.com/TerribleTurtle/CheckModsExtended</Product>
     <AssemblyTitle>CheckModsExtended</AssemblyTitle>
     <!--
     Baseline semver for local/dev builds. Releases override this via -p:BuildVersion (from the git tag). Bump this when
@@ -115,3 +115,4 @@
 
   </ItemGroup>
 </Project>
+
