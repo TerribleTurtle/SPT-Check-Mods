@@ -15,6 +15,17 @@ public static class DependencyGraphBuilder
     /// <summary>
     /// Builds a dependency subtree from the API dependency structure.
     /// </summary>
+    /// <summary>
+    /// Builds a dependency subtree from the API dependency structure.
+    /// </summary>
+    /// <param name="dependency">The API dependency to build the subtree for.</param>
+    /// <param name="modByGuid">A dictionary of installed mods keyed by their GUID.</param>
+    /// <param name="modById">A dictionary of installed mods keyed by their ModId.</param>
+    /// <param name="installedGuids">A set of GUIDs for all installed mods.</param>
+    /// <param name="missingDeps">A dictionary used to track and populate missing dependencies by GUID.</param>
+    /// <param name="conflicts">A list used to track and populate dependency conflicts.</param>
+    /// <param name="visited">A set of visited GUIDs used to prevent infinite recursion in circular dependencies.</param>
+    /// <returns>A <see cref="DependencyNode"/> representing the root of the built subtree, or null if a circular dependency was detected.</returns>
     public static DependencyNode? BuildDependencySubtree(
         ModDependency dependency,
         Dictionary<string, Mod> modByGuid,
@@ -110,6 +121,14 @@ public static class DependencyGraphBuilder
     /// <summary>
     /// Creates a DependencyNode from dependency info and optional installed mod.
     /// </summary>
+    /// <summary>
+    /// Creates a DependencyNode from dependency info and optional installed mod.
+    /// </summary>
+    /// <param name="dependency">The dependency info from the API.</param>
+    /// <param name="installedMod">The optionally found local installed mod matching this dependency.</param>
+    /// <param name="isInstalled">A flag indicating whether the dependency is already installed.</param>
+    /// <param name="children">The child dependency nodes.</param>
+    /// <returns>A new <see cref="DependencyNode"/>.</returns>
     public static DependencyNode CreateDependencyNode(
         ModDependency dependency,
         Mod? installedMod,
@@ -145,6 +164,16 @@ public static class DependencyGraphBuilder
     /// Diffs the installed and proposed dependency trees (recursively flattened by GUID) and builds the resulting set
     /// of added and removed dependencies, each annotated with its install state relative to what's installed.
     /// </summary>
+    /// <summary>
+    /// Diffs the installed and proposed dependency trees (recursively flattened by GUID) and builds the resulting set
+    /// of added and removed dependencies, each annotated with its install state relative to what's installed.
+    /// </summary>
+    /// <param name="installedDeps">The currently installed dependencies.</param>
+    /// <param name="targetDeps">The target dependencies required by the update.</param>
+    /// <param name="modByGuid">A dictionary of installed mods keyed by their GUID.</param>
+    /// <param name="modById">A dictionary of installed mods keyed by their ModId.</param>
+    /// <param name="installedGuids">A set of GUIDs for all installed mods.</param>
+    /// <returns>An <see cref="UpdateDependencyDelta"/> detailing the added and removed dependencies.</returns>
     public static UpdateDependencyDelta BuildUpdateDependencyDelta(
         List<ModDependency> installedDeps,
         List<ModDependency> targetDeps,
@@ -175,6 +204,12 @@ public static class DependencyGraphBuilder
     /// Recursively flattens a dependency tree into a GUID-keyed map. Blank GUIDs are skipped and each GUID is visited
     /// once.
     /// </summary>
+    /// <summary>
+    /// Recursively flattens a dependency tree into a GUID-keyed map. Blank GUIDs are skipped and each GUID is visited
+    /// once.
+    /// </summary>
+    /// <param name="deps">The list of dependencies to flatten.</param>
+    /// <returns>A dictionary of dependencies keyed by GUID.</returns>
     public static Dictionary<string, ModDependency> FlattenDependencies(List<ModDependency> deps)
     {
         var map = new Dictionary<string, ModDependency>(StringComparer.OrdinalIgnoreCase);
@@ -182,6 +217,12 @@ public static class DependencyGraphBuilder
         return map;
     }
 
+    /// <summary>
+    /// Recursively collects dependencies into a map. Magic logic: skips dependencies with a blank GUID, 
+    /// and avoids duplicates by using TryAdd (so the first encountered dependency for a GUID is kept).
+    /// </summary>
+    /// <param name="deps">The list of dependencies to collect.</param>
+    /// <param name="map">The dictionary to populate with flattened dependencies.</param>
     public static void CollectDependencies(List<ModDependency> deps, Dictionary<string, ModDependency> map)
     {
         foreach (var dep in deps)
@@ -202,6 +243,15 @@ public static class DependencyGraphBuilder
     /// Builds a <see cref="DependencyChange"/> for a dependency, resolving whether it is installed and, if so, whether
     /// its installed version looks older than the latest Forge-compatible version.
     /// </summary>
+    /// <summary>
+    /// Builds a <see cref="DependencyChange"/> for a dependency, resolving whether it is installed and, if so, whether
+    /// its installed version looks older than the latest Forge-compatible version.
+    /// </summary>
+    /// <param name="dependency">The dependency to build the change record for.</param>
+    /// <param name="modByGuid">A dictionary of installed mods keyed by their GUID.</param>
+    /// <param name="modById">A dictionary of installed mods keyed by their ModId.</param>
+    /// <param name="installedGuids">A set of GUIDs for all installed mods.</param>
+    /// <returns>A <see cref="DependencyChange"/> object representing the proposed change.</returns>
     public static DependencyChange BuildDependencyChange(
         ModDependency dependency,
         Dictionary<string, Mod> modByGuid,
@@ -269,6 +319,14 @@ public static class DependencyGraphBuilder
             Conflict = dependency.Conflict,
         };
     }
+    /// <summary>
+    /// Compares two version strings to determine if the current version is older than the recommended version.
+    /// Magic logic: Uses ParseOrDefault() which falls back to "0.0.0" if SemVer parsing fails, ensuring that 
+    /// unparseable versions are treated as extremely old rather than causing crashes.
+    /// </summary>
+    /// <param name="currentVersion">The currently installed version string.</param>
+    /// <param name="recommendedVersion">The recommended version string to compare against.</param>
+    /// <returns>True if the current version is older than the recommended version; otherwise, false.</returns>
     private static bool IsVersionOlder(string? currentVersion, string? recommendedVersion)
     {
         return currentVersion.ParseOrDefault() < recommendedVersion.ParseOrDefault();

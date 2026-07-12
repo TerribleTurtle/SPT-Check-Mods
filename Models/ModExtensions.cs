@@ -7,6 +7,12 @@ namespace CheckModsExtended.Models;
 /// </summary>
 public static class ModExtensions
 {
+    /// <summary>
+    /// Updates the mod with API matched details.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="apiResult">The API search result containing mod details.</param>
+    /// <returns>A new <see cref="Mod"/> instance with updated API information and Verified status.</returns>
     public static Mod WithApiMatch(this Mod mod, ModSearchResult apiResult)
     {
         return mod with
@@ -25,11 +31,22 @@ public static class ModExtensions
         };
     }
 
+    /// <summary>
+    /// Marks the mod as having no match found on the API.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <returns>A new <see cref="Mod"/> instance with NoMatch status.</returns>
     public static Mod MarkUnmatched(this Mod mod)
     {
         return mod with { Status = ModStatus.NoMatch };
     }
 
+    /// <summary>
+    /// Updates the mod indicating that a safe update is available.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="update">The update information.</param>
+    /// <returns>A new <see cref="Mod"/> instance with the available update details.</returns>
     public static Mod WithSafeToUpdate(this Mod mod, SafeToUpdateMod update)
     {
         return mod with
@@ -43,6 +60,12 @@ public static class ModExtensions
         };
     }
 
+    /// <summary>
+    /// Updates the mod indicating that an update is blocked by other mods.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="blocked">The blocked update information.</param>
+    /// <returns>A new <see cref="Mod"/> instance with the blocked update details.</returns>
     public static Mod WithBlocked(this Mod mod, BlockedUpdateMod blocked)
     {
         return mod with
@@ -57,6 +80,12 @@ public static class ModExtensions
         };
     }
 
+    /// <summary>
+    /// Updates the mod indicating it is currently up-to-date.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="upToDate">The up-to-date information.</param>
+    /// <returns>A new <see cref="Mod"/> instance marked as up-to-date.</returns>
     public static Mod WithUpToDate(this Mod mod, UpToDateMod upToDate)
     {
         return mod with
@@ -65,6 +94,12 @@ public static class ModExtensions
         };
     }
 
+    /// <summary>
+    /// Updates the mod indicating it is incompatible with the current environment.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="incompatible">The incompatibility information.</param>
+    /// <returns>A new <see cref="Mod"/> instance with the incompatibility reason.</returns>
     public static Mod WithIncompatible(this Mod mod, IncompatibleMod incompatible)
     {
         return mod with
@@ -77,6 +112,13 @@ public static class ModExtensions
         };
     }
 
+    /// <summary>
+    /// Updates the mod indicating it is incompatible with the local SPT version.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="reason">The reason for incompatibility.</param>
+    /// <param name="compatibleVersion">The specific version that would be compatible, if known.</param>
+    /// <returns>A new <see cref="Mod"/> instance marked as locally SPT incompatible.</returns>
     public static Mod WithLocalSptIncompatible(this Mod mod, string reason, string? compatibleVersion = null)
     {
         return mod with
@@ -90,11 +132,23 @@ public static class ModExtensions
         };
     }
 
+    /// <summary>
+    /// Toggles the update suppression state of the mod.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="suppressed">Whether updates should be suppressed.</param>
+    /// <returns>A new <see cref="Mod"/> instance with the updated suppression state.</returns>
     public static Mod WithUpdateSuppressed(this Mod mod, bool suppressed)
     {
         return mod with { Update = mod.Update with { UpdateSuppressed = suppressed } };
     }
 
+    /// <summary>
+    /// Updates the mod with dependency delta changes required for an update.
+    /// </summary>
+    /// <param name="mod">The mod to modify.</param>
+    /// <param name="delta">The dependency changes delta.</param>
+    /// <returns>A new <see cref="Mod"/> instance containing the dependency delta.</returns>
     public static Mod WithUpdateDependencyChanges(this Mod mod, UpdateDependencyDelta delta)
     {
         return mod with { Update = mod.Update with { UpdateDependencyChanges = delta } };
