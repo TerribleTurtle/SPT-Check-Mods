@@ -23,7 +23,7 @@
     Baseline semver for local/dev builds. Releases override this via -p:BuildVersion (from the git tag). Bump this when
     preparing a new release so local builds report the in-progress version.
     -->
-    <VersionPrefix>2.0.1</VersionPrefix>
+    <VersionPrefix>2.0.2</VersionPrefix>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>$(NoWarn);IL2104;IL2026;IL2072;IL3050;IL2092;IL3000;IL2067</NoWarn>

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.1] - 2026-07-11
+## [2.0.2] - 2026-07-11
 
 ### Added
 - **SPT Hub Packaging**: The CI pipeline now automatically packages an `SptHub.zip` containing the Windows executable, README, LICENSE, and CHANGELOG, ready for direct upload to the SPT Hub.
