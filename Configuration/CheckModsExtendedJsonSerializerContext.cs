@@ -24,6 +24,8 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.StatusResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ScanResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ModDto))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.DependencyChangeDto))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.BlockingModDto))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.IgnoreRequest))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.MessageResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ErrorResponse))]

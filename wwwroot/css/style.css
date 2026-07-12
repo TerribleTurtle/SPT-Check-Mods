@@ -177,12 +177,74 @@ tbody tr:hover {
 .status-warn { background-color: var(--accent-action); }
 .status-error { background-color: var(--accent-error); }
 .status-unknown { background-color: var(--text-muted); }
+.status-newer { background-color: #5bc0de; }
 
 .row-warn {
     border-left: 3px solid var(--accent-action);
 }
 .row-error {
     border-left: 3px solid var(--accent-error);
+}
+
+.details-row {
+    display: none;
+    background-color: var(--bg-surface);
+}
+
+.details-row.show {
+    display: table-row;
+}
+
+.details-container {
+    padding: 15px 30px;
+    font-size: 14px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.details-section {
+    margin-bottom: 10px;
+}
+
+.details-section-title {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    margin-right: 5px;
+}
+.badge-error { background-color: rgba(158, 42, 43, 0.2); color: #ff6b6b; border: 1px solid var(--accent-error); }
+.badge-warn { background-color: rgba(228, 98, 49, 0.2); color: #ffa94d; border: 1px solid var(--accent-action); }
+.badge-success { background-color: rgba(132, 169, 140, 0.2); color: #8ce99a; border: 1px solid var(--accent-success); }
+.badge-neutral { background-color: rgba(138, 143, 152, 0.2); color: var(--text-muted); border: 1px solid var(--text-muted); }
+
+.dep-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--text-muted);
+}
+.dep-link:hover {
+    color: var(--accent-action);
+    border-bottom-color: var(--accent-action);
+}
+
+.expand-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    font-size: 12px;
+}
+.expand-btn:hover {
+    color: var(--text-primary);
 }
 
 .empty-row td {

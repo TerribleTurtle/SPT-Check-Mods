@@ -25,13 +25,8 @@ public static class WebManagerHost
     private const int BasePort = 37194;
     private const int MaxPort = 37204;
 
-    /// <summary>
-    /// Starts the Web UI and blocks until the application exits.
-    /// </summary>
-    public static async Task RunAsync(string[] args, CancellationToken cancellationToken)
+    public static WebApplication BuildApp(string[] args, Action<IServiceCollection>? configureTestServices = null)
     {
-        AnsiConsole.MarkupLine("[grey]Starting CheckModsExtended Web Manager...[/]");
-        
         var builder = WebApplication.CreateSlimBuilder(args);
 
         // Map the existing configuration pipeline
@@ -48,9 +43,17 @@ public static class WebManagerHost
             .AddCommandLine(args)
             .Build();
 
+        if (!runtimeConfig.IsVerbose && !runtimeConfig.IsDebug)
+        {
+            builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
+            builder.Logging.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.Warning);
+        }
+
         // Inject the identical services the CLI uses
         builder.Services.AddCheckModsExtendedServices(configuration, runtimeConfig);
         builder.Services.AddSingleton(runtimeConfig);
+
+        configureTestServices?.Invoke(builder.Services);
 
         // Configure JSON for Native AOT
         builder.Services.Configure<JsonOptions>(options =>
@@ -78,11 +81,24 @@ public static class WebManagerHost
         
         WebEndpoints.MapEndpoints(app, args);
 
+        return app;
+    }
+
+    /// <summary>
+    /// Starts the Web UI and blocks until the application exits.
+    /// </summary>
+    public static async Task RunAsync(string[] args, CancellationToken cancellationToken, Action<IServiceCollection>? configureTestServices = null)
+    {
+        AnsiConsole.MarkupLine("[grey]Starting CheckModsExtended Web Manager...[/]");
+        
+        var app = BuildApp(args, configureTestServices);
+
         // Hook into the start event to launch the browser
         app.Lifetime.ApplicationStarted.Register(() =>
         {
-            var serverAddresses = app.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.Server.Features.IServerAddressesFeature>();
-            string actualUrl = serverAddresses.Addresses.FirstOrDefault() ?? $"http://127.0.0.1:{port}";
+            var server = app.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.Server.IServer>();
+            var serverAddresses = server.Features.Get<Microsoft.AspNetCore.Hosting.Server.Features.IServerAddressesFeature>();
+            string actualUrl = serverAddresses?.Addresses.FirstOrDefault() ?? $"http://127.0.0.1:{BasePort}";
             
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine($"[green]Web Manager is running at: {actualUrl}[/]");

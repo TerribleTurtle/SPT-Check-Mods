@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         tableBody.innerHTML = `
             <tr class="empty-row">
-                <td colspan="7" id="loader-cell">
+                <td colspan="8" id="loader-cell">
                     <span id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</span>
                 </td>
             </tr>
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('stats-container').style.display = 'none';
             tableBody.innerHTML = `
                 <tr class="empty-row row-error">
-                    <td colspan="7">Scan failed. Check system logs.</td>
+                    <td colspan="8">Scan failed. Check system logs.</td>
                 </tr>
             `;
         } finally {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mods || mods.length === 0) {
             tableBody.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="7">No mods detected in target directory.</td>
+                    <td colspan="8">No mods detected in target directory.</td>
                 </tr>
             `;
             return;
@@ -115,14 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         mods.forEach(mod => {
             const tr = document.createElement('tr');
+            const detailsTr = document.createElement('tr');
+            detailsTr.className = 'details-row';
             
             // Determine status
             let statusClass = 'status-unknown';
             let rowClass = '';
             let actionHtml = '';
+            
+            let hasDetails = false;
+            let detailsHtml = '<div class="details-container">';
 
             if (mod.status === 'UpToDate') {
                 statusClass = 'status-ok';
+            } else if (mod.status === 'NewerInstalled') {
+                statusClass = 'status-newer';
             } else if (mod.status === 'UpdateAvailable') {
                 statusClass = 'status-warn';
                 rowClass = 'row-warn';
@@ -134,10 +141,80 @@ document.addEventListener('DOMContentLoaded', () => {
                     actionHtml += `<a href="${escapeHtml(mod.downloadUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">[ ZIP ]</a> `;
                 }
                 actionHtml += `<button class="btn-secondary" onclick="ignoreMod('${escapeHtml(mod.id)}', '${escapeHtml(mod.localVersion)}', '${escapeHtml(mod.latestVersion)}')">[ IGNORE ]</button>`;
-            } else if (mod.status === 'Incompatible' || mod.status === 'NoVersionsFound' || mod.status === 'UpdateBlocked' || mod.status === 'Error') {
+            } else if (mod.status === 'UpdateBlocked') {
                 statusClass = 'status-error';
                 rowClass = 'row-error';
+                hasDetails = true;
+                
+                detailsHtml += `<div class="details-section">
+                    <div class="details-section-title">Update Blocked</div>
+                    <div><span class="badge badge-error">BLOCKED</span> ${escapeHtml(mod.blockReason ? mod.blockReason.replace(/_/g, ' ') : 'Unknown reason')}</div>`;
+                
+                if (mod.blockingMods && mod.blockingMods.length > 0) {
+                    detailsHtml += `<div style="margin-top: 5px; color: var(--text-muted); font-size: 12px;">Blocked by:</div>`;
+                    mod.blockingMods.forEach(b => {
+                        detailsHtml += `<div>- ${escapeHtml(b.name)} (${escapeHtml(b.constraint)})</div>`;
+                    });
+                }
+                detailsHtml += `</div>`;
+                
+            } else if (mod.status === 'Incompatible' || mod.status === 'Error' || mod.status === 'NoVersionsFound') {
+                statusClass = 'status-error';
+                rowClass = 'row-error';
+                
+                if (mod.status === 'Incompatible') {
+                    hasDetails = true;
+                    detailsHtml += `<div class="details-section">
+                        <div class="details-section-title">Incompatible with SPT</div>
+                        <div><span class="badge badge-error">INCOMPATIBLE</span> ${escapeHtml(mod.incompatibilityReason || 'Unknown')}</div>`;
+                    
+                    if (mod.compatibleVersion) {
+                        detailsHtml += `<div style="margin-top: 5px;">Latest compatible version: <span class="badge badge-success">${escapeHtml(mod.compatibleVersion)}</span></div>`;
+                        if (mod.downloadUrl) {
+                            detailsHtml += `<div style="margin-top: 5px;"><a href="${escapeHtml(mod.downloadUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">[ DOWNLOAD COMPATIBLE ZIP ]</a></div>`;
+                        }
+                    } else {
+                        detailsHtml += `<div style="margin-top: 5px; color: var(--accent-error);">No compatible version available for this SPT version.</div>`;
+                    }
+                    detailsHtml += `</div>`;
+                }
             }
+            
+            // Dependency changes
+            if (mod.addedDependencies && mod.addedDependencies.length > 0) {
+                hasDetails = true;
+                detailsHtml += `<div class="details-section"><div class="details-section-title">Required Dependencies</div>`;
+                mod.addedDependencies.forEach(dep => {
+                    let depState = '';
+                    if (dep.installState === 'NotInstalled') {
+                        depState = `<span class="badge badge-error">MISSING</span> download v${escapeHtml(dep.recommendedVersion)}`;
+                    } else if (dep.installState === 'InstalledOutdated') {
+                        depState = `<span class="badge badge-warn">OUTDATED</span> installed v${escapeHtml(dep.installedVersion || '?')}, needs v${escapeHtml(dep.recommendedVersion)}`;
+                    } else {
+                        depState = `<span class="badge badge-neutral">SATISFIED</span> v${escapeHtml(dep.installedVersion || dep.recommendedVersion)}`;
+                    }
+                    
+                    let linkHtml = dep.downloadLink ? `<a href="${escapeHtml(dep.downloadLink)}" target="_blank" class="dep-link">${escapeHtml(dep.name)}</a>` : escapeHtml(dep.name);
+                    
+                    detailsHtml += `<div>[+] ${linkHtml} - ${depState}</div>`;
+                    if (dep.conflict) {
+                        detailsHtml += `<div style="color: var(--accent-error); margin-left: 20px; font-size: 12px;">Version constraint conflict reported.</div>`;
+                    }
+                });
+                detailsHtml += `</div>`;
+            }
+            
+            if (mod.removedDependencies && mod.removedDependencies.length > 0) {
+                hasDetails = true;
+                detailsHtml += `<div class="details-section"><div class="details-section-title">Removed Dependencies</div>`;
+                mod.removedDependencies.forEach(dep => {
+                    detailsHtml += `<div>[-] <span style="color: var(--text-muted);">${escapeHtml(dep.name)} no longer required (was v${escapeHtml(dep.installedVersion || dep.recommendedVersion)})</span></div>`;
+                });
+                detailsHtml += `</div>`;
+            }
+            
+            detailsHtml += '</div>';
+            detailsTr.innerHTML = `<td colspan="8" style="padding: 0;">${detailsHtml}</td>`;
 
             if (rowClass) {
                 tr.classList.add(rowClass);
@@ -150,8 +227,23 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const nameHtml = mod.modUrl ? `<a href="${escapeHtml(mod.modUrl)}" target="_blank" rel="noopener noreferrer" class="mod-link">${escapedName}</a>` : escapedName;
             const typeLabel = mod.isServerMod ? '<span class="type-tag server-tag">SRV</span>' : '<span class="type-tag client-tag">CLI</span>';
+            
+            let expandBtn = '';
+            if (hasDetails) {
+                expandBtn = `<button class="expand-btn" aria-label="Expand details">▼</button>`;
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', (e) => {
+                    // Don't toggle if they clicked a button/link in the row
+                    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+                        detailsTr.classList.toggle('show');
+                        const btn = tr.querySelector('.expand-btn');
+                        if (btn) btn.textContent = detailsTr.classList.contains('show') ? '▲' : '▼';
+                    }
+                });
+            }
 
             tr.innerHTML = `
+                <td class="col-expand">${expandBtn}</td>
                 <td class="col-status">
                     <span class="status-block ${statusClass}" title="${mod.status}" aria-label="Status: ${mod.status}"></span>
                 </td>
@@ -164,6 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             tableBody.appendChild(tr);
+            if (hasDetails) {
+                tableBody.appendChild(detailsTr);
+            }
         });
     }
 

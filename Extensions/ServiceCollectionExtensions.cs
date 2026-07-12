@@ -62,8 +62,9 @@ public static class ServiceCollectionExtensions
 
         services.AddLogging(builder =>
         {
-            // Suppress verbose HttpClient logging.
+            // Suppress verbose HttpClient logging and Polly execution attempt logs.
             builder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+            builder.AddFilter("Polly", LogLevel.Warning);
 
             var loggingOptions =
                 configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();

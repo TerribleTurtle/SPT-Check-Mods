@@ -1,7 +1,12 @@
 using System;
 using System.IO;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-using CheckModsExtended;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Web;
+using CheckModsExtended.Tests.Fakes;
+using Microsoft.Extensions.DependencyInjection;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -10,10 +15,10 @@ using Xunit;
 namespace CheckModsExtended.Tests.E2E;
 
 [Collection("Sequential")]
-public sealed class CliEndToEndTests
+public sealed class GuiApiEndToEndTests
 {
     [Fact]
-    public async Task Program_main_when_given_valid_args_returns_success_exit_code()
+    public async Task WebManager_scan_endpoint_returns_expected_json()
     {
         // Arrange
         var server = WireMockServer.Start();
@@ -156,12 +161,51 @@ public sealed class CliEndToEndTests
                     """
                 ));
 
-            // Act
-            // Provide the mocked sptRoot as the argument and use -y for headless
-            var exitCode = await Program.Main(new[] { sptRoot, "-y" });
+            // 3. Start Web Manager
+            var launcher = new TestBrowserLauncher();
+            using var cts = new CancellationTokenSource();
+            
+            // Program.Main strips "gui", so we pass what WebManagerHost expects
+            var webArgs = new[] { sptRoot };
+            
+            var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services => 
+            {
+                services.AddSingleton<IBrowserLauncher>(launcher);
+            });
 
+            // 4. Wait for the URL
+            var urlTask = launcher.WaitForUrlAsync();
+            if (await Task.WhenAny(runTask, urlTask) == runTask)
+            {
+                await runTask; // Throw underlying exception if it crashed
+                throw new Exception("WebManagerHost exited prematurely before URL was broadcast.");
+            }
+            var url = await urlTask;
+            using var client = new HttpClient();
+            
+            // Act - Test Status
+            var statusRes = await client.GetAsync($"{url}/api/status");
+            statusRes.EnsureSuccessStatusCode();
+            var statusContent = await statusRes.Content.ReadAsStringAsync();
+            Assert.Contains("running", statusContent);
+            
+            // Act - Test Scan
+            var scanRes = await client.PostAsync($"{url}/api/scan", null);
+            scanRes.EnsureSuccessStatusCode();
+            var scanContent = await scanRes.Content.ReadAsStringAsync();
+            
             // Assert
-            Assert.Equal(ExitCodes.Success, exitCode);
+            Assert.Contains("FakeMod", scanContent);
+            Assert.Contains("1.0.1", scanContent);
+            
+            // Cleanup
+            cts.Cancel();
+            try 
+            { 
+                await runTask; 
+            } 
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
         }
         finally
         {

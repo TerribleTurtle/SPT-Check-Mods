@@ -1,7 +1,12 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using CheckModsExtended;
+using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Web;
+using CheckModsExtended.Tests.Fakes;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Playwright;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -10,11 +15,15 @@ using Xunit;
 namespace CheckModsExtended.Tests.E2E;
 
 [Collection("Sequential")]
-public sealed class CliEndToEndTests
+public sealed class GuiFrontendEndToEndTests
 {
     [Fact]
-    public async Task Program_main_when_given_valid_args_returns_success_exit_code()
+    public async Task WebManager_frontend_displays_mods_correctly()
     {
+        // Playwright requires browsers to be installed. We will skip the test if they aren't,
+        // or just let it fail so CI catches it if they are missing.
+        // Usually `playwright install` must be run.
+        
         // Arrange
         var server = WireMockServer.Start();
         Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", server.Urls[0] + "/");
@@ -39,18 +48,6 @@ public sealed class CliEndToEndTests
                   "name": "FakeMod",
                   "version": "1.0.0",
                   "author": "FakeAuthor"
-                }
-                """
-            );
-
-            // SPT version file for SptInstallationService to detect
-            var sptVersionPath = Path.Combine(sptRoot, "Aki_Data", "Server", "configs", "core.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(sptVersionPath)!);
-            File.WriteAllText(
-                sptVersionPath,
-                """
-                {
-                  "akiVersion": "3.8.0"
                 }
                 """
             );
@@ -156,12 +153,58 @@ public sealed class CliEndToEndTests
                     """
                 ));
 
-            // Act
-            // Provide the mocked sptRoot as the argument and use -y for headless
-            var exitCode = await Program.Main(new[] { sptRoot, "-y" });
+            // 3. Start Web Manager
+            var launcher = new TestBrowserLauncher();
+            using var cts = new CancellationTokenSource();
+            
+            var webArgs = new[] { sptRoot };
+            
+            var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services => 
+            {
+                services.AddSingleton<IBrowserLauncher>(launcher);
+            });
 
-            // Assert
-            Assert.Equal(ExitCodes.Success, exitCode);
+            // 4. Wait for the URL
+            var urlTask = launcher.WaitForUrlAsync();
+            if (await Task.WhenAny(runTask, urlTask) == runTask)
+            {
+                await runTask; // Throw underlying exception if it crashed
+                throw new Exception("WebManagerHost exited prematurely before URL was broadcast.");
+            }
+            var url = await urlTask;
+            
+            // 5. Run Playwright
+            using var playwright = await Playwright.CreateAsync();
+            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+            
+            var page = await browser.NewPageAsync();
+            await page.GotoAsync(url);
+            
+            // Assert title
+            var title = await page.TitleAsync();
+            Assert.Contains("CheckModsExtended // MANAGER", title);
+
+            // Click scan just in case it doesn't auto-scan
+            await page.ClickAsync("#btn-scan");
+            
+            // Wait for the table to populate with the FakeMod
+            var modRow = page.Locator("text='FakeMod'");
+            await modRow.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+            
+            // Wait for version 1.0.1 (from the mocked API) to appear
+            var versionCell = page.Locator("text='1.0.1'");
+            await versionCell.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+
+            // Cleanup
+            await browser.CloseAsync();
+            
+            cts.Cancel();
+            try 
+            { 
+                await runTask; 
+            } 
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
         }
         finally
         {

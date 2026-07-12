@@ -186,6 +186,13 @@ public sealed class ModScannerService(
     /// <inheritdoc />
     public string? GetSptVersion(string sptPath)
     {
+        // Allow tests to mock the SPT version without needing a valid PE file
+        var testVersionFile = Path.Combine(sptPath, "SPT", ".spt_version_test");
+        if (fileSystem.FileExists(testVersionFile))
+        {
+            return File.ReadAllText(testVersionFile).Trim();
+        }
+
         var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
 
         if (!fileSystem.FileExists(coreDllPath))

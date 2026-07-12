@@ -11,6 +11,11 @@ public static class WebEndpoints
 {
     private static readonly string[] EmptyArgs = Array.Empty<string>();
 
+    /// <summary>
+    /// Maps the Web Manager API endpoints to the application.
+    /// </summary>
+    /// <param name="app">The web application instance.</param>
+    /// <param name="args">Command line arguments passed to the application.</param>
     public static void MapEndpoints(WebApplication app, string[] args)
     {
         var api = app.MapGroup("/api");
@@ -19,18 +24,52 @@ public static class WebEndpoints
         
         api.MapPost("/scan", async (CheckModsExtended.Services.Interfaces.IUpdateWorkflowOrchestrator orchestrator, CancellationToken token) => 
         {
+            Spectre.Console.AnsiConsole.WriteLine($"[DEBUG] MapEndpoints args length: {args.Length}");
+            if (args.Length > 0)
+            {
+                Spectre.Console.AnsiConsole.WriteLine($"[DEBUG] args[0]: {args[0]}");
+            }
             var mods = await orchestrator.RunPipelineAsync(args, token);
+            Spectre.Console.AnsiConsole.WriteLine($"[DEBUG] mods.Count: {mods.Count}");
             
             var response = mods.Select(m => new ModDto(
-                m.Api.ApiModId,
-                m.DisplayName,
-                m.DisplayAuthor,
-                m.Local.LocalVersion,
-                m.Update.LatestVersion ?? "Unknown",
-                m.Update.UpdateStatus.ToString(),
-                m.Local.IsServerMod,
-                m.Api.ApiUrl,
-                m.Update.DownloadLink
+                Id: m.Api.ApiModId,
+                Name: m.DisplayName,
+                Author: m.DisplayAuthor,
+                LocalVersion: m.Local.LocalVersion,
+                LatestVersion: m.Update.LatestVersion ?? "Unknown",
+                Status: m.Update.UpdateStatus.ToString(),
+                IsServerMod: m.Local.IsServerMod,
+                ModUrl: m.Api.ApiUrl,
+                DownloadUrl: m.Update.DownloadLink,
+                IncompatibilityReason: m.Update.IncompatibilityReason,
+                CompatibleVersion: m.Update.CompatibleVersionString,
+                BlockReason: m.Update.BlockReason,
+                BlockingMods: m.Update.BlockingMods?.Select(b => new BlockingModDto(
+                    ModId: b.ModId,
+                    Name: b.Name,
+                    Constraint: b.Constraint
+                )).ToList(),
+                AddedDependencies: m.Update.UpdateDependencyChanges?.Added.Select(d => new DependencyChangeDto(
+                    ModId: d.ModId,
+                    Slug: d.Slug ?? string.Empty,
+                    Name: d.Name,
+                    RecommendedVersion: d.RecommendedVersion,
+                    InstalledVersion: d.InstalledVersion,
+                    InstallState: d.InstallState.ToString(),
+                    Conflict: d.Conflict,
+                    DownloadLink: d.DownloadLink
+                )).ToList(),
+                RemovedDependencies: m.Update.UpdateDependencyChanges?.Removed.Select(d => new DependencyChangeDto(
+                    ModId: d.ModId,
+                    Slug: d.Slug ?? string.Empty,
+                    Name: d.Name,
+                    RecommendedVersion: d.RecommendedVersion,
+                    InstalledVersion: d.InstalledVersion,
+                    InstallState: d.InstallState.ToString(),
+                    Conflict: d.Conflict,
+                    DownloadLink: d.DownloadLink
+                )).ToList()
             )).ToList();
             
             return Results.Ok(new ScanResponse(response));
