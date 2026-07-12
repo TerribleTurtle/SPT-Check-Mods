@@ -25,6 +25,7 @@ Phase 3
 - [x] Step 4.4 — Auto-Scan, Export & Ignore Persistence
 - [x] Step 4.5 — Detail Pane Enhancements (ZIPs, Folders, Color versions)
 - [x] Step 4.6 — Backend System Integration (Open Folder API & Settings)
+- [x] Step 4.7 — Frontend Modularization (ES Modules)
 - **Status:** completed
 
 ### Phase 5: Polish, Accessibility & Final Verification

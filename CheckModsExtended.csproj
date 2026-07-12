@@ -96,6 +96,7 @@
     <ParameterGroup>
       <SourceFile ParameterType="System.String" Required="true" />
       <DestinationArchive ParameterType="System.String" Required="true" />
+      <ProjectDirectory ParameterType="System.String" Required="true" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System.IO" />
@@ -105,6 +106,12 @@
           if (File.Exists(DestinationArchive)) File.Delete(DestinationArchive);
           using var archive = ZipFile.Open(DestinationArchive, ZipArchiveMode.Create);
           archive.CreateEntryFromFile(SourceFile, Path.GetFileName(SourceFile), CompressionLevel.Optimal);
+          
+          string bat1 = Path.Combine(ProjectDirectory, "Start Web Manager.bat");
+          if (File.Exists(bat1)) archive.CreateEntryFromFile(bat1, "Start Web Manager.bat", CompressionLevel.Optimal);
+          
+          string bat2 = Path.Combine(ProjectDirectory, "CheckMods-CLI.bat");
+          if (File.Exists(bat2)) archive.CreateEntryFromFile(bat2, "CheckMods-CLI.bat", CompressionLevel.Optimal);
         ]]>
       </Code>
     </Task>
@@ -121,10 +128,15 @@
     <ZipFileWithCompression
       SourceFile="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier)$(ExeExt)"
       DestinationArchive="$(PublishDir)$(AssemblyName)-$(RuntimeIdentifier).zip"
+      ProjectDirectory="$(MSBuildProjectDirectory)"
     />
   </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="CheckModsExtended.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Start Web Manager.bat" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="CheckMods-CLI.bat" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LICENSE" />

@@ -33,4 +33,6 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.CrossInstalledDirectoryDto))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.MisplacedModReportDto))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ExportModDto))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.OpenSystemRequest))]
+[JsonSerializable(typeof(IReadOnlyList<CheckModsExtended.Models.IgnoredUpdate>))]
 internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }

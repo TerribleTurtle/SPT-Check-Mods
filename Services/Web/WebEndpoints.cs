@@ -16,6 +16,8 @@ public static class WebEndpoints
     /// </summary>
     /// <param name="app">The web application instance.</param>
     /// <param name="args">Command line arguments passed to the application.</param>
+    private static readonly SemaphoreSlim _statusLock = new(1, 1);
+
     public static void MapEndpoints(WebApplication app, string[] args)
     {
         var api = app.MapGroup("/api");
@@ -25,23 +27,31 @@ public static class WebEndpoints
             CheckModsExtended.Services.Interfaces.IUpdateCheckService updateCheck,
             CancellationToken token) => 
         {
-            SemanticVersioning.Version? sptVer = null;
-            try { 
-                var path = args.Length > 0 ? args[0] : System.Environment.CurrentDirectory;
-                sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token); 
-            } catch { }
-            
-            bool updateAvailable = false;
-            string? latestAppVersion = null;
-            if (sptVer != null) {
-                try {
-                    var updateInfo = await updateCheck.CheckAsync(sptVer, token);
-                    updateAvailable = updateInfo.Status == CheckModsExtended.Models.CheckModsExtendedUpdateStatus.UpdateAvailable;
-                    latestAppVersion = updateInfo.LatestVersion;
+            await _statusLock.WaitAsync(token);
+            try
+            {
+                SemanticVersioning.Version? sptVer = null;
+                try { 
+                    var path = args.Length > 0 ? args[0] : System.Environment.CurrentDirectory;
+                    sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token); 
                 } catch { }
+                
+                bool updateAvailable = false;
+                string? latestAppVersion = null;
+                if (sptVer != null) {
+                    try {
+                        var updateInfo = await updateCheck.CheckAsync(sptVer, token);
+                        updateAvailable = updateInfo.Status == CheckModsExtended.Models.CheckModsExtendedUpdateStatus.UpdateAvailable;
+                        latestAppVersion = updateInfo.LatestVersion;
+                    } catch { }
+                }
+                
+                return Results.Ok(new StatusResponse("running", CheckModsExtended.Utils.VersionInfo.SemVer, sptVer?.ToString(), latestAppVersion, updateAvailable));
             }
-            
-            return Results.Ok(new StatusResponse("running", CheckModsExtended.Utils.VersionInfo.SemVer, sptVer?.ToString(), latestAppVersion, updateAvailable));
+            finally
+            {
+                _statusLock.Release();
+            }
         });
         
         api.MapPost("/scan", async (CheckModsExtended.Services.Interfaces.IUpdateWorkflowOrchestrator orchestrator, CancellationToken token) => 

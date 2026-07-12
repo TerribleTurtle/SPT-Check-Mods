@@ -859,6 +859,24 @@ Full browser test:
 
 ---
 
+### Step 4.7 — Frontend Modularization (ES Modules)
+
+> **Goal**: Refactor the monolithic `app.js` into clean, single-responsibility ES Modules.
+> **Files to Create**: `wwwroot/js/api.js`, `wwwroot/js/state.js`, `wwwroot/js/utils.js`, `wwwroot/js/ui.js`, `wwwroot/js/main.js`
+> **Files to Delete**: `wwwroot/js/app.js`
+> **Files to Modify**: `wwwroot/index.html`
+
+**Acceptance Criteria**:
+1. `index.html` uses `<script type="module" src="/js/main.js"></script>`.
+2. `api.js` exports functions for backend networking (`fetchStatus`, `deleteIgnore`, `openSystemTarget`).
+3. `state.js` exports the core `state` proxy and handles `localStorage` persistence.
+4. `utils.js` exports pure functions and helpers (SemVer parser, `escapeHtml`, debouncers).
+5. `ui.js` exports DOM manipulation and rendering functions (`renderTable`, `renderDetailPane`, `renderChipCounts`).
+6. `main.js` is the entry point, attaching global event delegates and calling initialization.
+7. The application functions flawlessly (Search, Sort, Filters, Console, System interactions all work).
+
+---
+
 ## Phase 5 — Polish, Accessibility & Final Verification
 
 > **Goal**: Smooth transitions, accessibility compliance, final integration test.

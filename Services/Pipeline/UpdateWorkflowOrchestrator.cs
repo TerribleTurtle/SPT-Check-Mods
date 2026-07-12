@@ -29,21 +29,31 @@ public sealed class UpdateWorkflowOrchestrator : IUpdateWorkflowOrchestrator
         _logger = logger;
     }
 
+    private static readonly SemaphoreSlim _pipelineLock = new(1, 1);
+
     /// <inheritdoc />
     public async Task<UpdateWorkflowContext> RunPipelineAsync(string[] args, CancellationToken cancellationToken = default)
     {
-        var context = new UpdateWorkflowContext { Args = args };
-
-        foreach (var step in _steps)
+        await _pipelineLock.WaitAsync(cancellationToken);
+        try
         {
-            await step.ExecuteAsync(context, cancellationToken);
-            if (context.IsCancelled)
-            {
-                break;
-            }
-        }
+            var context = new UpdateWorkflowContext { Args = args };
 
-        return context;
+            foreach (var step in _steps)
+            {
+                await step.ExecuteAsync(context, cancellationToken);
+                if (context.IsCancelled)
+                {
+                    break;
+                }
+            }
+
+            return context;
+        }
+        finally
+        {
+            _pipelineLock.Release();
+        }
     }
 
     /// <inheritdoc />
