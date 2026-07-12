@@ -169,6 +169,8 @@ export function renderDetailRow(mod) {
          html += `<div style="margin-bottom: 20px;">
             <h4 style="color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; font-size: 0.8rem;">Blocked By</h4>
             <ul style="padding-left: 20px; color: var(--text-primary); font-size: 0.9rem;">`;
+         mod.blockingMods.forEach(b => {
+             html += `<li>${escapeHtml(b.name)} (constraint: ${escapeHtml(b.constraint)})</li>`;
          });
          html += `</ul></div>`;
     }
