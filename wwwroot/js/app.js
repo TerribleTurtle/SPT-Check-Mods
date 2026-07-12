@@ -405,6 +405,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const order = { 'UpdateBlocked': 0, 'Incompatible': 1, 'Error': 2, 'NoVersionsFound': 3, 'UpdateAvailable': 4, 'NewerInstalled': 5, 'UpToDate': 6, 'Unknown': 7 };
                 valA = order[a.status] !== undefined ? order[a.status] : 8;
                 valB = order[b.status] !== undefined ? order[b.status] : 8;
+            } else if (sort.column === 'version') {
+                valA = a.localVersion ? a.localVersion.toLowerCase() : '';
+                valB = b.localVersion ? b.localVersion.toLowerCase() : '';
             } else {
                 valA = ''; valB = '';
             }
