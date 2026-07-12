@@ -81,17 +81,23 @@
             <div class="master-detail-container">
                 <!-- Master List -->
                 <div class="master-list">
-                    <div class="list-header">
-                        <label class="select-all-wrapper">
-                            <input type="checkbox" id="select-all" class="row-checkbox" aria-label="Select all">
-                        </label>
-                        <div class="list-sort">
-                            <button id="sort-name" class="sort-btn">Mod Name ▼</button>
-                        </div>
-                    </div>
-                    <div id="mods-list" class="mods-list-container">
-                        <div class="empty-state">Initializing core systems... Ready for scan.</div>
-                    </div>
+                    <table class="mod-table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: left;">
+                                    <input type="checkbox" id="select-all" class="row-checkbox" aria-label="Select all">
+                                </th>
+                                <th data-sortable="status" aria-sort="none" style="text-align: left;">Status</th>
+                                <th data-sortable="name" aria-sort="none" style="text-align: left;">Mod Name</th>
+                                <th data-sortable="version" aria-sort="none" class="col-version" style="text-align: right;">Version</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mods-list">
+                            <tr>
+                                <td colspan="4" class="empty-state">Initializing core systems... Ready for scan.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- Detail Pane -->

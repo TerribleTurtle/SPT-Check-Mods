@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConsoleToggle.addEventListener('click', () => toggleConsole(!state.ui.consoleCollapsed));
         btnCopyLog.addEventListener('click', handleCopyLog);
         btnCloseDetail.addEventListener('click', () => {
-            document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
             showOverview();
         });
         
@@ -67,6 +67,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Keyboard Navigation (Step 4.3)
         document.addEventListener('keydown', handleKeyboardNavigation);
+        // --- Step 4.2: Search, Filter, Sort ---
+        const savedSortCol = localStorage.getItem('cme-sort-column');
+        const savedSortDir = localStorage.getItem('cme-sort-direction');
+        if (savedSortCol) state.sort.column = savedSortCol;
+        if (savedSortDir) state.sort.direction = savedSortDir;
+
+        const searchInput = document.getElementById('search-input');
+        let searchTimeout;
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    state.filters.search = e.target.value.toLowerCase();
+                    render();
+                }, 250);
+            });
+        }
+
+        document.querySelectorAll('.chip').forEach(el => {
+            el.addEventListener('click', (e) => setFilter(e.currentTarget.dataset.filter));
+        });
+        document.querySelectorAll('.health-card').forEach(el => {
+            el.addEventListener('click', (e) => setFilter(e.currentTarget.dataset.filter));
+        });
+
+        document.querySelectorAll('th[data-sortable]').forEach(th => {
+            th.addEventListener('click', (e) => {
+                const col = e.currentTarget.dataset.sortable;
+                if (state.sort.column === col) {
+                    state.sort.direction = state.sort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    state.sort.column = col;
+                    state.sort.direction = 'asc';
+                }
+                localStorage.setItem('cme-sort-column', state.sort.column);
+                localStorage.setItem('cme-sort-direction', state.sort.direction);
+                render();
+            });
+        });
+    }
+
+    function setFilter(filter) {
+        state.filters.status = filter;
+        document.querySelectorAll('.chip').forEach(c => {
+            if (c.dataset.filter === filter) c.classList.add('active');
+            else c.classList.remove('active');
+        });
+        render();
+
     }
 
     function setTheme(theme) {
@@ -103,33 +152,34 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => logToConsole(`Failed to copy logs: ${err}`, 'error'));
     }
 
+
     function handleKeyboardNavigation(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
         if (e.key === 'Escape') {
-            document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
             showOverview();
         } else if (e.key === 'j' || e.key === 'k') {
-            const cards = Array.from(document.querySelectorAll('.mod-card'));
-            if (cards.length === 0) return;
+            const rows = Array.from(document.querySelectorAll('#mods-list tr'));
+            if (rows.length === 0) return;
 
-            let selectedIdx = cards.findIndex(c => c.classList.contains('selected'));
+            let selectedIdx = rows.findIndex(r => r.classList.contains('selected'));
             if (selectedIdx === -1) {
                 selectedIdx = 0;
             } else {
                 if (e.key === 'j') {
-                    selectedIdx = Math.min(selectedIdx + 1, cards.length - 1);
+                    selectedIdx = Math.min(selectedIdx + 1, rows.length - 1);
                 } else if (e.key === 'k') {
                     selectedIdx = Math.max(selectedIdx - 1, 0);
                 }
             }
 
-            const card = cards[selectedIdx];
-            document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            const row = rows[selectedIdx];
+            document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
+            row.classList.add('selected');
+            row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
-            const id = card.dataset.id;
+            const id = row.dataset.id;
             const mod = state.mods.find(m => String(m.id) === String(id));
             if (mod) renderDetailRow(mod);
         }
@@ -230,11 +280,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyFilters(mods, filters) {
-        return mods; // stub for 4.2
+        return mods.filter(mod => {
+            if (filters.search) {
+                const query = filters.search;
+                const matchName = mod.name && mod.name.toLowerCase().includes(query);
+                const matchAuthor = mod.author && mod.author.toLowerCase().includes(query);
+                if (!matchName && !matchAuthor) return false;
+            }
+            if (filters.status !== 'all') {
+                const isUpToDate = mod.status === 'UpToDate' || mod.status === 'NewerInstalled';
+                if (filters.status === 'ok' && !isUpToDate) return false;
+                if (filters.status === 'attention' && isUpToDate) return false;
+            }
+            return true;
+        });
     }
     
     function applySort(mods, sort) {
-        return mods; // stub for 4.2
+        return [...mods].sort((a, b) => {
+            let valA, valB;
+            if (sort.column === 'name') {
+                valA = a.name ? a.name.toLowerCase() : '';
+                valB = b.name ? b.name.toLowerCase() : '';
+            } else if (sort.column === 'status') {
+                const order = { 'UpdateBlocked': 0, 'Incompatible': 1, 'Error': 2, 'NoVersionsFound': 3, 'UpdateAvailable': 4, 'NewerInstalled': 5, 'UpToDate': 6, 'Unknown': 7 };
+                valA = order[a.status] !== undefined ? order[a.status] : 8;
+                valB = order[b.status] !== undefined ? order[b.status] : 8;
+            } else {
+                valA = ''; valB = '';
+            }
+            
+            if (valA < valB) return sort.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return sort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    function renderChipCounts(mods, filteredMods, filters) {
+        const countAll = document.getElementById('chip-count-all');
+        const countOk = document.getElementById('chip-count-ok');
+        const countAttention = document.getElementById('chip-count-attention');
+        const elSearchCount = document.getElementById('search-count');
+
+        if (countAll) countAll.textContent = mods.length;
+        if (countOk) countOk.textContent = mods.filter(m => m.status === 'UpToDate' || m.status === 'NewerInstalled').length;
+        if (countAttention) countAttention.textContent = mods.filter(m => !(m.status === 'UpToDate' || m.status === 'NewerInstalled')).length;
+
+        if (elSearchCount) {
+            if (filters.search || filters.status !== 'all') {
+                elSearchCount.textContent = `Showing ${filteredMods.length} of ${mods.length}`;
+            } else {
+                elSearchCount.textContent = '';
+            }
+        }
+        
+        document.querySelectorAll('th[data-sortable]').forEach(th => {
+            if (th.dataset.sortable === state.sort.column) {
+                th.setAttribute('aria-sort', state.sort.direction === 'asc' ? 'ascending' : 'descending');
+            } else {
+                th.setAttribute('aria-sort', 'none');
+            }
+        });
     }
 
     function render() {
@@ -243,11 +349,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         renderHealthBanner(state.mods);
         renderStats(state.mods, state.filters);
+        renderChipCounts(state.mods, state.filteredMods, state.filters);
         renderTable(state.filteredMods, state.sort, state.ui);
         updateTitle(state.mods);
 
         // Show overview if no mod is selected
-        if (!document.querySelector('.mod-card.selected')) {
+        if (!document.querySelector('#mods-list tr.selected')) {
             showOverview();
         }
     }
@@ -427,27 +534,42 @@ document.addEventListener('DOMContentLoaded', () => {
         detailPane.classList.remove('hidden');
     }
 
-    function renderEmptyState(message, type = 'info') {
+    function renderEmptyState(message, type = 'info', isFilterEmpty = false) {
         modsList.innerHTML = `
-            <div class="empty-state" style="color: ${type === 'error' ? 'var(--status-error)' : 'inherit'};">
-                ${escapeHtml(message)}
-            </div>
+            <tr>
+                <td colspan="4">
+                    <div class="empty-state" style="color: ${type === 'error' ? 'var(--status-error)' : 'inherit'};">
+                        ${escapeHtml(message)}
+                        ${isFilterEmpty ? '<br><br><button class="btn-secondary" id="btn-clear-filters">Clear Filters</button>' : ''}
+                    </div>
+                </td>
+            </tr>
         `;
+        if (isFilterEmpty) {
+            const btnClear = document.getElementById('btn-clear-filters');
+            if (btnClear) {
+                btnClear.addEventListener('click', () => {
+                    const searchInput = document.getElementById('search-input');
+                    if (searchInput) searchInput.value = '';
+                    state.filters.search = '';
+                    setFilter('all');
+                });
+            }
+        }
     }
 
     function renderTable(filteredMods, sort, ui) {
         if (!filteredMods || filteredMods.length === 0) {
-            renderEmptyState(state.mods.length > 0 ? "No mods match your current filters." : "No mods detected in target directory.");
+            renderEmptyState(state.mods.length > 0 ? "No mods match your current filters." : "No mods detected in target directory.", 'info', state.mods.length > 0);
             return;
         }
 
         modsList.innerHTML = '';
         
         filteredMods.forEach(mod => {
-            const card = document.createElement('div');
-            card.className = 'mod-card';
-            if (ui.selectedIds.has(String(mod.id))) card.classList.add('selected');
-            card.dataset.id = mod.id;
+            const tr = document.createElement('tr');
+            if (ui.selectedIds.has(String(mod.id))) tr.classList.add('selected');
+            tr.dataset.id = mod.id;
             
             let statusClass = 'status-unknown';
             if (mod.status === 'UpToDate') statusClass = 'status-ok';
@@ -464,22 +586,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const actionHtml = renderVersionCell(mod);
             const statusPill = renderStatusPill(mod.status);
 
-            card.innerHTML = `
-                <input type="checkbox" class="row-checkbox action-select" value="${escapeHtml(mod.id)}" aria-label="Select mod" ${ui.selectedIds.has(String(mod.id)) ? 'checked' : ''}>
-                <div style="display:flex; align-items:center; gap:var(--space-md); flex:1;">
-                    <div class="status-block ${statusClass}" title="${mod.status}" style="border-radius: 50%; box-shadow: 0 0 5px var(--status-${statusClass.split('-')[1]}); width: 12px; height: 12px; min-width: 12px;"></div>
+            tr.innerHTML = `
+                <td>
+                    <input type="checkbox" class="row-checkbox action-select" value="${escapeHtml(mod.id)}" aria-label="Select mod" ${ui.selectedIds.has(String(mod.id)) ? 'checked' : ''}>
+                </td>
+                <td data-label="Status">
+                    <div style="display:flex; align-items:center; gap:var(--space-md);">
+                        <div class="status-block ${statusClass}" title="${mod.status}" style="border-radius: 50%; box-shadow: 0 0 5px var(--status-${statusClass.split('-')[1]}); width: 12px; height: 12px; min-width: 12px;"></div>
+                        ${statusPill}
+                    </div>
+                </td>
+                <td data-label="Mod Name">
                     <div class="mod-card-primary">
-                        <div class="mod-card-title">${escapedName}</div>
+                        <div class="mod-card-title" style="font-weight: 600;">${escapedName}</div>
                         <div class="mod-card-meta">by ${escapedAuthor} • ${typeLabel}</div>
                     </div>
-                </div>
-                <div class="mod-card-actions">
-                    ${statusPill}
+                </td>
+                <td data-label="Version" class="col-version" style="text-align: right;">
                     ${actionHtml}
-                </div>
+                </td>
             `;
             
-            modsList.appendChild(card);
+            modsList.appendChild(tr);
         });
     }
 
@@ -499,25 +627,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleModListClick(e) {
         const checkbox = e.target.closest('.row-checkbox');
         if (checkbox) {
+            if (checkbox.id === 'select-all') return;
             const id = checkbox.value;
             if (checkbox.checked) state.ui.selectedIds.add(id);
             else state.ui.selectedIds.delete(id);
-            const card = checkbox.closest('.mod-card');
-            if (card) {
-                if (checkbox.checked) card.classList.add('selected');
-                else card.classList.remove('selected');
+            const tr = checkbox.closest('tr');
+            if (tr) {
+                if (checkbox.checked) tr.classList.add('selected');
+                else tr.classList.remove('selected');
             }
             e.stopPropagation();
             return;
         }
 
-        const card = e.target.closest('.mod-card');
-        if (card) {
-            const id = card.dataset.id;
+        const tr = e.target.closest('tr');
+        if (tr && tr.dataset.id) {
+            const id = tr.dataset.id;
             const mod = state.mods.find(m => String(m.id) === String(id));
             if (mod) {
-                document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
+                document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
+                tr.classList.add('selected');
                 // Don't add to selectedIds just from clicking the row for details
                 renderDetailRow(mod);
             }
@@ -578,9 +707,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnScan.textContent = '[ SCANNING... ]';
         
         modsList.innerHTML = `
-            <div class="empty-state" id="loader-cell">
+            <tr><td colspan="4" class="empty-state" id="loader-cell">
                 <span id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</span>
-            </div>
+            </td></tr>
         `;
         detailPane.classList.add('hidden');
         
