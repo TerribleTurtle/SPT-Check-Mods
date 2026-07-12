@@ -1,7 +1,3 @@
-// Restore theme immediately to prevent FOUC
-const savedTheme = localStorage.getItem('cme-theme') || 'dark';
-document.documentElement.dataset.theme = savedTheme;
-
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const btnScan = document.getElementById('btn-scan');
