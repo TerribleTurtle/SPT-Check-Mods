@@ -109,7 +109,12 @@ public sealed class ModEnrichmentService(
                 var olderMod = modsDict[group[i].Local.Guid];
                 
                 var inheritedStatus = highestMod.Update.UpdateStatus;
-                if (inheritedStatus == UpdateStatus.UpToDate || inheritedStatus == UpdateStatus.Unknown)
+                
+                // If it's a duplicate, we only mark it as UpdateAvailable if its version is strictly older than the highest installed version.
+                // Otherwise, if they are identical versions, it should just remain whatever the highest mod's status is (e.g. UpToDate).
+                var isStrictlyOlder = !string.Equals(olderMod.Local.LocalVersion, highestMod.Local.LocalVersion, StringComparison.OrdinalIgnoreCase);
+
+                if (isStrictlyOlder && (inheritedStatus == UpdateStatus.UpToDate || inheritedStatus == UpdateStatus.Unknown))
                 {
                     inheritedStatus = UpdateStatus.UpdateAvailable;
                 }
