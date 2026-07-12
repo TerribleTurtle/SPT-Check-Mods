@@ -126,7 +126,7 @@ jobs:
       uses: softprops/action-gh-release@v3
       with:
         files: |
-          ./publish/artifacts/CheckModsExtended-*
+          ./publish/artifacts/*.zip
           ./publish/artifacts/checksums.txt
         generate_release_notes: true
         body_path: current_notes.md
@@ -152,7 +152,6 @@ jobs:
           URL="${i#*=}"
           echo "- [$FILENAME]($URL)" >> vt_notes.md
         done
-        gh release view ${{ github.ref_name }} --json body -q .body > current_notes.md
         echo "" >> current_notes.md
         cat vt_notes.md >> current_notes.md
         gh release edit ${{ github.ref_name }} --notes-file current_notes.md
