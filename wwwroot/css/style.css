@@ -266,69 +266,19 @@ button:focus-visible, a:focus-visible {
     gap: var(--space-md);
 }
 
-/* Health Board (Hero) */
-.health-board {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-}
-
-.health-card {
+/* Workspace Overview */
+.workspace-overview {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: var(--space-md);
-    padding: var(--space-lg);
     background-color: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    text-align: left;
+    padding: var(--space-lg);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.health-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-    border-color: var(--border-strong);
-}
 
-.card-critical:hover { border-color: var(--status-error); }
-.card-warning:hover { border-color: var(--status-warning); }
-.card-info:hover { border-color: var(--status-info); }
-
-.health-card-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-full);
-}
-
-.card-critical .health-card-icon { background: var(--status-error-bg); color: var(--status-error); }
-.card-warning .health-card-icon { background: var(--status-warning-bg); color: var(--status-warning); }
-.card-info .health-card-icon { background: var(--status-info-bg); color: var(--status-info); }
-
-.health-card-content {
-    display: flex;
-    flex-direction: column;
-}
-
-.health-card-title {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.health-card-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1.2;
-}
 
 /* Master-Detail Layout */
 .master-detail-container {
@@ -374,6 +324,22 @@ button:focus-visible, a:focus-visible {
     font-size: 0.85rem;
     color: var(--text-secondary);
     cursor: pointer;
+}
+
+.mod-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-default);
+    padding: var(--space-md);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    user-select: none;
 }
 
 .sort-btn {
@@ -611,20 +577,32 @@ a.btn-secondary {
     width: 100%;
 }
 
-.loader-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--border-default);
-    border-top: 3px solid var(--accent-brand);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.progress-bar-container {
+    width: 300px;
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: var(--space-sm);
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--accent-brand);
+    width: 0%;
+    transition: width 0.3s ease-out;
+}
+
+.progress-bar-fill.done {
+    background: var(--status-success);
 }
 
 #loader-text {
-    color: var(--accent-brand);
+    color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: 0.9rem;
-    animation: pulse 2s infinite;
+    margin-top: var(--space-md);
 }
 
 @keyframes spin {
@@ -729,7 +707,6 @@ tr.keyboard-focus { outline: 2px solid var(--accent-brand); outline-offset: -2px
 
 /* ───── Mobile ≤768px ───── */
 @media (max-width: 768px) {
-  .health-board { grid-template-columns: 1fr; }
   .master-detail-container { flex-direction: column; position: relative; }
   .master-list { flex: 1 1 100%; }
   

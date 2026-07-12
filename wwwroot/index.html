@@ -31,37 +31,11 @@
         <div id="health-banner" class="health-banner" hidden></div>
 
         <main class="dashboard" id="main-content">
-            <!-- Hero Health Board -->
-            <div id="health-board" class="health-board" style="display: none;">
-                <button class="health-card card-critical" data-filter="attention">
-                    <div class="health-card-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    </div>
-                    <div class="health-card-content">
-                        <span class="health-card-title">Action Required</span>
-                        <span class="health-card-value" id="stat-outdated">0</span>
-                    </div>
-                </button>
-                <button class="health-card card-warning" data-filter="ok">
-                    <div class="health-card-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    </div>
-                    <div class="health-card-content">
-                        <span class="health-card-title">Up to Date</span>
-                        <span class="health-card-value" id="stat-ok">0</span>
-                    </div>
-                </button>
-                <button class="health-card card-info" data-filter="all">
-                    <div class="health-card-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                    </div>
-                    <div class="health-card-content">
-                        <span class="health-card-title">Total Mods</span>
-                        <span class="health-card-value" id="stat-total">0</span>
-                    </div>
-                </button>
+            <!-- Workspace Overview -->
+            <div id="workspace-overview" class="workspace-overview" style="display: none;">
+                <!-- Populated by JS -->
             </div>
-
+            
             <!-- Toolbar -->
             <div class="toolbar">
                 <div class="search-wrapper">
@@ -75,6 +49,7 @@
                     <button class="chip active" data-filter="all">All <span class="chip-count" id="chip-count-all">0</span></button>
                     <button class="chip" data-filter="ok">Up to Date <span class="chip-count" id="chip-count-ok">0</span></button>
                     <button class="chip" data-filter="attention">Action Needed <span class="chip-count" id="chip-count-attention">0</span></button>
+                    <button class="chip" data-filter="ignored">Ignored <span class="chip-count" id="chip-count-ignored">0</span></button>
                 </div>
                 <div id="last-scan-time" class="last-scan">
                     Last scan: Never

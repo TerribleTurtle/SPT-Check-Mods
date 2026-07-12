@@ -15,10 +15,21 @@ export function applyFilters(mods, filters) {
             const matchAuthor = mod.author && mod.author.toLowerCase().includes(query);
             if (!matchName && !matchAuthor) return false;
         }
+        
         if (filters.status !== 'all') {
-            const isUpToDate = mod.status === 'UpToDate' || mod.status === 'NewerInstalled';
-            if (filters.status === 'ok' && !isUpToDate) return false;
-            if (filters.status === 'attention' && isUpToDate) return false;
+            if (filters.status === 'ignored') {
+                return mod.isIgnored === true;
+            }
+            if (mod.isIgnored) return false; // Hide ignored from other filters
+            
+            if (filters.status === 'ok') {
+                return mod.status === 'UpToDate' || mod.status === 'NewerInstalled';
+            }
+            if (filters.status === 'attention') {
+                return ['UpdateAvailable', 'UpdateBlocked', 'Incompatible'].includes(mod.status);
+            }
+        } else {
+            // In 'all' view, you might want to show them, but maybe visual indicator
         }
         return true;
     });

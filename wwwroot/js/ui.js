@@ -11,47 +11,23 @@ export function renderHealthBanner(mods) {
         return;
     }
 
-    const upToDateMods = mods.filter(m => m.status === 'UpToDate' || m.status === 'NewerInstalled');
-    const actionableMods = mods.length - upToDateMods.length;
+    const activeMods = mods.filter(m => !m.isIgnored);
+    const actionableMods = activeMods.filter(m => ['UpdateAvailable', 'UpdateBlocked', 'Incompatible'].includes(m.status)).length;
 
     healthBanner.hidden = false;
     healthBanner.className = 'health-banner'; 
 
     if (actionableMods === 0) {
         healthBanner.classList.add('health-banner-ok');
-        healthBanner.textContent = `All ${mods.length} mods up to date ✓`;
+        healthBanner.textContent = `All ${activeMods.length} active mods up to date ✓`;
     } else {
         healthBanner.classList.add('health-banner-warn');
-        healthBanner.textContent = `${actionableMods} of ${mods.length} mods need attention ⚠`;
+        healthBanner.textContent = `${actionableMods} of ${activeMods.length} active mods need attention ⚠`;
     }
 }
 
 export function renderStats(mods, filters) {
-    const healthBoard = document.getElementById('health-board');
-    if (!healthBoard) return;
-    
-    if (mods.length === 0) {
-        healthBoard.style.display = 'none';
-        return;
-    }
-
-    const totalMods = mods.length;
-    const upToDateMods = mods.filter(m => m.status === 'UpToDate' || m.status === 'NewerInstalled');
-    const actionableMods = mods.length - upToDateMods.length;
-    
-    const elTotal = document.getElementById('stat-total');
-    if (elTotal) elTotal.textContent = totalMods;
-    
-    const elOutdated = document.getElementById('stat-outdated');
-    if (elOutdated) elOutdated.textContent = actionableMods;
-    
-    const elOk = document.getElementById('stat-ok');
-    if (elOk) elOk.textContent = upToDateMods.length;
-    
-    healthBoard.style.display = window.innerWidth > 768 ? 'grid' : 'flex';
-    if (window.innerWidth <= 768) {
-        healthBoard.style.flexDirection = 'column';
-    }
+    // Top health board removed. Stats are now handled in Workspace Overview.
 }
 
 export function renderStatusPill(status) {
@@ -193,10 +169,18 @@ export function renderDetailRow(mod) {
          html += `<div style="margin-bottom: 20px;">
             <h4 style="color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; font-size: 0.8rem;">Blocked By</h4>
             <ul style="padding-left: 20px; color: var(--text-primary); font-size: 0.9rem;">`;
-         mod.blockingMods.forEach(b => {
-             html += `<li>${escapeHtml(b.name)} (constraint: ${escapeHtml(b.constraint)})</li>`;
          });
          html += `</ul></div>`;
+    }
+
+    if (mod.loadWarnings && mod.loadWarnings.length > 0) {
+        html += `<div style="background: var(--status-warning-bg); border: 1px solid var(--status-warning); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <h3 style="color: var(--status-warning); margin-bottom: 10px;">Mod Warnings</h3>
+            <ul style="margin-left: 20px; font-size: 0.9rem; color: var(--text-primary);">`;
+        mod.loadWarnings.forEach(w => {
+            html += `<li style="margin-bottom: 4px;">${escapeHtml(w)}</li>`;
+        });
+        html += `</ul></div>`;
     }
     
     detailContent.innerHTML = html;
@@ -253,6 +237,7 @@ export function renderTable(filteredMods, sort, ui) {
 
         const escapedName = escapeHtml(mod.name || 'Unknown');
         const escapedAuthor = escapeHtml(mod.author || 'Unknown');
+        const warningHtml = mod.hasWarnings ? '<span title="Mod has warnings. Check details pane." style="color: var(--status-warning); margin-left: 5px; font-size: 0.9rem;">⚠️</span>' : '';
         const typeLabel = mod.isServerMod 
             ? '<span style="color: var(--status-success); font-weight: 600;" title="Server Mod">Server</span>' 
             : '<span style="color: var(--status-info); font-weight: 600;" title="Client Mod">Client</span>';
@@ -272,7 +257,7 @@ export function renderTable(filteredMods, sort, ui) {
             </td>
             <td data-label="Mod Name">
                 <div class="mod-card-primary">
-                    <div class="mod-card-title" style="font-weight: 600;">${escapedName}</div>
+                    <div class="mod-card-title" style="font-weight: 600;">${escapedName}${warningHtml}</div>
                     <div class="mod-card-meta">by ${escapedAuthor} • ${typeLabel}</div>
                 </div>
             </td>
@@ -302,11 +287,17 @@ export function renderChipCounts(mods, filteredMods, filters) {
     const countAll = document.getElementById('chip-count-all');
     const countOk = document.getElementById('chip-count-ok');
     const countAttention = document.getElementById('chip-count-attention');
+    const countIgnored = document.getElementById('chip-count-ignored');
     const elSearchCount = document.getElementById('search-count');
 
+    const ignoredMods = mods.filter(m => m.isIgnored === true);
+    const upToDateMods = mods.filter(m => !m.isIgnored && (m.status === 'UpToDate' || m.status === 'NewerInstalled'));
+    const attentionMods = mods.filter(m => !m.isIgnored && ['UpdateAvailable', 'UpdateBlocked', 'Incompatible'].includes(m.status));
+
     if (countAll) countAll.textContent = mods.length;
-    if (countOk) countOk.textContent = mods.filter(m => m.status === 'UpToDate' || m.status === 'NewerInstalled').length;
-    if (countAttention) countAttention.textContent = mods.filter(m => !(m.status === 'UpToDate' || m.status === 'NewerInstalled')).length;
+    if (countOk) countOk.textContent = upToDateMods.length;
+    if (countAttention) countAttention.textContent = attentionMods.length;
+    if (countIgnored) countIgnored.textContent = ignoredMods.length;
 
     if (elSearchCount) {
         if (filters.search || filters.status !== 'all') {
@@ -342,7 +333,7 @@ export async function renderIgnoreDashboard() {
     try {
         const ignores = await fetchIgnores();
         
-        let html = '<div class="ignore-dashboard" style="margin-top: 20px;">';
+        let html = '<div class="ignore-dashboard" style="flex-basis: 100%; margin-top: 10px;">';
         html += '<h3 style="color: var(--text-primary); margin-bottom: 10px; font-size: 1.1rem;">Manage Ignore List</h3>';
         if (!ignores || ignores.length === 0) {
             html += '<p style="color: var(--text-muted); font-size: 0.9rem;">No mods are currently ignored.</p>';
@@ -365,30 +356,36 @@ export async function renderIgnoreDashboard() {
 }
 
 export async function showOverview() {
+    const overviewPane = document.getElementById('workspace-overview');
     const detailTitle = document.getElementById('detail-title');
     const detailContent = document.getElementById('detail-content');
     const detailPane = document.getElementById('detail-pane');
     
-    detailTitle.textContent = 'Workspace Overview';
+    if (detailTitle && detailContent && detailPane && !document.querySelector('#mods-list tr.selected')) {
+        detailPane.classList.add('hidden');
+    }
+    
+    if (!overviewPane) return;
     
     if (state.mods.length === 0) {
-        detailContent.innerHTML = '<div class="empty-state">No mods loaded. Run a scan to populate the dashboard.</div>';
-        detailPane.classList.remove('hidden');
+        overviewPane.style.display = 'none';
         return;
     }
+    
+    overviewPane.style.display = 'flex';
 
-    const updateMods = state.mods.filter(m => m.status === 'UpdateAvailable');
-    const blockedMods = state.mods.filter(m => m.status === 'UpdateBlocked');
-    const incompatMods = state.mods.filter(m => m.status === 'Incompatible');
+    const updateMods = state.mods.filter(m => m.status === 'UpdateAvailable' && !m.isIgnored);
+    const blockedMods = state.mods.filter(m => m.status === 'UpdateBlocked' && !m.isIgnored);
+    const incompatMods = state.mods.filter(m => m.status === 'Incompatible' && !m.isIgnored);
     
     let summaryHtml = '';
     if (updateMods.length === 0 && blockedMods.length === 0 && incompatMods.length === 0) {
-        summaryHtml = `<div style="background: var(--status-success-bg); border: 1px solid var(--status-success); color: var(--status-success); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;">
+        summaryHtml = `<div style="flex: 1; background: var(--status-success-bg); border: 1px solid var(--status-success); color: var(--status-success); padding: 15px; border-radius: var(--radius-md);">
             <h3 style="margin-bottom: 10px;">All systems nominal</h3>
             <p>Your workspace is fully up to date with ${state.mods.length} mods installed.</p>
         </div>`;
     } else {
-        summaryHtml = `<div style="background: var(--status-warning-bg); border: 1px solid var(--status-warning); color: var(--text-primary); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;">
+        summaryHtml = `<div style="flex: 1; background: var(--status-warning-bg); border: 1px solid var(--status-warning); color: var(--text-primary); padding: 15px; border-radius: var(--radius-md);">
             <h3 style="color: var(--status-warning); margin-bottom: 10px;">Action Required</h3>
             <p>Out of ${state.mods.length} total mods:</p>
             <ul style="margin-top:10px; margin-left: 20px;">
@@ -400,7 +397,7 @@ export async function showOverview() {
     }
 
     const bulkToolbar = `
-        <div style="margin-bottom: 20px;">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
             <h4 style="color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; font-size: 0.8rem;">Workspace Actions</h4>
             <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                 <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
@@ -411,12 +408,10 @@ export async function showOverview() {
         </div>
     `;
 
-    detailContent.innerHTML = summaryHtml + bulkToolbar;
-    
+    // Add ignore dashboard inline
     const ignoreHtml = await renderIgnoreDashboard();
-    detailContent.innerHTML += ignoreHtml;
     
-    detailPane.classList.remove('hidden');
+    overviewPane.innerHTML = summaryHtml + bulkToolbar + ignoreHtml;
 
     const btnCopyMods = document.getElementById('btn-copy-mods');
     if (btnCopyMods) {
@@ -559,25 +554,44 @@ export function updateLastScanTime() {
     lastScanEl.textContent = `Last scanned: ${text}`;
 }
 
-let loaderInterval;
+let loaderState = { active: false, interval: null };
 export function startLoaderAnimation() {
-    const states = [
-        '[ CONNECTING TO FORGE API... ]',
-        '[ RECONCILING COMPONENT HASHES... ]',
-        '[ ANALYZING MOD VERSIONS... ]',
-        '[ CHECKING DEPENDENCIES... ]'
-    ];
-    let i = 0;
+    loaderState.active = true;
     const loaderText = document.getElementById('loader-text');
-    if (!loaderText) return;
+    const fill = document.querySelector('.progress-bar-fill');
+    if (!loaderText || !fill) return;
+
+    fill.classList.remove('done');
+    fill.style.width = '0%';
     
-    loaderInterval = setInterval(() => {
-        i = (i + 1) % states.length;
-        const lt = document.getElementById('loader-text');
-        if (lt) lt.textContent = states[i];
-    }, 2500);
+    const steps = [
+        { text: '> Initiating workspace scan...', wait: 600, p: 10 },
+        { text: '> Indexing local mod directories...', wait: 800, p: 35 },
+        { text: '> Connecting to Forge API...', wait: 900, p: 60 },
+        { text: '> Reconciling version hashes...', wait: 1200, p: 75 },
+        { text: '> Analyzing dependencies...', wait: 2000, p: 90 }
+    ];
+
+    let i = 0;
+    
+    async function runSequence() {
+        while(loaderState.active && i < steps.length) {
+            loaderText.textContent = steps[i].text;
+            fill.style.width = steps[i].p + '%';
+            await new Promise(r => setTimeout(r, steps[i].wait));
+            i++;
+        }
+    }
+    runSequence();
 }
 
 export function stopLoaderAnimation() {
-    clearInterval(loaderInterval);
+    loaderState.active = false;
+    const loaderText = document.getElementById('loader-text');
+    const fill = document.querySelector('.progress-bar-fill');
+    if (loaderText) loaderText.textContent = '> SCAN COMPLETE';
+    if (fill) {
+        fill.classList.add('done');
+        fill.style.width = '100%';
+    }
 }

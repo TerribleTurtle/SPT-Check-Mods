@@ -97,9 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.chip').forEach(el => {
             el.addEventListener('click', (e) => setFilter(e.currentTarget.dataset.filter));
         });
-        document.querySelectorAll('.health-card').forEach(el => {
-            el.addEventListener('click', (e) => setFilter(e.currentTarget.dataset.filter));
-        });
 
         document.querySelectorAll('th[data-sortable]').forEach(th => {
             th.addEventListener('click', (e) => {
@@ -286,7 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modsList.innerHTML = `
             <tr><td colspan="4" style="padding: 0; border: none; height: 300px;">
                 <div class="scan-loader-container">
-                    <div class="loader-spinner"></div>
+                    <div class="loader-spinner" style="display: none;"></div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill"></div>
+                    </div>
                     <div id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</div>
                 </div>
             </td></tr>
@@ -308,8 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
-            const healthBoard = document.getElementById('health-board');
-            if (healthBoard) healthBoard.style.display = 'none';
             renderEmptyState(`Scan failed: ${error.message}`, 'error');
         } finally {
             stopLoaderAnimation();
