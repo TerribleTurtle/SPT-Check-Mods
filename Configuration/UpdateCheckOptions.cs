@@ -6,7 +6,7 @@ namespace CheckModsExtended.Configuration;
 public sealed class UpdateCheckOptions
 {
     /// <summary>
-    /// The Forge mod ID for Check Mods itself.
+    /// The Forge mod ID for Check Mods itself (points to the Check Mods Extended project for self-updates).
     /// </summary>
     public int ForgeModId { get; set; } = 2471;
 }

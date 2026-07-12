@@ -8,9 +8,18 @@ namespace CheckModsExtended.Models;
 /// <param name="version">The version of the plugin.</param>
 public sealed class BepInPluginAttribute(string guid, string name, string version)
 {
+    /// <summary>
+    /// Gets the unique identifier for the plugin.
+    /// </summary>
     public string Guid { get; init; } = guid;
 
+    /// <summary>
+    /// Gets the display name of the plugin.
+    /// </summary>
     public string Name { get; init; } = name;
 
+    /// <summary>
+    /// Gets the version of the plugin.
+    /// </summary>
     public string Version { get; init; } = version;
 }

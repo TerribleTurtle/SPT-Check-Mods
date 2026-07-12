@@ -29,6 +29,7 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
         return await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
     }
     
+    /// <inheritdoc />
     public async Task<OneOf<T, NotFound, ApiError>> GetFromJsonAsync<T>(
         string url,
         JsonTypeInfo<T> jsonTypeInfo,

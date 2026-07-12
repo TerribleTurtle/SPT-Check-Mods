@@ -20,10 +20,12 @@ namespace CheckModsExtended.Services;
 /// caches it in memory for the lifetime of the run.
 /// </summary>
 [Injectable(InjectionType.Singleton)]
-public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, ILogger<IgnoredUpdateStore> logger, IFileSystem fileSystem)
+public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, IOptions<AppPaths> appPaths, ILogger<IgnoredUpdateStore> logger, IFileSystem fileSystem)
     : IIgnoredUpdateStore, IDisposable
 {
-    private readonly IgnoredUpdateOptions _options = options.Value;
+    private readonly string _resolvedFilePath = Path.IsPathRooted(options.Value.FilePath)
+        ? options.Value.FilePath
+        : Path.Combine(appPaths.Value.AppDataDirectory, options.Value.FilePath);
     private readonly IFileSystem _fileSystem = fileSystem;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
@@ -158,12 +160,12 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     {
         try
         {
-            if (!_fileSystem.FileExists(_options.FilePath))
+            if (!_fileSystem.FileExists(_resolvedFilePath))
             {
                 return [];
             }
 
-            var json = await _fileSystem.ReadAllTextAsync(_options.FilePath, cancellationToken);
+            var json = await _fileSystem.ReadAllTextAsync(_resolvedFilePath, cancellationToken);
             var file = JsonSerializer.Deserialize(
                 json,
                 CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
@@ -181,7 +183,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             logger.LogWarning(
                 ex,
                 "Could not read ignored-updates file at {Path}; treating it as empty",
-                _options.FilePath
+                _resolvedFilePath
             );
             return [];
         }
@@ -191,7 +193,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     {
         try
         {
-            var directory = Path.GetDirectoryName(_options.FilePath);
+            var directory = Path.GetDirectoryName(_resolvedFilePath);
             if (!string.IsNullOrEmpty(directory))
             {
                 _fileSystem.CreateDirectory(directory);
@@ -204,13 +206,13 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
             );
 
             // Atomic write: stage to a temp file then move into place.
-            var tempPath = _options.FilePath + ".tmp";
+            var tempPath = _resolvedFilePath + ".tmp";
             await _fileSystem.WriteAllTextAsync(tempPath, json, cancellationToken);
-            _fileSystem.MoveFile(tempPath, _options.FilePath, true);
+            _fileSystem.MoveFile(tempPath, _resolvedFilePath, true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
-            logger.LogWarning(ex, "Could not write ignored-updates file at {Path}", _options.FilePath);
+            logger.LogWarning(ex, "Could not write ignored-updates file at {Path}", _resolvedFilePath);
         }
     }
 

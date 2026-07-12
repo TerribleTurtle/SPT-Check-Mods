@@ -14,9 +14,6 @@ using Spectre.Console.Cli;
 namespace CheckModsExtended;
 
 /// <summary>
-/// Main entry point for the CheckModsExtended application.
-/// </summary>
-/// <summary>
 /// Exit codes for the application.
 /// </summary>
 public static class ExitCodes
@@ -25,6 +22,9 @@ public static class ExitCodes
     public const int Error = 2;
 }
 
+/// <summary>
+/// Main entry point for the CheckModsExtended application.
+/// </summary>
 public sealed class Program
 {
     private static CancellationTokenSource? _cts;
@@ -62,19 +62,33 @@ public sealed class Program
         }
 
         RuntimeConfig? runtimeConfig = null;
+        string? finalLogPath = null;
 
         try
         {
+            runtimeConfig = new RuntimeConfig
+            {
+                IsVerbose = args.Contains("-v") || args.Contains("--verbose")
+            };
+
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
 
-            var services = new ServiceCollection();
-            services.AddCheckModsExtendedServices(configuration);
+            var loggingOptions = configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
+            var appPaths = configuration.GetSection("AppPaths").Get<AppPaths>() ?? new AppPaths();
 
-            runtimeConfig = new RuntimeConfig();
+            finalLogPath = loggingOptions.LogFilePath;
+            if (!string.IsNullOrEmpty(finalLogPath) && !Path.IsPathRooted(finalLogPath))
+            {
+                finalLogPath = Path.Combine(appPaths.AppDataDirectory, "logs", finalLogPath);
+            }
+
+            var services = new ServiceCollection();
+            services.AddCheckModsExtendedServices(configuration, runtimeConfig);
+
             services.AddSingleton(runtimeConfig);
 
             var registrar = new TypeRegistrar(services);
@@ -82,7 +96,7 @@ public sealed class Program
 
             app.Configure(config =>
             {
-                config.SetApplicationName("check-mods");
+                config.SetApplicationName("CheckModsExtended");
                 config.SetApplicationVersion(VersionInfo.SemVer);
                 config.SetInterceptor(new CheckModsInterceptor(runtimeConfig));
 
@@ -125,9 +139,9 @@ public sealed class Program
             AnsiConsole.WriteLine();
 
             AnsiConsole.MarkupLine($"[grey]Check Mods v{VersionInfo.SemVer} (build {VersionInfo.GitHash})[/]");
-            if (LoggingOptions.CurrentLogFilePath != null)
+            if (finalLogPath != null)
             {
-                AnsiConsole.MarkupLine($"[grey]Log file: {LoggingOptions.CurrentLogFilePath}[/]");
+                AnsiConsole.MarkupLine($"[grey]Log file: {finalLogPath}[/]");
             }
 
             var isHeadless =

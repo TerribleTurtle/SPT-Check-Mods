@@ -26,7 +26,7 @@ public sealed class ServiceCollectionExtensionsTests
             .Build();
 
         // Act
-        services.AddCheckModsExtendedServices(configuration);
+        services.AddCheckModsExtendedServices(configuration, new CheckModsExtended.Configuration.RuntimeConfig());
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert

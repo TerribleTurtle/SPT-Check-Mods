@@ -18,9 +18,9 @@ public interface ISptVersionClient
     /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>
     /// Returns a <see cref="OneOf{T0, T1, T2}"/> where:
-    /// - <see cref="bool"/> indicates whether the version is valid (true) or not.
-    /// - <see cref="InvalidSptVersion"/> if the provided SPT version format is invalid.
-    /// - <see cref="ApiError"/> if an error occurs while communicating with the Forge API.
+    /// - A <see cref="bool"/> that is always <c>true</c> if the version is valid.
+    /// - An <see cref="InvalidSptVersion"/> if the provided SPT version is invalid, unsupported, or not found.
+    /// - An <see cref="ApiError"/> if an error occurs while communicating with the Forge API.
     /// </returns>
     /// <example>
     /// <code>

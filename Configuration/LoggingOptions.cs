@@ -28,24 +28,8 @@ public sealed class LoggingOptions
     public int RetainedFileCount { get; set; } = 3;
 
     /// <summary>
-    /// The full path to the active log file. Defaults to <see cref="CurrentLogFilePath"/>.
+    /// The path to the active log file. Relative paths resolve against AppDataDirectory/logs.
     /// </summary>
-    public string LogFilePath { get; set; } = CurrentLogFilePath;
-
-    /// <summary>
-    /// Gets the path to the log directory.
-    /// </summary>
-    public static string LogDirectory
-    {
-        get { return Path.Combine(new CheckModsExtended.Configuration.AppPaths().AppDataDirectory, "logs"); }
-    }
-
-    /// <summary>
-    /// The default absolute path to the active log file.
-    /// </summary>
-    public static string CurrentLogFilePath
-    {
-        get { return Path.Combine(LogDirectory, "checkmod.log"); }
-    }
+    public string LogFilePath { get; set; } = "checkmod.log";
 }
 

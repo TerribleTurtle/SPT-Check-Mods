@@ -31,6 +31,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     {
         return new IgnoredUpdateStore(
             Options.Create(new IgnoredUpdateOptions { FilePath = _path, RemoteUrl = null }),
+            Options.Create(new AppPaths { AppDataDirectory = "/mock" }),
             NullLogger<IgnoredUpdateStore>.Instance,
             _fileSystem
         );

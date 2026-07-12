@@ -6,8 +6,8 @@ namespace CheckModsExtended.Configuration;
 /// </summary>
 public sealed class IgnoredUpdateOptions
 {
-    /// <summary>The full path to the local ignored-updates file.</summary>
-    public string FilePath { get; set; } = DefaultFilePath;
+    /// <summary>The path to the local ignored-updates file. Relative paths resolve against AppDataDirectory.</summary>
+    public string FilePath { get; set; } = "ignored-updates.json";
 
     /// <summary>
     /// URL of the author-maintained remote base list, or null/empty to disable the remote-fetch prompt entirely.
@@ -16,18 +16,5 @@ public sealed class IgnoredUpdateOptions
 
     /// <summary>Timeout for the remote fetch, in seconds.</summary>
     public int RemoteTimeoutSeconds { get; set; } = 10;
-
-    /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
-    /// <summary>The directory holding Check Mods' app data (shared with logs and other local state).</summary>
-    public static string DefaultDirectory
-    {
-        get { return new CheckModsExtended.Configuration.AppPaths().AppDataDirectory; }
-    }
-
-    /// <summary>The default local file path: <c>%AppData%/SptCheckModsExtended/ignored-updates.json</c>.</summary>
-    public static string DefaultFilePath
-    {
-        get { return Path.Combine(DefaultDirectory, "ignored-updates.json"); }
-    }
 }
 

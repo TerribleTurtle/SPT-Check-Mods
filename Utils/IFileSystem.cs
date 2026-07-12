@@ -129,76 +129,91 @@ public interface IFileSystem
 [Injectable(InjectionType.Transient)]
 public sealed class FileSystem : IFileSystem
 {
+    /// <inheritdoc />
     public bool FileExists(string path)
     {
         return File.Exists(path);
     }
 
+    /// <inheritdoc />
     public Stream OpenRead(string path)
     {
         return File.OpenRead(path);
     }
 
+    /// <inheritdoc />
     public Stream Open(string path, FileMode mode, FileAccess access, FileShare share)
     {
         return new FileStream(path, mode, access, share);
     }
 
+    /// <inheritdoc />
     public void DeleteFile(string path)
     {
         File.Delete(path);
     }
 
+    /// <inheritdoc />
     public Task DeleteFileAsync(string path, CancellationToken cancellationToken = default)
     {
         return Task.Run(() => File.Delete(path), cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default)
     {
         return File.ReadAllTextAsync(path, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task WriteAllTextAsync(string path, string contents, CancellationToken cancellationToken = default)
     {
         return File.WriteAllTextAsync(path, contents, cancellationToken);
     }
 
+    /// <inheritdoc />
     public void MoveFile(string sourceFileName, string destFileName, bool overwrite)
     {
         File.Move(sourceFileName, destFileName, overwrite);
     }
 
+    /// <inheritdoc />
     public void CreateDirectory(string path)
     {
         Directory.CreateDirectory(path);
     }
 
+    /// <inheritdoc />
     public bool DirectoryExists(string path)
     {
         return Directory.Exists(path);
     }
 
+    /// <inheritdoc />
     public string[] GetDirectories(string path)
     {
         return Directory.GetDirectories(path);
     }
 
+    /// <inheritdoc />
     public string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
     {
         return Directory.GetFiles(path, searchPattern, searchOption);
     }
 
+    /// <inheritdoc />
     public string GetCurrentDirectory()
     {
         return Directory.GetCurrentDirectory();
     }
 
+    /// <inheritdoc />
     public string? GetFileVersion(string path)
     {
         return System.Diagnostics.FileVersionInfo.GetVersionInfo(path).FileVersion;
     }
 
+    /// <inheritdoc />
     public long GetFileLength(string path)
     {
         return new FileInfo(path).Length;

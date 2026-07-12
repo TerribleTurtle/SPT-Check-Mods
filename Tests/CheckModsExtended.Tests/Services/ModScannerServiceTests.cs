@@ -80,7 +80,7 @@ public sealed class ModScannerServiceTests : IDisposable
     {
         var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
         _fixture.FileSystem.CreateDirectory(modDir);
-        _fixture.FileSystem.WriteAllTextAsync(Path.Combine(modDir, "package.json"), "{}").GetAwaiter().GetResult();
+        await _fixture.FileSystem.WriteAllTextAsync(Path.Combine(modDir, "package.json"), "{}");
 
         var fakeMod = ModFixture.CreateServerMod("PackageOnlyMod", "PackageOnlyMod", "1.0.0", "Unknown");
         fakeMod = fakeMod with { Local = fakeMod.Local with { FilePath = "test.json", LocalSptVersion = "3.8.0" } };
@@ -101,7 +101,7 @@ public sealed class ModScannerServiceTests : IDisposable
         _fixture.FileSystem.CreateDirectory(pluginsDir);
 
         var dllPath = Path.Combine(pluginsDir, "TestClient.dll");
-        _fixture.FileSystem.WriteAllTextAsync(dllPath, "dummy").GetAwaiter().GetResult();
+        await _fixture.FileSystem.WriteAllTextAsync(dllPath, "dummy");
 
         _pluginExtractor.ValidClientDllFilesToReturn = [dllPath];
 

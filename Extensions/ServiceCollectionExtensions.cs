@@ -45,7 +45,8 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">The application configuration.</param>
     public static IServiceCollection AddCheckModsExtendedServices(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration configuration,
+        RuntimeConfig runtimeConfig
     )
     {
         services.Configure<ForgeApiOptions>(configuration.GetSection("ForgeApiOptions"));
@@ -67,8 +68,20 @@ public static class ServiceCollectionExtensions
             var loggingOptions =
                 configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
 
+            var appPaths = configuration.GetSection("AppPaths").Get<AppPaths>() ?? new AppPaths();
+
+            if (runtimeConfig.IsVerbose)
+            {
+                loggingOptions.MinimumLogLevel = LogLevel.Debug;
+            }
+
             if (loggingOptions.EnableFileLogging)
             {
+                string logPath = loggingOptions.LogFilePath;
+                if (!string.IsNullOrEmpty(logPath) && !Path.IsPathRooted(logPath))
+                {
+                    logPath = Path.Combine(appPaths.AppDataDirectory, "logs", logPath);
+                }
                 LogEventLevel serilogLevel = loggingOptions.MinimumLogLevel switch
                 {
                     LogLevel.Trace => LogEventLevel.Verbose,
@@ -83,7 +96,7 @@ public static class ServiceCollectionExtensions
                 var serilogLogger = new Serilog.LoggerConfiguration()
                     .MinimumLevel.Is(serilogLevel)
                     .WriteTo.File(
-                        loggingOptions.LogFilePath,
+                        logPath,
                         fileSizeLimitBytes: loggingOptions.MaxFileSizeBytes,
                         rollOnFileSizeLimit: true,
                         retainedFileCountLimit: loggingOptions.RetainedFileCount,

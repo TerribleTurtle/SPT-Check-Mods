@@ -13,7 +13,7 @@ public interface IModMatchingService
     /// <param name="mod">The mod to match.</param>
     /// <param name="sptVersion">The SPT version for compatibility filtering.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The same mod instance, updated with API match data if found.</returns>
+    /// <returns>A tuple containing <c>Mod</c> (the updated mod instance) and <c>Confirmation</c> (pending user confirmation if a fuzzy match needs approval, or null).</returns>
     Task<(Mod Mod, PendingConfirmation? Confirmation)> MatchModAsync(
         Mod mod,
         SemanticVersioning.Version sptVersion,
@@ -25,7 +25,7 @@ public interface IModMatchingService
     /// </summary>
     /// <param name="mods">The mods to match.</param>
     /// <param name="sptVersion">The SPT version for compatibility filtering.</param>
-    /// <param name="progressCallback">Optional callback for progress reporting.</param>
+    /// <param name="progress">Optional callback for progress reporting.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The same mod instances, updated with API match data where found.</returns>
     Task<IReadOnlyList<Mod>> MatchModsAsync(

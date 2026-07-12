@@ -12,28 +12,36 @@ public sealed class TypeRegistrar : ITypeRegistrar
 {
     private readonly IServiceCollection _builder;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TypeRegistrar"/> class.
+    /// </summary>
+    /// <param name="builder">The service collection builder.</param>
     public TypeRegistrar(IServiceCollection builder)
     {
         _builder = builder;
     }
 
+    /// <inheritdoc />
     public ITypeResolver Build()
     {
         return new TypeResolver(_builder.BuildServiceProvider());
     }
 
 #pragma warning disable IL2067
+    /// <inheritdoc />
     public void Register(Type service, Type implementation)
     {
         _builder.AddSingleton(service, implementation);
     }
 #pragma warning restore IL2067
 
+    /// <inheritdoc />
     public void RegisterInstance(Type service, object implementation)
     {
         _builder.AddSingleton(service, implementation);
     }
 
+    /// <inheritdoc />
     public void RegisterLazy(Type service, Func<object> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
@@ -49,12 +57,17 @@ public sealed class TypeResolver : ITypeResolver, IDisposable
 {
     private readonly IServiceProvider _provider;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TypeResolver"/> class.
+    /// </summary>
+    /// <param name="provider">The service provider.</param>
     public TypeResolver(IServiceProvider provider)
     {
         ArgumentNullException.ThrowIfNull(provider);
         _provider = provider;
     }
 
+    /// <inheritdoc />
     public object? Resolve(Type? type)
     {
         if (type == null)
@@ -65,6 +78,7 @@ public sealed class TypeResolver : ITypeResolver, IDisposable
         return _provider.GetService(type);
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_provider is IDisposable disposable)

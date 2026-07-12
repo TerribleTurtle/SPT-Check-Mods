@@ -22,8 +22,14 @@ public sealed record Mod
 
     #region Processing State
 
+    /// <summary>
+    /// The current processing state of the mod.
+    /// </summary>
     public ModStatus Status { get; init; } = ModStatus.NoMatch;
 
+    /// <summary>
+    /// A list of warnings generated during the mod loading phase.
+    /// </summary>
     public IReadOnlyList<string> LoadWarnings { get; init; } = [];
 
     #endregion
@@ -46,11 +52,17 @@ public sealed record Mod
         get { return Api.ApiAuthor?.Name ?? Local.LocalAuthor; }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this mod has any load warnings.
+    /// </summary>
     public bool HasWarnings
     {
         get { return LoadWarnings.Count > 0; }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this mod has been matched with an API entry.
+    /// </summary>
     public bool IsMatched
     {
         get { return Status == ModStatus.Verified && Api.ApiModId.HasValue; }

@@ -63,7 +63,7 @@ public sealed class ServerModExtractorTests : IDisposable
         var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
         _fixture.FileSystem.CreateDirectory(modDir);
         var packagePath = Path.Combine(modDir, "package.json");
-        _fixture.FileSystem.WriteAllTextAsync(
+        await _fixture.FileSystem.WriteAllTextAsync(
             packagePath,
             """
             {

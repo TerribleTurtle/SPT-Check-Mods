@@ -5,6 +5,12 @@ namespace CheckModsExtended.Services.Interfaces;
 /// <summary>
 /// Reconciles server and client mod components into a unified mod list.
 /// </summary>
+/// <remarks>
+/// Employs a two-pass pairing algorithm:
+/// 1. Pass 1 (Exact Match): Joins client and server mods strictly by identical GUIDs.
+/// 2. Pass 2 (Fuzzy Match): For remaining unmatched mods, groups by normalized names (or GUID-extracted names) and pairs them heuristically.
+/// After pairing, the best component representation is selected based on parsed semantic version comparisons.
+/// </remarks>
 public interface IModReconciliationService
 {
     /// <summary>

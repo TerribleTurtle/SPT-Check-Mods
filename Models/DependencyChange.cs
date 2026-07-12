@@ -59,6 +59,11 @@ public sealed record DependencyChange
 /// </summary>
 public sealed class UpdateDependencyDelta
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateDependencyDelta"/> class.
+    /// </summary>
+    /// <param name="added">The dependencies added by the update.</param>
+    /// <param name="removed">The dependencies removed by the update.</param>
     public UpdateDependencyDelta(IEnumerable<DependencyChange> added, IEnumerable<DependencyChange> removed)
     {
         Added = added.ToImmutableArray();
@@ -71,6 +76,10 @@ public sealed class UpdateDependencyDelta
     /// <summary>Dependencies the installed version required that the update no longer requires.</summary>
     public IReadOnlyList<DependencyChange> Removed { get; }
 
+    /// <summary>
+    /// Gets a value indicating whether there are any dependency changes.
+    /// Returns true if <see cref="Added"/> or <see cref="Removed"/> have elements (Added.Count > 0 || Removed.Count > 0).
+    /// </summary>
     public bool HasChanges
     {
         get { return Added.Count > 0 || Removed.Count > 0; }

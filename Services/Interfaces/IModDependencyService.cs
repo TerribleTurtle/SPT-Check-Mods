@@ -10,11 +10,17 @@ public interface IModDependencyService
     /// <summary>
     /// Analyzes dependencies for a collection of mods.
     /// </summary>
+    /// <remarks>
+    /// The dependency analysis uses a multi-pass algorithm:
+    /// 1. First pass: Identifies unique matched mods and concurrently fetches their current dependencies from the API.
+    /// 2. Second pass: For mods with pending updates, concurrently fetches dependencies for their proposed versions and diffs them against current dependencies to compute deltas.
+    /// 3. Third pass: Reconstructs a full dependency graph for each mod based on the computed updates and cached components.
+    /// </remarks>
     /// <param name="mods">The mods to analyze dependencies for.</param>
     /// <param name="installedModGuids">Set of GUIDs for mods that are currently installed.</param>
-    /// <param name="progressCallback">Optional callback for progress updates (current, total).</param>
+    /// <param name="progress">Optional callback for progress updates (current, total).</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>Dependency analysis result containing tree structure and any issues.</returns>
+    /// <returns>A tuple containing <c>UpdatedMods</c> (the list of updated mods) and <c>Result</c> (dependency analysis result containing tree structure and any issues).</returns>
     Task<(IReadOnlyList<Mod> UpdatedMods, DependencyAnalysisResult Result)> AnalyzeDependenciesAsync(
         IEnumerable<Mod> mods,
         ISet<string> installedModGuids,

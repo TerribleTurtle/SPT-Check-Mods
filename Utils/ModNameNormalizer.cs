@@ -8,6 +8,10 @@ namespace CheckModsExtended.Utils;
 public static class ModNameNormalizer
 {
     private static readonly char[] _charsToRemove = ['-', '_', ' ', '.'];
+    /// <summary>
+    /// Common suffixes used in mod names that are targeted for removal during normalization to improve match accuracy.
+    /// Components like "server" or "plugin" are often omitted from API names but present locally.
+    /// </summary>
     public static readonly ImmutableArray<string> SuffixesToRemove = ["server", "client", "plugin", "api"];
 
     /// <summary>

@@ -42,7 +42,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     {
         var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
-        _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content").GetAwaiter().GetResult();
+        await _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content");
 
         _scannerService.SptVersionToReturn = "3.8.0";
         _forgeApiService.OnValidateSptVersion = _ => true;
@@ -66,7 +66,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     {
         var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
-        _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content").GetAwaiter().GetResult();
+        await _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content");
 
         _scannerService.SptVersionToReturn = "3.8.0";
         _forgeApiService.OnValidateSptVersion = _ => false;
