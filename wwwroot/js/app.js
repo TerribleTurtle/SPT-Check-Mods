@@ -57,13 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConsoleToggle.addEventListener('click', () => toggleConsole(!state.ui.consoleCollapsed));
         btnCopyLog.addEventListener('click', handleCopyLog);
         btnCloseDetail.addEventListener('click', () => {
-            detailPane.classList.add('hidden');
             document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
+            showOverview();
         });
         
         // Event delegation for mod list actions
         modsList.addEventListener('click', handleModListClick);
         detailContent.addEventListener('click', handleDetailClick);
+
+        // Keyboard Navigation (Step 4.3)
+        document.addEventListener('keydown', handleKeyboardNavigation);
     }
 
     function setTheme(theme) {
@@ -100,6 +103,132 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => logToConsole(`Failed to copy logs: ${err}`, 'error'));
     }
 
+    function handleKeyboardNavigation(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
+            showOverview();
+        } else if (e.key === 'j' || e.key === 'k') {
+            const cards = Array.from(document.querySelectorAll('.mod-card'));
+            if (cards.length === 0) return;
+
+            let selectedIdx = cards.findIndex(c => c.classList.contains('selected'));
+            if (selectedIdx === -1) {
+                selectedIdx = 0;
+            } else {
+                if (e.key === 'j') {
+                    selectedIdx = Math.min(selectedIdx + 1, cards.length - 1);
+                } else if (e.key === 'k') {
+                    selectedIdx = Math.max(selectedIdx - 1, 0);
+                }
+            }
+
+            const card = cards[selectedIdx];
+            document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+            const id = card.dataset.id;
+            const mod = state.mods.find(m => String(m.id) === String(id));
+            if (mod) renderDetailRow(mod);
+        }
+    }
+
+    function showOverview() {
+        detailTitle.textContent = 'Workspace Overview';
+        
+        if (state.mods.length === 0) {
+            detailContent.innerHTML = '<div class="empty-state">No mods loaded. Run a scan to populate the dashboard.</div>';
+            detailPane.classList.remove('hidden');
+            return;
+        }
+
+        const updateMods = state.mods.filter(m => m.status === 'UpdateAvailable');
+        const blockedMods = state.mods.filter(m => m.status === 'UpdateBlocked');
+        const incompatMods = state.mods.filter(m => m.status === 'Incompatible');
+        
+        let summaryHtml = '';
+        if (updateMods.length === 0 && blockedMods.length === 0 && incompatMods.length === 0) {
+            summaryHtml = `<div style="background: var(--status-success-bg); border: 1px solid var(--status-success); color: var(--status-success); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                <h3 style="margin-bottom: 10px;">All systems nominal</h3>
+                <p>Your workspace is fully up to date with ${state.mods.length} mods installed.</p>
+            </div>`;
+        } else {
+            summaryHtml = `<div style="background: var(--status-warning-bg); border: 1px solid var(--status-warning); color: var(--text-primary); padding: 15px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                <h3 style="color: var(--status-warning); margin-bottom: 10px;">Action Required</h3>
+                <p>Out of ${state.mods.length} total mods:</p>
+                <ul style="margin-top:10px; margin-left: 20px;">
+                    ${updateMods.length > 0 ? `<li><strong>${updateMods.length}</strong> updates available</li>` : ''}
+                    ${blockedMods.length > 0 ? `<li><strong>${blockedMods.length}</strong> updates blocked</li>` : ''}
+                    ${incompatMods.length > 0 ? `<li><strong>${incompatMods.length}</strong> incompatible mods</li>` : ''}
+                </ul>
+            </div>`;
+        }
+
+        const bulkToolbar = `
+            <div style="margin-bottom: 20px;">
+                <h4 style="color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; font-size: 0.8rem;">Workspace Actions</h4>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                    <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
+                    ${updateMods.filter(m => m.downloadUrl).length > 0 ? `<button id="btn-download-updates" class="btn-primary">Download Updates (${updateMods.filter(m => m.downloadUrl).length})</button>` : ''}
+                    ${updateMods.filter(m => m.modUrl).length > 0 ? `<button id="btn-open-pages" class="btn-secondary">Open Update Pages (${updateMods.filter(m => m.modUrl).length})</button>` : ''}
+                </div>
+            </div>
+        `;
+
+        detailContent.innerHTML = summaryHtml + bulkToolbar;
+        detailPane.classList.remove('hidden');
+
+        const btnCopyMods = document.getElementById('btn-copy-mods');
+        if (btnCopyMods) {
+            btnCopyMods.addEventListener('click', () => {
+                const list = state.mods.map(m => `- ${m.name} (v${m.localVersion || 'Unknown'}) - ${m.status}`).join('\n');
+                navigator.clipboard.writeText(list).then(() => {
+                    const orig = btnCopyMods.textContent;
+                    btnCopyMods.textContent = 'Copied!';
+                    setTimeout(() => btnCopyMods.textContent = orig, 2000);
+                });
+            });
+        }
+
+        const btnDownloadUpdates = document.getElementById('btn-download-updates');
+        if (btnDownloadUpdates) {
+            btnDownloadUpdates.addEventListener('click', async () => {
+                const dlMods = updateMods.filter(m => m.downloadUrl);
+                for (const m of dlMods) {
+                    try {
+                        await fetch('/api/system/open', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(m.downloadUrl)
+                        });
+                    } catch (e) {
+                        logToConsole(`> Error opening download for ${m.name}: ${e}`, 'error');
+                    }
+                }
+            });
+        }
+
+        const btnOpenPages = document.getElementById('btn-open-pages');
+        if (btnOpenPages) {
+            btnOpenPages.addEventListener('click', async () => {
+                const pageMods = updateMods.filter(m => m.modUrl);
+                for (const m of pageMods) {
+                    try {
+                        await fetch('/api/system/open', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(m.modUrl)
+                        });
+                    } catch (e) {
+                        logToConsole(`> Error opening page for ${m.name}: ${e}`, 'error');
+                    }
+                }
+            });
+        }
+    }
+
     function applyFilters(mods, filters) {
         return mods; // stub for 4.2
     }
@@ -116,6 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStats(state.mods, state.filters);
         renderTable(state.filteredMods, state.sort, state.ui);
         updateTitle(state.mods);
+
+        // Show overview if no mod is selected
+        if (!document.querySelector('.mod-card.selected')) {
+            showOverview();
+        }
     }
 
     function renderHealthBanner(mods) {
