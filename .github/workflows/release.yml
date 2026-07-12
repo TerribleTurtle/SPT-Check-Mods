@@ -51,7 +51,7 @@ jobs:
         echo "Version: ${VERSION_CLEAN}"
     
     - name: Restore dependencies
-      run: dotnet restore CheckModsExtended.csproj
+      run: dotnet restore CheckModsExtended.slnx
 
     - name: Run Tests
       run: dotnet test CheckModsExtended.slnx

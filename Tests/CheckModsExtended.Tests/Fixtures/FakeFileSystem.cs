@@ -103,7 +103,7 @@ public class FakeFileSystem : IFileSystem
             .ToArray();
     }
 
-    public string GetCurrentDirectory() => "C:\\MockDir";
+    public string GetCurrentDirectory() => Path.GetFullPath("MockDir");
 
     public string GetFileVersion(string path) => "3.10.0";
 
