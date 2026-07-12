@@ -15,6 +15,6 @@ public interface IUpdateWorkflowOrchestrator
     /// </summary>
     /// <param name="args">The command line arguments.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A list of processed mods.</returns>
-    Task<IReadOnlyList<Mod>> RunPipelineAsync(string[] args, CancellationToken cancellationToken = default);
+    /// <returns>The workflow context, which contains the processed mods.</returns>
+    Task<CheckModsExtended.Models.Pipeline.UpdateWorkflowContext> RunPipelineAsync(string[] args, CancellationToken cancellationToken = default);
 }

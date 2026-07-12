@@ -39,11 +39,11 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
     {
         var args = string.IsNullOrWhiteSpace(settings.SptPath) ? Array.Empty<string>() : new[] { settings.SptPath };
 
-        var mods = await _orchestrator.RunPipelineAsync(args, cancellationToken);
+        var contextResult = await _orchestrator.RunPipelineAsync(args, cancellationToken);
 
-        if (mods is not null)
+        if (contextResult?.Mods is not null)
         {
-            await _ignoredUpdateWorkflow.RunAsync(mods, cancellationToken);
+            await _ignoredUpdateWorkflow.RunAsync(contextResult.Mods, cancellationToken);
         }
 
         return 0; // Success

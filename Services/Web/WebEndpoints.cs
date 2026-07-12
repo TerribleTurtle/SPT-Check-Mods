@@ -20,19 +20,35 @@ public static class WebEndpoints
     {
         var api = app.MapGroup("/api");
 
-        api.MapGet("/status", () => Results.Ok(new StatusResponse("running", CheckModsExtended.Utils.VersionInfo.SemVer)));
+        api.MapGet("/status", async (
+            CheckModsExtended.Services.Interfaces.ISptInstallationService sptInstall,
+            CheckModsExtended.Services.Interfaces.IUpdateCheckService updateCheck,
+            CancellationToken token) => 
+        {
+            SemanticVersioning.Version? sptVer = null;
+            try { 
+                var path = args.Length > 0 ? args[0] : System.Environment.CurrentDirectory;
+                sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token); 
+            } catch { }
+            
+            bool updateAvailable = false;
+            string? latestAppVersion = null;
+            if (sptVer != null) {
+                try {
+                    var updateInfo = await updateCheck.CheckAsync(sptVer, token);
+                    updateAvailable = updateInfo.Status == CheckModsExtended.Models.CheckModsExtendedUpdateStatus.UpdateAvailable;
+                    latestAppVersion = updateInfo.LatestVersion;
+                } catch { }
+            }
+            
+            return Results.Ok(new StatusResponse("running", CheckModsExtended.Utils.VersionInfo.SemVer, sptVer?.ToString(), latestAppVersion, updateAvailable));
+        });
         
         api.MapPost("/scan", async (CheckModsExtended.Services.Interfaces.IUpdateWorkflowOrchestrator orchestrator, CancellationToken token) => 
         {
-            Spectre.Console.AnsiConsole.WriteLine($"[DEBUG] MapEndpoints args length: {args.Length}");
-            if (args.Length > 0)
-            {
-                Spectre.Console.AnsiConsole.WriteLine($"[DEBUG] args[0]: {args[0]}");
-            }
-            var mods = await orchestrator.RunPipelineAsync(args, token);
-            Spectre.Console.AnsiConsole.WriteLine($"[DEBUG] mods.Count: {mods.Count}");
+            var context = await orchestrator.RunPipelineAsync(args, token);
             
-            var response = mods.Select(m => new ModDto(
+            var response = context.Mods.Select(m => new ModDto(
                 Id: m.Api.ApiModId,
                 Name: m.DisplayName,
                 Author: m.DisplayAuthor,
@@ -69,10 +85,39 @@ public static class WebEndpoints
                     InstallState: d.InstallState.ToString(),
                     Conflict: d.Conflict,
                     DownloadLink: d.DownloadLink
-                )).ToList()
+                )).ToList(),
+                SourceCodeUrl: m.Api.ApiSourceCodeUrl,
+                LocalSptVersion: m.Local.LocalSptVersion,
+                HasWarnings: m.HasWarnings,
+                LoadWarnings: m.LoadWarnings.Count > 0 ? m.LoadWarnings.ToList() : null,
+                IsIgnored: m.Update.UpdateSuppressed,
+                IsPaired: m.Local.PairedComponentPath != null
             )).ToList();
             
-            return Results.Ok(new ScanResponse(response));
+            MisplacedModReportDto? misplacedReportDto = null;
+            if (context.MisplacedReport != null && context.MisplacedReport.Any)
+            {
+                misplacedReportDto = new MisplacedModReportDto(
+                    WrongFolder: context.MisplacedReport.WrongFolder.Select(m => new MisplacedModDto(
+                        Name: m.Name,
+                        Version: m.Version,
+                        FilePath: m.FilePath,
+                        IsServerMod: m.IsServerMod
+                    )).ToList(),
+                    CrossInstalled: context.MisplacedReport.CrossInstalled.Select(d => new CrossInstalledDirectoryDto(
+                        Directory: d.Directory,
+                        Mods: d.Mods.Select(m => new MisplacedModDto(
+                            Name: m.Name,
+                            Version: m.Version,
+                            FilePath: m.FilePath,
+                            IsServerMod: m.IsServerMod
+                        )).ToList(),
+                        Ambiguous: d.Ambiguous
+                    )).ToList()
+                );
+            }
+            
+            return Results.Ok(new ScanResponse(response, misplacedReportDto, context.SptVersion?.ToString()));
         });
         
         api.MapPost("/ignore", async (CheckModsExtended.Services.Interfaces.IIgnoredUpdateStore ignoreStore, HttpRequest request, CancellationToken token) => 
@@ -98,6 +143,20 @@ public static class WebEndpoints
                 return Results.Ok(new MessageResponse($"Ignored {req.Id}"));
             }
             return Results.BadRequest(new ErrorResponse("Missing or invalid mod parameters"));
+        });
+        
+        api.MapGet("/ignores", async (CheckModsExtended.Services.Interfaces.IIgnoredUpdateStore ignoreStore, CancellationToken token) => 
+        {
+            var existing = await ignoreStore.LoadAsync(token);
+            return Results.Ok(existing);
+        });
+        
+        api.MapDelete("/ignore/{modId}", async (int modId, CheckModsExtended.Services.Interfaces.IIgnoredUpdateStore ignoreStore, CancellationToken token) => 
+        {
+            var existing = await ignoreStore.LoadAsync(token);
+            var newList = existing.Where(x => x.ApiModId != modId).ToList();
+            await ignoreStore.SaveAsync(newList, token);
+            return Results.Ok(new MessageResponse($"Removed ignore for {modId}"));
         });
     }
 }

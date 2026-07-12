@@ -36,8 +36,8 @@ public sealed class UpdateWorkflowOrchestratorTests
         // Assert
         Assert.True(step1.WasExecuted);
         Assert.True(step2.WasExecuted);
-        Assert.Single(result);
-        Assert.Equal("test-guid", result[0].Local.Guid);
+        Assert.Single(result.Mods);
+        Assert.Equal("test-guid", result.Mods[0].Local.Guid);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class UpdateWorkflowOrchestratorTests
         // Assert
         Assert.True(step1.WasExecuted);
         Assert.False(step2.WasExecuted);
-        Assert.Empty(result);
+        Assert.Empty(result.Mods);
     }
 
     [Fact]

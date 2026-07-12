@@ -29,4 +29,8 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.IgnoreRequest))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.MessageResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ErrorResponse))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.MisplacedModDto))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.CrossInstalledDirectoryDto))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.MisplacedModReportDto))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.ExportModDto))]
 internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }

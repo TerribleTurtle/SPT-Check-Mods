@@ -30,7 +30,7 @@ public sealed class UpdateWorkflowOrchestrator : IUpdateWorkflowOrchestrator
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<Mod>> RunPipelineAsync(string[] args, CancellationToken cancellationToken = default)
+    public async Task<UpdateWorkflowContext> RunPipelineAsync(string[] args, CancellationToken cancellationToken = default)
     {
         var context = new UpdateWorkflowContext { Args = args };
 
@@ -43,11 +43,11 @@ public sealed class UpdateWorkflowOrchestrator : IUpdateWorkflowOrchestrator
             }
         }
 
-        return context.Mods;
+        return context;
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<Mod>> RunAsync(string[] args, CancellationToken cancellationToken = default)
+    public async Task<UpdateWorkflowContext> RunAsync(string[] args, CancellationToken cancellationToken = default)
     {
         return await RunPipelineAsync(args, cancellationToken);
     }

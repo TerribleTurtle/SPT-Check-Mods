@@ -3,12 +3,22 @@ namespace CheckModsExtended.Services.Web;
 /// <summary>
 /// Response returned from the status API endpoint.
 /// </summary>
-public record StatusResponse(string Status, string Version);
+public record StatusResponse(
+    string Status,
+    string Version,
+    string? SptVersion,
+    string? LatestAppVersion,
+    bool AppUpdateAvailable
+);
 
 /// <summary>
 /// Response returned from the scan API endpoint.
 /// </summary>
-public record ScanResponse(List<ModDto> Mods);
+public record ScanResponse(
+    List<ModDto> Mods,
+    MisplacedModReportDto? MisplacedMods,
+    string? SptVersion
+);
 
 /// <summary>
 /// Represents a required or removed dependency for a mod update.
@@ -38,7 +48,37 @@ public record ModDto(
     string? BlockReason = null,
     List<BlockingModDto>? BlockingMods = null,
     List<DependencyChangeDto>? AddedDependencies = null,
-    List<DependencyChangeDto>? RemovedDependencies = null
+    List<DependencyChangeDto>? RemovedDependencies = null,
+    string? SourceCodeUrl = null,
+    string? LocalSptVersion = null,
+    bool HasWarnings = false,
+    IReadOnlyList<string>? LoadWarnings = null,
+    bool IsIgnored = false,
+    bool IsPaired = false
+);
+
+public record MisplacedModDto(string Name, string Version, string FilePath, bool IsServerMod);
+
+public record CrossInstalledDirectoryDto(
+    string Directory,
+    IReadOnlyList<MisplacedModDto> Mods,
+    bool Ambiguous
+);
+
+public record MisplacedModReportDto(
+    IReadOnlyList<MisplacedModDto> WrongFolder,
+    IReadOnlyList<CrossInstalledDirectoryDto> CrossInstalled
+);
+
+public record ExportModDto(
+    string Name,
+    string Author,
+    string LocalVersion,
+    string? LatestVersion,
+    string Status,
+    string Type,
+    bool IsPaired,
+    IReadOnlyList<string>? Dependencies
 );
 
 /// <summary>
