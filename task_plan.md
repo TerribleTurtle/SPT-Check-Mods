@@ -13,16 +13,18 @@ Phase 3
 - **Status:** completed
 
 ### Phase 3: HTML Structure & Information Hierarchy
-- [ ] Step 3.1 — Header, Health Banner & Stats Panel
-- [ ] Step 3.2 — Search Toolbar & Table Structure
-- [ ] Step 3.3 — Console & Footer
-- **Status:** pending
+- [x] Step 3.1 — Header, Health Banner & Stats Panel
+- [x] Step 3.2 — Search Toolbar & Table Structure
+- [x] Step 3.3 — Console & Footer
+- **Status:** completed
 
-### Phase 4: JavaScript Refactor & Interactivity
-- [ ] Step 4.1 — State Management & Render Architecture
+### Phase 4: JavaScript Refactor, Interactivity & System Integration
+- [ ] Step 4.1 — State Management & Master-Detail Render Architecture
 - [ ] Step 4.2 — Search, Filter & Sort
-- [ ] Step 4.3 — Keyboard Navigation & Bulk Actions
-- [ ] Step 4.4 — Auto-Scan, Export & Persistence
+- [ ] Step 4.3 — Overview Dashboard & Bulk Actions
+- [ ] Step 4.4 — Auto-Scan, Export & Ignore Persistence
+- [ ] Step 4.5 — Detail Pane Enhancements (ZIPs, Folders, Color versions)
+- [ ] Step 4.6 — Backend System Integration (Open Folder API & Settings)
 - **Status:** pending
 
 ### Phase 5: Polish, Accessibility & Final Verification

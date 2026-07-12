@@ -192,7 +192,7 @@ public sealed class GuiFrontendEndToEndTests
             await modRow.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
             
             // Wait for version 1.0.1 (from the mocked API) to appear
-            var versionCell = page.Locator("text='1.0.1'");
+            var versionCell = page.Locator("text='v1.0.1'");
             await versionCell.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
 
             // Cleanup

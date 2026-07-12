@@ -748,41 +748,32 @@ function render() {
 
 ---
 
-### Step 4.3 — Keyboard Navigation & Bulk Actions
+### Step 4.3 — Overview Dashboard & Bulk Actions
 
-**Agent**: Worktree `ui/step-4.3-keyboard`
+**Agent**: Worktree `ui/step-4.3-overview`
 **Depends on**: Step 4.1
 **File**: `wwwroot/js/app.js`
 
 **What to do:**
 
-1. **Keyboard navigation** (only when search input is NOT focused):
-
-| Key | Action |
-|-----|--------|
-| `/` | Focus search input |
-| `Escape` | Clear search / blur / deselect |
-| `j` / `k` | Move row highlight down / up |
-| `Enter` | Expand/collapse highlighted row |
-| `o` | Open mod page for highlighted row |
-| `x` | Toggle checkbox for highlighted row |
-| `?` | Show keyboard shortcuts help |
-
-2. **Row highlighting** with `.keyboard-focus` class
-3. **Bulk selection** via checkbox column + select-all
-4. **Bulk action bar** — appears when ≥1 selected: "N selected [OPEN PAGES] [IGNORE ALL] [CLEAR]"
-   - **Important:** Wrap destructive actions like "IGNORE ALL" in a native `confirm("Are you sure you want to ignore X mods?")` dialog.
+1. **Overview Dashboard empty state**: Create a `showOverview()` function that populates the Detail Pane when no mod is selected.
+2. **Dashboard Summary**: Provide descriptive text outlining exactly what actions are required across the workspace based on the scan state.
+3. **Bulk Actions Toolbar**: Add a grid of action buttons within the Overview Dashboard:
+   - **Copy Mods List to Clipboard**: Formats the mod list and copies it to the system clipboard.
+   - **Download Updates**: Iterates through all mods with `UpdateAvailable` and posts their `downloadUrl` to `/api/system/open` to safely trigger browser downloads.
+   - **Open Update Pages**: Iterates through all mods with `UpdateAvailable` and posts their `modUrl` to `/api/system/open` to bypass popup blockers.
+4. **Keyboard Navigation**:
+   - `Escape`: Deselect mod and return to Overview Dashboard.
+   - `j` / `k`: Move list selection up/down.
 
 **Acceptance criteria:**
-- [ ] `/` focuses search, `j`/`k` navigates, `Enter` expands, `o` opens page
-- [ ] `x` toggles checkbox for highlighted row
-- [ ] Select-all checkbox selects/deselects all visible mods
-- [ ] Bulk action bar appears when ≥1 mod selected
-- [ ] Bulk "OPEN PAGES" and "IGNORE ALL" work correctly
+- [ ] Overview dashboard loads by default and when selection is cleared.
+- [ ] Summary correctly counts outdated and blocked mods.
+- [ ] Bulk actions successfully trigger multi-tab opens via the backend endpoint.
 
 ---
 
-### Step 4.4 — Auto-Scan, Export & Persistence
+### Step 4.4 — Auto-Scan, Export & Ignore Persistence
 
 **Agent**: Worktree `ui/step-4.4-features`
 **Depends on**: Step 4.1
@@ -792,17 +783,58 @@ function render() {
 
 1. **Auto-scan on load** — trigger scan automatically after status fetch
 2. **Last scan timestamp** with relative time ("2m ago"), updates every 30s
-3. **Export as Markdown** — table with mod name, type, version, latest, status, paired, dependencies
-4. **Export as JSON** — structured data with same fields
-5. **Persist all preferences** in localStorage (`cme-*` keys)
-6. **Restore preferences on load** before first render
+3. **Ignore Management Dashboard**:
+   - Add a "Manage Ignore List" section inside the Overview Dashboard.
+   - Fetch the current ignore list via `GET /api/ignores` and display it with a "Remove" button for each entry.
+4. **Persist all preferences** in localStorage (`cme-*` keys)
+5. **Restore preferences on load** before first render
 
 **Acceptance criteria:**
 - [ ] Page auto-scans on load
 - [ ] "Last scanned: Xs ago" displays and updates
-- [ ] Export Markdown copies formatted table with types, deps, paired status to clipboard
-- [ ] Export JSON copies structured data to clipboard
-- [ ] All preferences restore after page reload
+- [ ] Manage Ignore list successfully fetches and deletes ignored entries
+- [ ] All UI preferences restore after page reload
+
+---
+
+### Step 4.5 — Detail Pane Enhancements (ZIPs, Folders, Color versions)
+
+**Agent**: Worktree `ui/step-4.5-detail`
+**Depends on**: Step 4.1, Step 4.6
+**File**: `wwwroot/js/app.js`, `wwwroot/css/style.css`
+
+**What to do:**
+
+1. **Detail Pane Action Buttons**: Update `showModDetails()` to render "Download ZIP", "Open Mod Page", and "Open Local Folder" buttons.
+2. Hook these buttons up to the `/api/system/open` endpoint (bypassing native `window.open`).
+3. **Color-coded Versions**: Implement specific `.ver-ok`, `.ver-warn`, and `.ver-error` color classes for the version text in the Detail Pane to mirror the CLI output style.
+
+**Acceptance criteria:**
+- [ ] Local Folder button successfully opens Windows Explorer.
+- [ ] Mod versions are visually color-coded according to status.
+
+---
+
+### Step 4.6 — Backend System Integration (Open Folder API & Settings)
+
+**Agent**: Worktree `ui/step-4.6-backend`
+**Depends on**: Step 2.1
+**File**: `Services/Web/WebDto.cs`, `Services/Web/WebEndpoints.cs`
+
+**What to do:**
+
+1. **ModDto Enhancement**: Add `string? LocalDirectory = null` to `ModDto` in `WebDto.cs`.
+2. **Path Extraction**: In `WebEndpoints.cs`, map `m.Local.FilePath` to `LocalDirectory` using `Path.GetDirectoryName()`.
+3. **New API Endpoint (`POST /api/system/open`)**: 
+   - Takes an `OpenSystemRequest(string Target)`.
+   - Uses `Process.Start(new ProcessStartInfo { FileName = req.Target, UseShellExecute = true })`.
+   - Ensure it catches exceptions (e.g. invalid URLs).
+4. **Settings Access**: Add an "Edit Settings" button to the UI Overview Dashboard that triggers `/api/system/open` with the path to `appsettings.json`, instantly opening the config file for the user to edit `RemoteUrl` (Community Ignores) and other options.
+
+**Acceptance criteria:**
+- [ ] `ModDto` returns `LocalDirectory` populated for all local mods.
+- [ ] `POST /api/system/open` successfully launches URLs in the default browser.
+- [ ] `POST /api/system/open` successfully launches directory paths in Windows Explorer.
 
 ---
 

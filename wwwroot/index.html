@@ -1,70 +1,131 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CheckModsExtended // MANAGER</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="terminal-container">
-        <header class="app-header">
+        <header class="app-header" role="banner">
             <div class="header-title">
-                <h1>[CHECK_MODS_EXTENDED]</h1>
+                <h1 style="font-family: var(--font-brand)">[CHECK_MODS_EXTENDED]</h1>
                 <span class="version-tag" id="app-version">v---</span>
+                <span class="version-tag" id="spt-version" hidden>SPT v---</span>
             </div>
             <div class="header-controls">
+                <button id="btn-theme" class="theme-toggle" aria-label="Toggle theme">🌙</button>
                 <button id="btn-scan" class="btn-primary">[ SCAN LOCAL MODS ]</button>
             </div>
         </header>
 
-        <main class="dashboard">
-            <div id="stats-container" style="display: none;" class="stats-panel">
-                <div class="stat-box">
-                    <span class="stat-label">CLIENT MODS</span>
-                    <span class="stat-value" id="stat-client">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">SERVER MODS</span>
-                    <span class="stat-value" id="stat-server">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">OUT OF DATE</span>
-                    <span class="stat-value" id="stat-outdated">0</span>
-                </div>
-                <button id="btn-open-all" class="btn-primary" style="margin-left: auto;">[ OPEN ALL PAGES ]</button>
+        <div id="health-banner" class="health-banner" hidden></div>
+
+        <main class="dashboard" id="main-content">
+            <!-- Hero Health Board -->
+            <div id="health-board" class="health-board" style="display: none;">
+                <button class="health-card card-critical" data-filter="attention">
+                    <div class="health-card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    </div>
+                    <div class="health-card-content">
+                        <span class="health-card-title">Action Required</span>
+                        <span class="health-card-value" id="stat-outdated">0</span>
+                    </div>
+                </button>
+                <button class="health-card card-warning" data-filter="ok">
+                    <div class="health-card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                    <div class="health-card-content">
+                        <span class="health-card-title">Up to Date</span>
+                        <span class="health-card-value" id="stat-ok">0</span>
+                    </div>
+                </button>
+                <button class="health-card card-info" data-filter="all">
+                    <div class="health-card-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                    </div>
+                    <div class="health-card-content">
+                        <span class="health-card-title">Total Mods</span>
+                        <span class="health-card-value" id="stat-total">0</span>
+                    </div>
+                </button>
             </div>
 
-            <div class="table-container">
-                <table id="mods-table">
-                    <thead>
-                        <tr>
-                            <th class="col-expand" style="width: 30px;"></th>
-                            <th class="col-status">[STATUS]</th>
-                            <th class="col-type">[TYPE]</th>
-                            <th class="col-name">[MOD NAME]</th>
-                            <th class="col-author">[AUTHOR]</th>
-                            <th class="col-version">[LOCAL VER]</th>
-                            <th class="col-version">[LATEST VER]</th>
-                            <th class="col-actions">[ACTIONS]</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mods-body">
-                        <tr class="empty-row">
-                            <td colspan="8">Initializing core systems... Ready for scan.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-wrapper">
+                    <span class="search-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </span>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search mods..." aria-label="Search mods">
+                    <span id="search-count" class="search-count"></span>
+                </div>
+                <div class="filter-chips">
+                    <button class="chip active" data-filter="all">All <span class="chip-count" id="chip-count-all">0</span></button>
+                    <button class="chip" data-filter="ok">Up to Date <span class="chip-count" id="chip-count-ok">0</span></button>
+                    <button class="chip" data-filter="attention">Action Needed <span class="chip-count" id="chip-count-attention">0</span></button>
+                </div>
+                <div id="last-scan-time" class="last-scan">
+                    Last scan: Never
+                </div>
+            </div>
+
+            <!-- Master-Detail Container -->
+            <div class="master-detail-container">
+                <!-- Master List -->
+                <div class="master-list">
+                    <div class="list-header">
+                        <label class="select-all-wrapper">
+                            <input type="checkbox" id="select-all" class="row-checkbox" aria-label="Select all">
+                        </label>
+                        <div class="list-sort">
+                            <button id="sort-name" class="sort-btn">Mod Name ▼</button>
+                        </div>
+                    </div>
+                    <div id="mods-list" class="mods-list-container">
+                        <div class="empty-state">Initializing core systems... Ready for scan.</div>
+                    </div>
+                </div>
+
+                <!-- Detail Pane -->
+                <div id="detail-pane" class="detail-pane hidden">
+                    <div class="detail-header">
+                        <h2 id="detail-title">Select a mod to view details</h2>
+                        <button id="btn-close-detail" class="btn-close-detail" aria-label="Close detail pane">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <div id="detail-content" class="detail-content">
+                        <!-- Populated by JS -->
+                        <div class="empty-state">Select a mod from the list to view its details.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Bar -->
+            <div id="bulk-bar" class="bulk-bar" hidden>
+                <span id="bulk-count">0 selected</span>
+                <button id="btn-bulk-open" class="btn-primary">Update Selected</button>
+                <button id="btn-bulk-ignore" class="btn-secondary" style="color: var(--status-warning);">Ignore All</button>
+                <button id="btn-bulk-clear" class="btn-secondary" style="margin-left: auto;">Clear</button>
             </div>
         </main>
 
-        <footer class="console-drawer" id="console-drawer">
+        <footer class="console-drawer" id="console-drawer" role="contentinfo">
             <div class="console-header">
                 <span>[SYSTEM_LOG]</span>
-                <span class="pulse-indicator"></span>
+                <div class="console-controls">
+                    <button id="btn-copy-log" class="console-copy-btn" aria-label="Copy log to clipboard">COPY</button>
+                    <span class="pulse-indicator"></span>
+                    <button id="btn-console-toggle" class="console-toggle" aria-label="Toggle console" aria-expanded="true">▼</button>
+                </div>
             </div>
             <div class="console-body" id="console-logs" aria-live="polite">
                 <div class="log-line">> SYSTEM ONLINE. WAITING FOR DIRECTIVE...</div>
