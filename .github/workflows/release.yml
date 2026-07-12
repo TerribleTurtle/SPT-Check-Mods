@@ -128,7 +128,6 @@ jobs:
         files: |
           ./publish/artifacts/CheckModsExtended-*
           ./publish/artifacts/checksums.txt
-          ./publish/artifacts/*.zip
         generate_release_notes: true
         body_path: current_notes.md
         prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
