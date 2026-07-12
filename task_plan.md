@@ -34,10 +34,18 @@ Phase 3
 - [x] Step 5.3 — Full Integration Test (Passed, Publish skipped per user request)
 - **Status:** completed
 
+### Phase 6: Cache-then-Network Architecture
+- [ ] Step 6.1 — Persistent Disk Cache (Backend)
+- [ ] Step 6.2 — CLI End-of-Run Flow
+- [ ] Step 6.3 — CLI Orchestration (CheckModsCommand.cs)
+- [ ] Step 6.4 — Web GUI Cold Start (Cache-then-Network)
+- **Status:** pending
+
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|
-|          |           |
+| Add `Rescan` and `LaunchWebGui` options to CLI | Prevent users from closing and reopening terminal to re-run the tool or launch the GUI. |
+| Cache-then-Network Web GUI | Show stale data instantly with a timestamp and background scan. Avoids double-scanning on handoff from CLI. |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |

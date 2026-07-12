@@ -45,6 +45,7 @@ public sealed class InitializationService(
     /// <inheritdoc />
     public string? GetValidatedSptPath(string[] args)
     {
+        reporter.Banner();
         reporter.Heading("Validating SPT installation...");
 
         if (args.Length == 0)
