@@ -150,3 +150,6 @@ TestResults/
 *.ps1
 history.txt
 fika_test.json
+*.exe
+findings.md
+progress.md

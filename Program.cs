@@ -3,6 +3,7 @@ using CheckModsExtended.Configuration;
 using CheckModsExtended.Extensions;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Web;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -96,51 +97,68 @@ public sealed class Program
                 finalLogPath = Path.Combine(appPaths.AppDataDirectory, "logs", finalLogPath);
             }
 
-            var services = new ServiceCollection();
-            services.AddCheckModsExtendedServices(configuration, runtimeConfig);
+            // Determine execution mode
+            bool runGui = args.Length > 0 && args[0].Equals("gui", StringComparison.OrdinalIgnoreCase);
 
-            services.AddSingleton(runtimeConfig);
-
-            var registrar = new TypeRegistrar(services);
-            var app = new CommandApp<CheckModsCommand>(registrar);
-
-            app.Configure(config =>
+            if (runGui)
             {
-                config.SetApplicationName("CheckModsExtended");
-                config.SetApplicationVersion(VersionInfo.SemVer);
-                config.SetInterceptor(new CheckModsInterceptor(runtimeConfig));
+                var webArgs = args.Skip(1).ToArray();
+                await WebManagerHost.RunAsync(webArgs, CancellationToken);
+            }
+            else
+            {
+                var cliArgs = args;
+                if (args.Length > 0 && args[0].Equals("cli", StringComparison.OrdinalIgnoreCase))
+                {
+                    cliArgs = args.Skip(1).ToArray();
+                }
 
-                config
-                    .AddCommand<ListModsCommand>("list")
-                    .WithDescription("List locally installed mods without checking for updates.");
+                var services = new ServiceCollection();
+                services.AddCheckModsExtendedServices(configuration, runtimeConfig);
 
-                config.AddCommand<LicenseCommand>("license").WithDescription("Display the application license.");
+                services.AddSingleton(runtimeConfig);
 
-                config
-                    .AddCommand<CleanCommand>("clean")
-                    .WithDescription(
-                        "Manage local app data (clears configuration overrides, ignored updates, and logs)."
+                var registrar = new TypeRegistrar(services);
+                var app = new CommandApp<CheckModsCommand>(registrar);
+
+                app.Configure(config =>
+                {
+                    config.SetApplicationName("CheckModsExtended");
+                    config.SetApplicationVersion(VersionInfo.SemVer);
+                    config.SetInterceptor(new CheckModsInterceptor(runtimeConfig));
+
+                    config
+                        .AddCommand<ListModsCommand>("list")
+                        .WithDescription("List locally installed mods without checking for updates.");
+
+                    config.AddCommand<LicenseCommand>("license").WithDescription("Display the application license.");
+
+                    config
+                        .AddCommand<CleanCommand>("clean")
+                        .WithDescription(
+                            "Manage local app data (clears configuration overrides, ignored updates, and logs)."
+                        );
+
+                    config
+                        .AddCommand<DiagCommand>("diag")
+                        .WithDescription("Zip and export the application's log files from AppData for easy sharing.");
+
+                    config.AddBranch(
+                        "ignore",
+                        ignore =>
+                        {
+                            ignore.SetDescription("Manage the ignored updates list.");
+                            ignore.AddCommand<IgnoreListCommand>("list").WithDescription("List all ignored updates.");
+                            ignore.AddCommand<IgnoreAddCommand>("add").WithDescription("Manually ignore an update.");
+                            ignore.AddCommand<IgnoreRemoveCommand>("remove").WithDescription("Remove an ignored update.");
+                        }
                     );
 
-                config
-                    .AddCommand<DiagCommand>("diag")
-                    .WithDescription("Zip and export the application's log files from AppData for easy sharing.");
+                    config.PropagateExceptions(); // Let the try-catch block handle exceptions
+                });
 
-                config.AddBranch(
-                    "ignore",
-                    ignore =>
-                    {
-                        ignore.SetDescription("Manage the ignored updates list.");
-                        ignore.AddCommand<IgnoreListCommand>("list").WithDescription("List all ignored updates.");
-                        ignore.AddCommand<IgnoreAddCommand>("add").WithDescription("Manually ignore an update.");
-                        ignore.AddCommand<IgnoreRemoveCommand>("remove").WithDescription("Remove an ignored update.");
-                    }
-                );
-
-                config.PropagateExceptions(); // Let the try-catch block handle exceptions
-            });
-
-            exitCode = await app.RunAsync(args);
+                exitCode = await app.RunAsync(cliArgs);
+            }
         }
         catch (OperationCanceledException)
         {

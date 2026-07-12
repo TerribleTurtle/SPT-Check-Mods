@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2026-07-12
+
+### Added
+- **Web Manager GUI**: Added a comprehensive, fully-featured browser-based Graphical User Interface for managing mods. 
+  - To launch, run `Start Web Manager.bat` on Windows, or execute `CheckModsExtended.exe gui` from the terminal.
+  - Features a Tarkov-themed brutalist aesthetic built with modern HTML/CSS/JS.
+  - Safely served over a dynamically bound local Kestrel web server.
+  - Allows easy ignoring of false-positive updates with a single click.
+  - Includes integrated links to download mod ZIP files and view mod pages directly.
+
+### Changed
+- **CLI Default Execution**: Executing the binary without arguments now defaults to the traditional Command Line Interface (`cli`), preserving the standard workflow for power users.
+- **Removed Helper Scripts**: The `CheckMods-CLI.bat` and `CheckMods-CLI.sh` wrapper scripts no longer pass the `cli` argument since it is now the default behavior.
+
 ## [2.0.2] - 2026-07-11
 
 ### Added

@@ -55,7 +55,9 @@ dotnet build
 
 ### Basic Usage
 
-If you downloaded the release executable and placed it in your SPT installation directory, run it from there:
+The easiest way to launch the **Web Manager GUI** is to double-click the included `Start Web Manager.bat` shortcut. This will automatically open the application in your default browser on `http://localhost:37194`.
+
+Alternatively, you can start the Web Manager manually by passing the `gui` argument:
 
 ```bash
 # Windows
@@ -63,29 +65,39 @@ CheckModsExtended-win-x64.exe
 
 # Linux
 ./CheckModsExtended-linux-x64
+CheckModsExtended-win-x64.exe gui
+
+# Linux
+./CheckModsExtended-linux-x64 gui
+```
+
+The Web Manager will automatically start on `http://localhost:37194` (and fallback to dynamic ports if that is taken).
+
+### Command Line Interface (CLI)
+
+The CLI is the default execution mode. Simply running the executable or double-clicking it will run the default update check in the current directory:
+```bash
+CheckModsExtended-win-x64.exe
+```
+```bash
+./CheckModsExtended-linux-x64
 ```
 
 It checks the mods in the current directory. You can also point it at an SPT installation elsewhere by passing the path:
-
 ```bash
-# Windows
 CheckModsExtended-win-x64.exe "C:\path\to\spt"
-
-# Linux
+```
+```bash
 ./CheckModsExtended-linux-x64 "/path/to/spt"
 ```
 
 If you built from source, use `dotnet run` instead. You must run this command from the `CheckModsExtended` source directory where the `.csproj` is located. The `--` passes the path through to the application rather than to the .NET CLI:
-
 ```bash
-# Run and point to your SPT installation directory
+# Run the CLI and point to your SPT installation directory
 dotnet run -- /path/to/spt
 ```
 
-### Headless Mode
-
-You can run the tool in headless mode using the `-y` or `--no-prompt` flags. This will bypass all interactive prompts (like the end-of-run menu or pause before exit), making it ideal for automated scripting or CI environments:
-
+To run non-interactively (e.g. for CI or scripts), use `--no-prompt`:
 ```bash
 CheckModsExtended-win-x64.exe --no-prompt
 ```
@@ -98,38 +110,34 @@ The application supports additional commands for specific tasks:
   ```bash
   CheckModsExtended-win-x64.exe list [SptPath]
   ```
-  **List Filtering Options:**
+  Options:
   - `-t`, `--type <TYPE>`: Filter by type (e.g., server, client)
-  - `-s`, `--status <STATUS>`: Filter by status
-  - `--sort <SORT>`: Sort by field (e.g., name, author, version)
-  - `-l`, `--limit <LIMIT>`: Limit the number of results
-  - `--search <SEARCH>`: Search by text
+  - `-o`, `--outdated`: Only show mods that are locally outdated
+  - `-u`, `--unknown`: Only show mods whose version could not be determined
+  - `-c`, `--custom`: Only show custom mods (no `package.json` / `plugin.dll`)
 
-- **Ignore Updates**: Manually manage the list of ignored updates to suppress false-positive "update available" notifications. (Supports the same list filtering options for `ignore list`).
-  - **List ignored updates**: Prints all currently ignored updates.
-    ```bash
+- **Ignore List Management**: View or manage mods you don't want to receive update notifications for.
+  ```bash
     CheckModsExtended-win-x64.exe ignore list
-    ```
-  - **Add ignored update**: Manually ignores an update.
-    ```bash
+  ```
+  ```bash
     CheckModsExtended-win-x64.exe ignore add <ApiModId> <LocalVersion> <LatestVersion>
-    ```
-  - **Remove ignored update**: Removes an ignored update.
-    ```bash
+  ```
+  ```bash
     CheckModsExtended-win-x64.exe ignore remove <ApiModId>
-    ```
+  ```
 
-- **Clean App Data**: Clears the application's data directory.
+- **Clean Up**: Manage local app data (clears configuration overrides, ignored updates, and logs).
   ```bash
   CheckModsExtended-win-x64.exe clean
   ```
 
-- **Diagnostic Export**: Exports the application logs to a zip archive for troubleshooting.
+- **Diagnostics**: Zip and export the application's log files from AppData for easy sharing.
   ```bash
   CheckModsExtended-win-x64.exe diag
   ```
 
-- **License Information**: Displays the application's open-source licenses.
+- **License**: Display the application license.
   ```bash
   CheckModsExtended-win-x64.exe license
   ```
@@ -153,7 +161,7 @@ CheckModsExtended-win-x64.exe
 $env:LoggingOptions__MinimumLogLevel="Debug"
 .\CheckModsExtended-win-x64.exe
 
-# Linux Bash
+# Linux CLI with custom log level
 LoggingOptions__MinimumLogLevel=Debug ./CheckModsExtended-linux-x64
 ```
 
