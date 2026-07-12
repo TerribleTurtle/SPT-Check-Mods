@@ -140,7 +140,7 @@ jobs:
         vt_api_key: ${{ secrets.VT_API_KEY }}
         request_rate: 4
         files: |
-          ./publish/artifacts/CheckModsExtended-*
+          ./publish/artifacts/*.zip
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Append VirusTotal links to Release

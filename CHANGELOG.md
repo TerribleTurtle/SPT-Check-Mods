@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.1] - 2026-07-11
 
+### Added
+- **SPT Hub Packaging**: The CI pipeline now automatically packages an `SptHub.zip` containing the Windows executable, README, LICENSE, and CHANGELOG, ready for direct upload to the SPT Hub.
+- **Custom Icon**: Handcrafted a new SVG/ICO icon for the executable (a dark tactical shield with a green checkmark).
+
+### Fixed
+- **Metadata & Licensing**: Added `TerribleTurtle` alongside `Refringe` to the assembly metadata and copyright headers to correctly attribute the fork.
+
+---
+
+## [2.0.0] - 2026-07-11
+
 This release incorporates structural changes to the command-line interface, output formatting, dependency injection initialization, and cross-platform compilation capabilities.
 
 ### Added
