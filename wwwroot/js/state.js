@@ -73,6 +73,10 @@ export function applySort(mods, sort) {
                 if (nA < nB) { cmp = -1; break; }
             }
             return sort.direction === 'asc' ? cmp : -cmp;
+        } else if (sort.column === 'type') {
+            const getTypeScore = m => m.isPaired ? 2 : (m.isServerMod ? 0 : 1);
+            valA = getTypeScore(a);
+            valB = getTypeScore(b);
         } else {
             valA = ''; valB = '';
         }

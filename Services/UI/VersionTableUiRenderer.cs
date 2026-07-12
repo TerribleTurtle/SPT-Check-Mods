@@ -83,6 +83,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
             .Title("[blue]Mod Version Summary[/]")
             .BorderColor(Color.Grey)
             .AddColumn("[white]Name[/]")
+            .AddColumn("[white]Type[/]")
             .AddColumn("[white]Author[/]")
             .AddColumn("[white]Current Version[/]")
             .AddColumn("[white]Latest Version[/]");
@@ -96,8 +97,13 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
             var latestVersionDisplay = FormatVersionDisplay(mod);
             var nameDisplay = UiFormattingUtility.FormatModLink(displayName, mod.Api.ApiUrl);
 
+            var typeDisplay = mod.Local.PairedComponentPath != null
+                ? "[green]Server[/] & [cyan]Client[/]"
+                : (mod.Local.IsServerMod ? "[green]Server[/]" : "[cyan]Client[/]");
+
             table.AddRow(
                 nameDisplay,
+                typeDisplay,
                 displayAuthor.EscapeMarkup(),
                 mod.Local.LocalVersion.EscapeMarkup(),
                 latestVersionDisplay

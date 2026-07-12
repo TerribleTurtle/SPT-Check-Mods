@@ -128,7 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
             th.addEventListener('click', (e) => {
                 const col = e.currentTarget.dataset.sortable;
                 if (state.sort.column === col) {
-                    state.sort.direction = state.sort.direction === 'asc' ? 'desc' : 'asc';
+                    if (state.sort.direction === 'asc') {
+                        state.sort.direction = 'desc';
+                    } else {
+                        // Clear to default sort
+                        state.sort.column = 'status';
+                        state.sort.direction = 'asc';
+                    }
                 } else {
                     state.sort.column = col;
                     state.sort.direction = 'asc';
