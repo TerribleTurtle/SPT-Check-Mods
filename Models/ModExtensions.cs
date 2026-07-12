@@ -49,13 +49,15 @@ public static class ModExtensions
     /// <returns>A new <see cref="Mod"/> instance with the available update details.</returns>
     public static Mod WithSafeToUpdate(this Mod mod, SafeToUpdateMod update)
     {
+        var isActuallyUpToDate = string.Equals(mod.Local.LocalVersion, update.RecommendedVersion?.Version, StringComparison.OrdinalIgnoreCase);
+
         return mod with
         {
             Update = mod.Update with
             {
                 LatestVersion = update.RecommendedVersion?.Version,
                 DownloadLink = update.RecommendedVersion?.Link,
-                UpdateStatus = UpdateStatus.UpdateAvailable,
+                UpdateStatus = isActuallyUpToDate ? UpdateStatus.UpToDate : UpdateStatus.UpdateAvailable,
             },
         };
     }
