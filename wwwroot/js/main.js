@@ -283,11 +283,11 @@ document.addEventListener('DOMContentLoaded', () => {
         btnScan.disabled = true;
         btnScan.textContent = '[ SCANNING... ]';
         
-        modsList.innerHTML = \`
+        modsList.innerHTML = `
             <tr><td colspan="4" class="empty-state" id="loader-cell">
                 <span id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</span>
             </td></tr>
-        \`;
+        `;
         detailPane.classList.add('hidden');
         
         startLoaderAnimation();
@@ -300,14 +300,14 @@ document.addEventListener('DOMContentLoaded', () => {
             state.meta.lastScan = Date.now();
             updateLastScanTime();
             
-            logToConsole(\`> SCAN COMPLETE. \${state.mods.length} entities analyzed.\`, 'success');
+            logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
             render();
             
         } catch (error) {
-            logToConsole(\`> SCAN FAILED: \${error.message}\`, 'error');
+            logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
             const healthBoard = document.getElementById('health-board');
             if (healthBoard) healthBoard.style.display = 'none';
-            renderEmptyState(\`Scan failed: \${error.message}\`, 'error');
+            renderEmptyState(`Scan failed: ${error.message}`, 'error');
         } finally {
             stopLoaderAnimation();
             state.ui.scanning = false;
