@@ -31,6 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('cme-theme') || 'dark';
         setTheme(savedTheme);
 
+        // Restore filter status
+        const savedFilterStatus = localStorage.getItem('cme-filter-status');
+        if (savedFilterStatus) {
+            state.filters.status = savedFilterStatus;
+            document.querySelectorAll('.chip').forEach(c => {
+                if (c.dataset.filter === savedFilterStatus) c.classList.add('active');
+                else c.classList.remove('active');
+            });
+        }
+
         // Restore console state
         const savedConsole = localStorage.getItem('cme-console-collapsed') === 'true';
         if (savedConsole) toggleConsole(true);
@@ -112,16 +122,79 @@ document.addEventListener('DOMContentLoaded', () => {
                 render();
             });
         });
+
+        // Bulk Actions Wiring
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    state.filteredMods.forEach(m => state.ui.selectedIds.add(String(m.id)));
+                } else {
+                    state.filteredMods.forEach(m => state.ui.selectedIds.delete(String(m.id)));
+                }
+                render();
+            });
+        }
+
+        const btnBulkOpen = document.getElementById('btn-bulk-open');
+        if (btnBulkOpen) {
+            btnBulkOpen.addEventListener('click', async () => {
+                const selectedMods = state.mods.filter(m => state.ui.selectedIds.has(String(m.id)));
+                for (const m of selectedMods) {
+                    const url = m.downloadUrl || m.modUrl;
+                    if (url) {
+                        try {
+                            await fetch('/api/system/open', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(url)
+                            });
+                        } catch (e) {
+                            logToConsole(`> Error opening URL for ${m.name}: ${e}`, 'error');
+                        }
+                    }
+                }
+            });
+        }
+
+        const btnBulkIgnore = document.getElementById('btn-bulk-ignore');
+        if (btnBulkIgnore) {
+            btnBulkIgnore.addEventListener('click', async () => {
+                const selectedMods = state.mods.filter(m => state.ui.selectedIds.has(String(m.id)));
+                for (const mod of selectedMods) {
+                    try {
+                        await fetch('/api/ignore', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: parseInt(mod.id, 10), localVersion: mod.localVersion, latestVersion: mod.latestVersion })
+                        });
+                        logToConsole(`> Successfully ignored ${mod.id}.`, 'success');
+                    } catch(err) {
+                        logToConsole(`> Error ignoring mod ${mod.id}: ${err.message}`, 'error');
+                    }
+                }
+                state.ui.selectedIds.clear();
+                handleScan();
+            });
+        }
+
+        const btnBulkClear = document.getElementById('btn-bulk-clear');
+        if (btnBulkClear) {
+            btnBulkClear.addEventListener('click', () => {
+                state.ui.selectedIds.clear();
+                render();
+            });
+        }
     }
 
     function setFilter(filter) {
         state.filters.status = filter;
+        localStorage.setItem('cme-filter-status', filter);
         document.querySelectorAll('.chip').forEach(c => {
             if (c.dataset.filter === filter) c.classList.add('active');
             else c.classList.remove('active');
         });
         render();
-
     }
 
     function setTheme(theme) {
@@ -353,6 +426,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function renderBulkBar(selectedIds) {
+        const bulkBar = document.getElementById('bulk-bar');
+        const bulkCount = document.getElementById('bulk-count');
+        if (!bulkBar || !bulkCount) return;
+
+        if (selectedIds.size > 0) {
+            bulkBar.hidden = false;
+            bulkCount.textContent = `${selectedIds.size} selected`;
+        } else {
+            bulkBar.hidden = true;
+        }
+    }
+
     function render() {
         state.filteredMods = applyFilters(state.mods, state.filters);
         state.filteredMods = applySort(state.filteredMods, state.sort);
@@ -361,7 +447,15 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStats(state.mods, state.filters);
         renderChipCounts(state.mods, state.filteredMods, state.filters);
         renderTable(state.filteredMods, state.sort, state.ui);
+        renderBulkBar(state.ui.selectedIds);
         updateTitle(state.mods);
+
+        // Sync select-all checkbox
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.checked = state.filteredMods.length > 0 && state.filteredMods.every(m => state.ui.selectedIds.has(String(m.id)));
+            selectAll.indeterminate = state.filteredMods.some(m => state.ui.selectedIds.has(String(m.id))) && !selectAll.checked;
+        }
 
         // Show overview if no mod is selected
         if (!document.querySelector('#mods-list tr.selected')) {
@@ -646,6 +740,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (checkbox.checked) tr.classList.add('selected');
                 else tr.classList.remove('selected');
             }
+            
+            renderBulkBar(state.ui.selectedIds);
+            const selectAll = document.getElementById('select-all');
+            if (selectAll) {
+                selectAll.checked = state.filteredMods.length > 0 && state.filteredMods.every(m => state.ui.selectedIds.has(String(m.id)));
+                selectAll.indeterminate = state.filteredMods.some(m => state.ui.selectedIds.has(String(m.id))) && !selectAll.checked;
+            }
+            
             e.stopPropagation();
             return;
         }
