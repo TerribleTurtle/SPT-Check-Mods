@@ -1,3 +1,7 @@
+// Restore theme immediately to prevent FOUC
+const savedTheme = localStorage.getItem('cme-theme') || 'dark';
+document.documentElement.dataset.theme = savedTheme;
+
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const btnScan = document.getElementById('btn-scan');
@@ -27,9 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function init() {
-        // Restore theme
+        // Sync theme state with restored value
         const savedTheme = localStorage.getItem('cme-theme') || 'dark';
-        setTheme(savedTheme);
+        state.meta.theme = savedTheme;
+        btnTheme.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
 
         // Restore console state
         const savedConsole = localStorage.getItem('cme-console-collapsed') === 'true';
@@ -49,7 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     sptVersionEl.hidden = false;
                 }
             })
-            .catch(err => logToConsole(`Error connecting to core: ${err}`, 'error'));
+            .catch(err => logToConsole(`Error connecting to core: ${err}`, 'error'))
+            .finally(() => {
+                handleScan();
+            });
+
+        setInterval(updateLastScanTime, 30000);
             
         // Event Listeners
         btnScan.addEventListener('click', handleScan);
@@ -57,8 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConsoleToggle.addEventListener('click', () => toggleConsole(!state.ui.consoleCollapsed));
         btnCopyLog.addEventListener('click', handleCopyLog);
         btnCloseDetail.addEventListener('click', () => {
-            detailPane.classList.add('hidden');
             document.querySelectorAll('.mod-card.selected').forEach(c => c.classList.remove('selected'));
+            state.ui.selectedIds.clear();
+            if (typeof showOverview === 'function') {
+                showOverview();
+            } else {
+                detailPane.classList.add('hidden');
+            }
         });
         
         // Event delegation for mod list actions
@@ -448,7 +463,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</span>
             </div>
         `;
-        detailPane.classList.add('hidden');
+        if (typeof showOverview === 'function') {
+            showOverview();
+        } else {
+            detailPane.classList.add('hidden');
+        }
         
         startLoaderAnimation();
         logToConsole('> INITIATING MOD SCAN...', 'warn');
@@ -461,14 +480,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             state.mods = results.mods || [];
             
-            const lastScanEl = document.getElementById('last-scan-time');
-            if (lastScanEl) {
-                const now = new Date();
-                lastScanEl.textContent = `Last scan: ${now.toLocaleTimeString()}`;
-            }
+            state.meta.lastScan = Date.now();
+            updateLastScanTime();
             
             logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
             render();
+            if (state.ui.selectedIds.size === 0 && typeof showOverview === 'function') {
+                showOverview();
+            }
             
         } catch (error) {
             logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
@@ -506,7 +525,58 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(loaderInterval);
     }
 
-    function logToConsole(message, type = '') {
+    function updateLastScanTime() {
+        if (!state.meta.lastScan) return;
+        const lastScanEl = document.getElementById('last-scan-time');
+        if (!lastScanEl) return;
+        
+        const seconds = Math.floor((Date.now() - state.meta.lastScan) / 1000);
+        let text = 'Just now';
+        if (seconds > 59) {
+            const minutes = Math.floor(seconds / 60);
+            text = `${minutes}m ago`;
+        } else if (seconds > 10) {
+            text = `${seconds}s ago`;
+        }
+        lastScanEl.textContent = `Last scanned: ${text}`;
+    }
+
+    async function renderIgnoreDashboard() {
+        try {
+            const res = await fetch('/api/ignores');
+            if (!res.ok) throw new Error('Failed to fetch ignore list');
+            const ignores = await res.json();
+            
+            let html = '<div class="ignore-dashboard" style="margin-top: 20px;">';
+            html += '<h3 style="color: var(--text-primary); margin-bottom: 10px; font-size: 1.1rem;">Manage Ignore List</h3>';
+            if (!ignores || ignores.length === 0) {
+                html += '<p style="color: var(--text-muted); font-size: 0.9rem;">No mods are currently ignored.</p>';
+            } else {
+                html += '<ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">';
+                ignores.forEach(ig => {
+                    html += `<li style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-default);">
+                        <span><strong>${escapeHtml(ig.name || ig.id)}</strong> (v${escapeHtml(ig.localVersion)})</span>
+                        <button class="btn-secondary action-unignore" data-id="${escapeHtml(ig.id)}">Remove</button>
+                    </li>`;
+                });
+                html += '</ul>';
+            }
+            html += '</div>';
+            
+            return html;
+        } catch (e) {
+            return `<div style="color: var(--status-error); margin-top: 20px;">Error loading ignores: ${e.message}</div>`;
+        }
+    }
+
+    async function showOverview() {
+        detailTitle.textContent = 'Overview Dashboard';
+        detailContent.innerHTML = '<div style="color: var(--text-secondary); margin-bottom: 20px;">Overview summary (Step 4.3)...</div>';
+        detailPane.classList.remove('hidden');
+        
+        const ignoreHtml = await renderIgnoreDashboard();
+        detailContent.innerHTML += ignoreHtml;
+    }\n\n    function logToConsole(message, type = '') {
         const div = document.createElement('div');
         div.className = 'log-line';
         if (type === 'error') div.classList.add('log-error');
