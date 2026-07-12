@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
                     ${updateMods.filter(m => m.downloadUrl).length > 0 ? `<button id="btn-download-updates" class="btn-primary">Download Updates (${updateMods.filter(m => m.downloadUrl).length})</button>` : ''}
                     ${updateMods.filter(m => m.modUrl).length > 0 ? `<button id="btn-open-pages" class="btn-secondary">Open Update Pages (${updateMods.filter(m => m.modUrl).length})</button>` : ''}
+                    <button id="btn-edit-settings" class="btn-secondary">Edit Settings</button>
                 </div>
             </div>
         `;
@@ -284,6 +285,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     } catch (e) {
                         logToConsole(`> Error opening page for ${m.name}: ${e}`, 'error');
                     }
+                }
+            });
+        }
+
+        const btnEditSettings = document.getElementById('btn-edit-settings');
+        if (btnEditSettings) {
+            btnEditSettings.addEventListener('click', async () => {
+                try {
+                    await fetch('/api/system/open', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify('appsettings.json')
+                    });
+                } catch (e) {
+                    logToConsole(`> Error opening settings: ${e}`, 'error');
                 }
             });
         }

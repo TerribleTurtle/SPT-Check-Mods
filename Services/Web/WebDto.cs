@@ -54,7 +54,8 @@ public record ModDto(
     bool HasWarnings = false,
     IReadOnlyList<string>? LoadWarnings = null,
     bool IsIgnored = false,
-    bool IsPaired = false
+    bool IsPaired = false,
+    string? LocalDirectory = null
 );
 
 public record MisplacedModDto(string Name, string Version, string FilePath, bool IsServerMod);
@@ -95,3 +96,5 @@ public record MessageResponse(string Message);
 /// Generic error response.
 /// </summary>
 public record ErrorResponse(string Error);
+
+public record OpenSystemRequest(string Target);

@@ -91,7 +91,8 @@ public static class WebEndpoints
                 HasWarnings: m.HasWarnings,
                 LoadWarnings: m.LoadWarnings.Count > 0 ? m.LoadWarnings.ToList() : null,
                 IsIgnored: m.Update.UpdateSuppressed,
-                IsPaired: m.Local.PairedComponentPath != null
+                IsPaired: m.Local.PairedComponentPath != null,
+                LocalDirectory: m.Local.FilePath != null ? System.IO.Path.GetDirectoryName(m.Local.FilePath) : null
             )).ToList();
             
             MisplacedModReportDto? misplacedReportDto = null;
@@ -158,5 +159,29 @@ public static class WebEndpoints
             await ignoreStore.SaveAsync(newList, token);
             return Results.Ok(new MessageResponse($"Removed ignore for {modId}"));
         });
+
+        
+        api.MapPost("/system/open", (OpenSystemRequest req) => 
+        {
+            if (string.IsNullOrWhiteSpace(req.Target))
+            {
+                return Results.BadRequest(new ErrorResponse("Target is required"));
+            }
+                
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo 
+                { 
+                    FileName = req.Target, 
+                    UseShellExecute = true 
+                });
+                return Results.Ok(new MessageResponse("Opened target"));
+            }
+            catch (System.Exception ex)
+            {
+                return Results.BadRequest(new ErrorResponse($"Failed to open target: {ex.Message}"));
+            }
+        });
+
     }
 }
