@@ -21,8 +21,16 @@ public interface ILoggingReporter
     void CouldNotReadModDll(string fileName, string reason);
     void CouldNotReadSptVersion(string reason);
     void PluginsDirectoryNotFound(string path);
-    Task RunForgeQueryProgressAsync(int total, Func<Action<int>, Task> work, CancellationToken cancellationToken = default);
-    Task<T> RunForgeQueryProgressAsync<T>(int total, Func<Action<int>, Task<T>> work, CancellationToken cancellationToken = default);
+    Task RunForgeQueryProgressAsync(
+        int total,
+        Func<Action<int>, Task> work,
+        CancellationToken cancellationToken = default
+    );
+    Task<T> RunForgeQueryProgressAsync<T>(
+        int total,
+        Func<Action<int>, Task<T>> work,
+        CancellationToken cancellationToken = default
+    );
     void UsingPath(string path);
     void DirectoryDoesNotExist(string path);
     void ValidatingSptVersion(string version);

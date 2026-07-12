@@ -60,7 +60,7 @@ public class FakeFileSystem : IFileSystem
     {
         if (!Files.TryGetValue(sourceFileName, out var content))
             throw new FileNotFoundException("File not found.", sourceFileName);
-        
+
         if (!overwrite && Files.ContainsKey(destFileName))
             throw new IOException("File already exists.");
 
@@ -68,7 +68,7 @@ public class FakeFileSystem : IFileSystem
         Files.Remove(sourceFileName);
     }
 
-        public void CreateDirectory(string path)
+    public void CreateDirectory(string path)
     {
         var current = path;
         while (!string.IsNullOrEmpty(current))
@@ -80,24 +80,42 @@ public class FakeFileSystem : IFileSystem
 
     public bool DirectoryExists(string path) => Directories.Contains(path);
 
-        public string[] GetDirectories(string path)
+    public string[] GetDirectories(string path)
     {
-        var normalizedPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var normalizedPath =
+            path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
         return Directories
-            .Where(d => !string.Equals(d, path, StringComparison.OrdinalIgnoreCase) && d.StartsWith(normalizedPath, StringComparison.OrdinalIgnoreCase))
-            .Where(d => d.Substring(normalizedPath.Length).IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1)
+            .Where(d =>
+                !string.Equals(d, path, StringComparison.OrdinalIgnoreCase)
+                && d.StartsWith(normalizedPath, StringComparison.OrdinalIgnoreCase)
+            )
+            .Where(d =>
+                d.Substring(normalizedPath.Length)
+                    .IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1
+            )
             .ToArray();
     }
 
     public string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
     {
-        var normalizedPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        return Files.Keys
-            .Where(f => f.StartsWith(normalizedPath, StringComparison.OrdinalIgnoreCase))
-            .Where(f => searchOption == SearchOption.AllDirectories || f.Substring(normalizedPath.Length).IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1)
-            .Where(f => {
-                if (searchPattern == "*") return true;
-                if (searchPattern.StartsWith("*") && f.EndsWith(searchPattern.Substring(1), StringComparison.OrdinalIgnoreCase)) return true;
+        var normalizedPath =
+            path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        return Files
+            .Keys.Where(f => f.StartsWith(normalizedPath, StringComparison.OrdinalIgnoreCase))
+            .Where(f =>
+                searchOption == SearchOption.AllDirectories
+                || f.Substring(normalizedPath.Length)
+                    .IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1
+            )
+            .Where(f =>
+            {
+                if (searchPattern == "*")
+                    return true;
+                if (
+                    searchPattern.StartsWith("*")
+                    && f.EndsWith(searchPattern.Substring(1), StringComparison.OrdinalIgnoreCase)
+                )
+                    return true;
                 return true; // Simplified pattern matching
             })
             .ToArray();
@@ -109,6 +127,3 @@ public class FakeFileSystem : IFileSystem
 
     public long GetFileLength(string path) => Files.TryGetValue(path, out var c) ? c.Length : 0;
 }
-
-
-

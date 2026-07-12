@@ -31,7 +31,9 @@ public sealed class InteractivePromptService : IUserPromptService
             return false;
         }
 
-        return AnsiConsole.Prompt(new ConfirmationPrompt("Fetch the latest community ignore list from the Forge?") { DefaultValue = false });
+        return AnsiConsole.Prompt(
+            new ConfirmationPrompt("Fetch the latest community ignore list from the Forge?") { DefaultValue = false }
+        );
     }
 
     public EndOfRunChoice PromptEndOfRun(int openableUpdateCount, bool canManageIgnoredUpdates)
@@ -108,7 +110,9 @@ public sealed class InteractivePromptService : IUserPromptService
             return false;
         }
 
-        return AnsiConsole.Prompt(new ConfirmationPrompt("Report these ignored versions so other users benefit?") { DefaultValue = false });
+        return AnsiConsole.Prompt(
+            new ConfirmationPrompt("Report these ignored versions so other users benefit?") { DefaultValue = false }
+        );
     }
 
     public async Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
@@ -123,7 +127,8 @@ public sealed class InteractivePromptService : IUserPromptService
     {
         return choice switch
         {
-            EndOfRunChoice.OpenUpdatePages => $"Open {openableUpdateCount} mod page{(openableUpdateCount == 1 ? "" : "s")} with updates in your browser",
+            EndOfRunChoice.OpenUpdatePages =>
+                $"Open {openableUpdateCount} mod page{(openableUpdateCount == 1 ? "" : "s")} with updates in your browser",
             EndOfRunChoice.ManageIgnoredUpdates => "Manage ignored updates",
             EndOfRunChoice.Exit => "Close Check Mods",
             _ => choice.ToString(),

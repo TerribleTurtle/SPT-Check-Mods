@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
@@ -13,6 +14,13 @@ namespace CheckModsExtended.Services.UI;
 [Injectable(InjectionType.Singleton)]
 public sealed class TextRenderer : ITextRenderer
 {
+    private readonly RuntimeConfig _runtimeConfig;
+
+    public TextRenderer(RuntimeConfig runtimeConfig)
+    {
+        _runtimeConfig = runtimeConfig;
+    }
+
     public void Banner()
     {
         var tagline = BannerTaglineProvider.GetRandomTagline();
@@ -64,9 +72,16 @@ public sealed class TextRenderer : ITextRenderer
     public void Exception(Exception ex)
     {
         AnsiConsole.MarkupLine($"[red]Exception:[/] {ex.Message.EscapeMarkup()}");
-        if (ex.StackTrace != null)
+        if (_runtimeConfig.IsDebug)
         {
-            AnsiConsole.MarkupLine($"[grey]{ex.StackTrace.EscapeMarkup()}[/]");
+            if (ex.StackTrace != null)
+            {
+                AnsiConsole.MarkupLine($"[grey]{ex.StackTrace.EscapeMarkup()}[/]");
+            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[grey]Please check the log file for more details.[/]");
         }
     }
 

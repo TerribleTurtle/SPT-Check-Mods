@@ -16,6 +16,11 @@ public sealed class RuntimeConfig
     public bool IsVerbose { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether debug logging is enabled.
+    /// </summary>
+    public bool IsDebug { get; set; }
+
+    /// <summary>
     /// Gets or sets the requested output format.
     /// </summary>
     public string Format { get; set; } = "table";

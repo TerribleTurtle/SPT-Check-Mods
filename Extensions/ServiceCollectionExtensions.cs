@@ -136,7 +136,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMisplacedModUiRenderer, MisplacedModUiRenderer>();
         services.AddSingleton<IProgressRenderer, ProgressRenderer>();
         services.AddSingleton<IReconciliationUiRenderer, ReconciliationUiRenderer>();
-        
+
         services.AddSingleton<ITextRenderer, TextRenderer>();
         services.AddSingleton<IVersionTableUiRenderer, VersionTableUiRenderer>();
         services.AddSingleton<IMiscTableUiRenderer, MiscTableUiRenderer>();
@@ -265,5 +265,3 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
-
-

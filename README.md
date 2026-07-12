@@ -98,8 +98,14 @@ The application supports additional commands for specific tasks:
   ```bash
   CheckModsExtended-win-x64.exe list [SptPath]
   ```
+  **List Filtering Options:**
+  - `-t`, `--type <TYPE>`: Filter by type (e.g., server, client)
+  - `-s`, `--status <STATUS>`: Filter by status
+  - `--sort <SORT>`: Sort by field (e.g., name, author, version)
+  - `-l`, `--limit <LIMIT>`: Limit the number of results
+  - `--search <SEARCH>`: Search by text
 
-- **Ignore Updates**: Manually manage the list of ignored updates to suppress false-positive "update available" notifications.
+- **Ignore Updates**: Manually manage the list of ignored updates to suppress false-positive "update available" notifications. (Supports the same list filtering options for `ignore list`).
   - **List ignored updates**: Prints all currently ignored updates.
     ```bash
     CheckModsExtended-win-x64.exe ignore list
@@ -112,6 +118,21 @@ The application supports additional commands for specific tasks:
     ```bash
     CheckModsExtended-win-x64.exe ignore remove <ApiModId>
     ```
+
+- **Clean App Data**: Clears the application's data directory.
+  ```bash
+  CheckModsExtended-win-x64.exe clean
+  ```
+
+- **Diagnostic Export**: Exports the application logs to a zip archive for troubleshooting.
+  ```bash
+  CheckModsExtended-win-x64.exe diag
+  ```
+
+- **License Information**: Displays the application's open-source licenses.
+  ```bash
+  CheckModsExtended-win-x64.exe license
+  ```
 
 **Global Options:**
 - `-v` or `--verbose`: Enables debug logging (equivalent to `LoggingOptions__MinimumLogLevel=Debug`).

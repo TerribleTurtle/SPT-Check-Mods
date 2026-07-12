@@ -29,10 +29,7 @@ public sealed class RemoteIgnoreFileClient(
     /// <inheritdoc />
     public bool IsConfigured
     {
-        get
-        {
-            return !string.IsNullOrWhiteSpace(_options.RemoteUrl);
-        }
+        get { return !string.IsNullOrWhiteSpace(_options.RemoteUrl); }
     }
 
     /// <inheritdoc />
@@ -46,7 +43,11 @@ public sealed class RemoteIgnoreFileClient(
         try
         {
             logger.LogDebug("Fetching remote ignore list: GET {Url}", _options.RemoteUrl);
-            using var response = await httpClient.GetAsync(_options.RemoteUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var response = await httpClient.GetAsync(
+                _options.RemoteUrl,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken
+            );
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogInformation("Remote ignore list returned {Status}", response.StatusCode);
@@ -87,4 +88,3 @@ public sealed class RemoteIgnoreFileClient(
         }
     }
 }
-

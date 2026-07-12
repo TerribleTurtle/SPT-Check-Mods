@@ -12,16 +12,23 @@ namespace CheckModsExtended.Services.Pipeline.Steps;
 /// <summary>
 /// Workflow step that displays the final results.
 /// </summary>
-public sealed class DisplayResultsStep(IModCheckReporter reporter, ILogger<DisplayResultsStep> logger, RuntimeConfig runtimeConfig) : IWorkflowStep
+public sealed class DisplayResultsStep(
+    IModCheckReporter reporter,
+    ILogger<DisplayResultsStep> logger,
+    RuntimeConfig runtimeConfig
+) : IWorkflowStep
 {
     /// <inheritdoc />
     public Task ExecuteAsync(UpdateWorkflowContext context, CancellationToken cancellationToken)
     {
         logger.LogDebug("Displaying results");
-        
+
         if (runtimeConfig.Format.Equals("json", StringComparison.OrdinalIgnoreCase))
         {
-            var json = JsonSerializer.Serialize(context.Mods, CheckModsExtendedJsonSerializerContext.Default.IReadOnlyListMod);
+            var json = JsonSerializer.Serialize(
+                context.Mods,
+                CheckModsExtendedJsonSerializerContext.Default.IReadOnlyListMod
+            );
 #pragma warning disable Spectre1000 // Use AnsiConsole instead of System.Console
             Console.WriteLine(json);
 #pragma warning restore Spectre1000 // Use AnsiConsole instead of System.Console
@@ -36,7 +43,7 @@ public sealed class DisplayResultsStep(IModCheckReporter reporter, ILogger<Displ
         {
             reporter.VersionTable(context.Mods);
         }
-        
+
         logger.LogInformation("Mod check workflow completed successfully");
 
         return Task.CompletedTask;

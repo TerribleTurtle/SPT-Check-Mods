@@ -15,14 +15,23 @@ namespace CheckModsExtended.Services;
 public sealed class CompatibilityValidationService : ICompatibilityValidationService
 {
     /// <inheritdoc />
-    public (IReadOnlyList<Mod> UpdatedMods, IReadOnlyList<string> ValidationEvents) CheckModVersionCompatibility(IEnumerable<Mod> mods, Version sptVersion)
+    public (IReadOnlyList<Mod> UpdatedMods, IReadOnlyList<string> ValidationEvents) CheckModVersionCompatibility(
+        IEnumerable<Mod> mods,
+        Version sptVersion
+    )
     {
         var updatedMods = new List<Mod>();
         var events = new List<string>();
         foreach (var mod in mods)
         {
             var updatedMod = mod;
-            var isCompatible = IsCompatibleWithSpt(updatedMod, sptVersion, events, out var reason, out var compatibleVersion);
+            var isCompatible = IsCompatibleWithSpt(
+                updatedMod,
+                sptVersion,
+                events,
+                out var reason,
+                out var compatibleVersion
+            );
             if (!isCompatible)
             {
                 updatedMod = updatedMod.WithLocalSptIncompatible(reason, compatibleVersion);
@@ -36,7 +45,13 @@ public sealed class CompatibilityValidationService : ICompatibilityValidationSer
     /// Evaluates a single matched mod's installed version against the installed SPT version, flagging it when the
     /// constraint can't be parsed or isn't satisfied.
     /// </summary>
-    private static bool IsCompatibleWithSpt(Mod mod, Version sptVersion, List<string> events, out string reason, out string? compatibleVersion)
+    private static bool IsCompatibleWithSpt(
+        Mod mod,
+        Version sptVersion,
+        List<string> events,
+        out string reason,
+        out string? compatibleVersion
+    )
     {
         reason = string.Empty;
         compatibleVersion = null;
@@ -66,7 +81,9 @@ public sealed class CompatibilityValidationService : ICompatibilityValidationSer
         if (!SemanticVersioning.Range.TryParse(installedApiVersion.SptVersionConstraint, out var range))
         {
             // The constraint from Forge can't be parsed; surface a warning.
-            events.Add($"Could not verify SPT compatibility for {mod.DisplayName}: Forge reported an invalid version constraint ({installedApiVersion.SptVersionConstraint}).");
+            events.Add(
+                $"Could not verify SPT compatibility for {mod.DisplayName}: Forge reported an invalid version constraint ({installedApiVersion.SptVersionConstraint})."
+            );
             return true;
         }
 

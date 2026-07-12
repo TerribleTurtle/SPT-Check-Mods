@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 using CheckModsExtended.Utils;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SPTarkov.DI.Annotations;
 
@@ -20,8 +20,12 @@ namespace CheckModsExtended.Services;
 /// caches it in memory for the lifetime of the run.
 /// </summary>
 [Injectable(InjectionType.Singleton)]
-public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, IOptions<AppPaths> appPaths, ILogger<IgnoredUpdateStore> logger, IFileSystem fileSystem)
-    : IIgnoredUpdateStore, IDisposable
+public sealed class IgnoredUpdateStore(
+    IOptions<IgnoredUpdateOptions> options,
+    IOptions<AppPaths> appPaths,
+    ILogger<IgnoredUpdateStore> logger,
+    IFileSystem fileSystem
+) : IIgnoredUpdateStore, IDisposable
 {
     private readonly string _resolvedFilePath = Path.IsPathRooted(options.Value.FilePath)
         ? options.Value.FilePath
@@ -90,7 +94,7 @@ public sealed class IgnoredUpdateStore(IOptions<IgnoredUpdateOptions> options, I
     public async Task SaveAsync(IReadOnlyList<IgnoredUpdate> entries, CancellationToken cancellationToken = default)
     {
         var list = entries.ToList();
-        
+
         await _lock.WaitAsync(cancellationToken);
         try
         {

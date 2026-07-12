@@ -116,7 +116,8 @@ public sealed partial class ModSearchClient(
             return new NotFound();
         }
 
-        var url = $"{_options.BaseUrl}mods?filter[guid]={Uri.EscapeDataString(modGuid)}&include=versions,source_code_links";
+        var url =
+            $"{_options.BaseUrl}mods?filter[guid]={Uri.EscapeDataString(modGuid)}&include=versions,source_code_links";
 
         var res = await apiClient.GetFromJsonAsync(
             url,
@@ -164,7 +165,8 @@ public sealed partial class ModSearchClient(
         CancellationToken cancellationToken = default
     )
     {
-        var url = $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={sptVersion}&include=versions,source_code_links&per_page=50";
+        var url =
+            $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={sptVersion}&include=versions,source_code_links&per_page=50";
 
         var res = await apiClient.GetFromJsonAsync(
             url,

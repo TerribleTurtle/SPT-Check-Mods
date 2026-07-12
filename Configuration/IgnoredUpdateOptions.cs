@@ -17,4 +17,3 @@ public sealed class IgnoredUpdateOptions
     /// <summary>Timeout for the remote fetch, in seconds.</summary>
     public int RemoteTimeoutSeconds { get; set; } = 10;
 }
-

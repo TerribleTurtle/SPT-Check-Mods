@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using CheckModsExtended.Models;
-using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
@@ -64,8 +64,10 @@ public sealed class MisplacedModDetector(
 
                 // OPTIMIZATION: Check cache first to avoid double Mono.Cecil parses
                 var directory = ModPathUtils.GetModDirectory(dllPath, pluginsDir);
-                if (pluginScanCache.TryGetPlugins(directory, out var cachedPlugins) &&
-                    cachedPlugins!.Any(p => string.Equals(p.DllPath, dllPath, StringComparison.OrdinalIgnoreCase)))
+                if (
+                    pluginScanCache.TryGetPlugins(directory, out var cachedPlugins)
+                    && cachedPlugins!.Any(p => string.Equals(p.DllPath, dllPath, StringComparison.OrdinalIgnoreCase))
+                )
                 {
                     continue; // Already a verified client mod
                 }
@@ -112,7 +114,10 @@ public sealed class MisplacedModDetector(
             return crossInstalled;
         }
 
-        var dllsByDirectory = ModPathUtils.GroupDllsByDirectory(pluginExtractor.GetValidClientDllFiles(pluginsDir), pluginsDir);
+        var dllsByDirectory = ModPathUtils.GroupDllsByDirectory(
+            pluginExtractor.GetValidClientDllFiles(pluginsDir),
+            pluginsDir
+        );
         dllsByDirectory.Remove(pluginsDir);
 
         foreach (var (directory, directoryDlls) in dllsByDirectory)
@@ -211,7 +216,3 @@ public sealed class MisplacedModDetector(
         return new string(value.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
     }
 }
-
-
-
-

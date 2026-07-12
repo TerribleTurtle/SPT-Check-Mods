@@ -10,7 +10,10 @@ public sealed class FakeCompatibilityValidationService : ICompatibilityValidatio
 {
     public bool CheckModVersionCompatibilityCalled { get; private set; }
 
-    public (IReadOnlyList<Mod> UpdatedMods, IReadOnlyList<string> ValidationEvents) CheckModVersionCompatibility(IEnumerable<Mod> mods, Version sptVersion)
+    public (IReadOnlyList<Mod> UpdatedMods, IReadOnlyList<string> ValidationEvents) CheckModVersionCompatibility(
+        IEnumerable<Mod> mods,
+        Version sptVersion
+    )
     {
         CheckModVersionCompatibilityCalled = true;
         return (mods.ToList(), []);

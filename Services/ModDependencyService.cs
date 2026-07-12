@@ -124,7 +124,7 @@ public sealed class ModDependencyService(IModUpdateClient forgeApiService, ILogg
 
                 // Skip the diff on a not-found/error response; an empty success list is a valid "no dependencies".
                 var targetDeps = targetResult.Match(
-                    dependencies => (List<ModDependency>?) dependencies,
+                    dependencies => (List<ModDependency>?)dependencies,
                     _ => null,
                     _ => null
                 );
@@ -188,7 +188,15 @@ public sealed class ModDependencyService(IModUpdateClient forgeApiService, ILogg
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { mod.Local.Guid };
             var children = modDeps
                 .Select(dep =>
-                    DependencyGraphBuilder.BuildDependencySubtree(dep, modByGuid, modById, installedModGuids, missingDeps, conflicts, visited)
+                    DependencyGraphBuilder.BuildDependencySubtree(
+                        dep,
+                        modByGuid,
+                        modById,
+                        installedModGuids,
+                        missingDeps,
+                        conflicts,
+                        visited
+                    )
                 )
                 .Where(node => node is not null)
                 .Cast<DependencyNode>()

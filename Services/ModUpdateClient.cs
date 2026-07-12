@@ -61,7 +61,10 @@ public sealed class ModUpdateClient(
         {
             if (chunkResult.TryPickT2(out var error, out _))
             {
-                logger.LogDebug("A mod-updates chunk failed ({Error}); failing the batch update request", error.Message);
+                logger.LogDebug(
+                    "A mod-updates chunk failed ({Error}); failing the batch update request",
+                    error.Message
+                );
                 return error;
             }
 
@@ -105,10 +108,7 @@ public sealed class ModUpdateClient(
     {
         var modsParam = string.Join(",", chunk.Select(m => $"{m.ModId}:{Uri.EscapeDataString(m.CurrentVersion)}"));
 
-        var query = new QueryBuilder()
-            .AddRaw("mods", modsParam)
-            .Add("spt_version", sptVersion.ToString())
-            .ToString();
+        var query = new QueryBuilder().AddRaw("mods", modsParam).Add("spt_version", sptVersion.ToString()).ToString();
 
         var url = $"{_options.BaseUrl}mods/updates{query}";
 
@@ -118,8 +118,14 @@ public sealed class ModUpdateClient(
             cancellationToken
         );
 
-        if (res.TryPickT2(out var error, out _)) { return error; }
-        if (res.TryPickT1(out var notFound, out _)) { return notFound; }
+        if (res.TryPickT2(out var error, out _))
+        {
+            return error;
+        }
+        if (res.TryPickT1(out var notFound, out _))
+        {
+            return notFound;
+        }
         var apiResponse = res.AsT0;
 
         if (apiResponse?.Success != true || apiResponse.Data is null)
@@ -156,8 +162,14 @@ public sealed class ModUpdateClient(
             cancellationToken
         );
 
-        if (res.TryPickT2(out var error, out _)) { return error; }
-        if (res.TryPickT1(out var notFound, out _)) { return notFound; }
+        if (res.TryPickT2(out var error, out _))
+        {
+            return error;
+        }
+        if (res.TryPickT1(out var notFound, out _))
+        {
+            return notFound;
+        }
         var apiResponse = res.AsT0;
 
         if (apiResponse?.Success != true || apiResponse.Data is null)

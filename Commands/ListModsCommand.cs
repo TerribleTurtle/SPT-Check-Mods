@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using Spectre.Console.Cli;
 
@@ -15,7 +16,7 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
     private readonly IModScannerService _scannerService;
     private readonly IModCheckReporter _reporter;
 
-    public sealed class Settings : GlobalSettings
+    public sealed class Settings : ListCommandSettings
     {
         [CommandArgument(0, "[SptPath]")]
         [Description("The path to your SPT installation directory. Defaults to the current directory.")]
@@ -51,7 +52,16 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
 
         var (serverMods, clientMods) = await _scannerService.ScanAllModsAsync(sptPath, cancellationToken);
 
-        _reporter.InstalledModsList(serverMods, clientMods);
+        var options = new ListFilterOptions
+        {
+            Type = settings.Type,
+            Status = settings.Status,
+            Sort = settings.Sort,
+            Limit = settings.Limit,
+            Search = settings.Search,
+        };
+
+        _reporter.InstalledModsList(serverMods, clientMods, options);
 
         return 0;
     }

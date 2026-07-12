@@ -23,9 +23,7 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
         _path = "/mock/ignored-updates.json";
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 
     private IgnoredUpdateStore CreateStore()
     {
@@ -117,5 +115,3 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
         Assert.False(_fileSystem.FileExists(_path + ".tmp"));
     }
 }
-
-

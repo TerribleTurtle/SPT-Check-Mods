@@ -16,6 +16,10 @@ public interface IResultRenderer
     void DependencyResults(DependencyAnalysisResult result);
     void VersionTable(List<Mod> mods);
     void PendingConfirmationsSummary(IReadOnlyList<PendingConfirmation> pendingConfirmations);
-    void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores);
-    void InstalledModsList(IReadOnlyList<Mod> serverMods, IReadOnlyList<Mod> clientMods);
+    void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores, ListFilterOptions? options = null);
+    void InstalledModsList(
+        IReadOnlyList<Mod> serverMods,
+        IReadOnlyList<Mod> clientMods,
+        ListFilterOptions? options = null
+    );
 }

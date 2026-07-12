@@ -257,9 +257,18 @@ public sealed class FakeModCheckReporter : IModCheckReporter
     }
 
     public void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion) { }
+
     public void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion) { }
+
     public void IgnoreRemoveNotFound(int apiModId) { }
+
     public void IgnoreRemoveSuccess(int removedCount, int apiModId) { }
-    public void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores) { }
-    public void InstalledModsList(IReadOnlyList<Mod> serverMods, IReadOnlyList<Mod> clientMods) { }
+
+    public void IgnoredUpdatesList(IReadOnlyList<IgnoredUpdate> ignores, ListFilterOptions? options = null) { }
+
+    public void InstalledModsList(
+        IReadOnlyList<Mod> serverMods,
+        IReadOnlyList<Mod> clientMods,
+        ListFilterOptions? options = null
+    ) { }
 }

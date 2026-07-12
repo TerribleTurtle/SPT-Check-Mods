@@ -81,8 +81,13 @@ public sealed class FakeTextRenderer : ITextRenderer
     public void ApplicationFooter(string version, string hash, string logFilePath) { }
 
     public void IgnoreAddAlreadyIgnored(int apiModId, string localVersion, string latestVersion) { }
+
     public void IgnoreAddSuccess(int apiModId, string localVersion, string latestVersion) { }
+
     public void IgnoreRemoveNotFound(int apiModId) { }
+
     public void IgnoreRemoveSuccess(int removedCount, int apiModId) { }
-    public System.Threading.Tasks.Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation) => System.Threading.Tasks.Task.FromResult(true);
+
+    public System.Threading.Tasks.Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation) =>
+        System.Threading.Tasks.Task.FromResult(true);
 }

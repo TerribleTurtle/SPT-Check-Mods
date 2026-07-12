@@ -9,8 +9,12 @@ namespace CheckModsExtended.Services;
 /// Implementation of <see cref="IInitializationService"/>.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class InitializationService(IModCheckReporter reporter, ILogger<InitializationService> logger, Microsoft.Extensions.Options.IOptions<CheckModsExtended.Configuration.AppPaths> appPaths, IFileSystem fileSystem)
-    : IInitializationService
+public sealed class InitializationService(
+    IModCheckReporter reporter,
+    ILogger<InitializationService> logger,
+    Microsoft.Extensions.Options.IOptions<CheckModsExtended.Configuration.AppPaths> appPaths,
+    IFileSystem fileSystem
+) : IInitializationService
 {
     /// <inheritdoc />
     public async Task RemoveLegacyApiKeyFileAsync()
@@ -67,5 +71,3 @@ public sealed class InitializationService(IModCheckReporter reporter, ILogger<In
         return safePath;
     }
 }
-
-

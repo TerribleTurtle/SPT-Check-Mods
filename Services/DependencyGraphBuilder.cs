@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CheckModsExtended.Models;
-using CheckModsExtended.Utils;
 using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Utils;
 
 namespace CheckModsExtended.Services;
 
@@ -41,7 +41,6 @@ public static class DependencyGraphBuilder
         {
             return null;
         }
-
 
         if (
             dependency.Conflict
@@ -218,7 +217,7 @@ public static class DependencyGraphBuilder
     }
 
     /// <summary>
-    /// Recursively collects dependencies into a map. Magic logic: skips dependencies with a blank GUID, 
+    /// Recursively collects dependencies into a map. Magic logic: skips dependencies with a blank GUID,
     /// and avoids duplicates by using TryAdd (so the first encountered dependency for a GUID is kept).
     /// </summary>
     /// <param name="deps">The list of dependencies to collect.</param>
@@ -319,9 +318,10 @@ public static class DependencyGraphBuilder
             Conflict = dependency.Conflict,
         };
     }
+
     /// <summary>
     /// Compares two version strings to determine if the current version is older than the recommended version.
-    /// Magic logic: Uses ParseOrDefault() which falls back to "0.0.0" if SemVer parsing fails, ensuring that 
+    /// Magic logic: Uses ParseOrDefault() which falls back to "0.0.0" if SemVer parsing fails, ensuring that
     /// unparseable versions are treated as extremely old rather than causing crashes.
     /// </summary>
     /// <param name="currentVersion">The currently installed version string.</param>

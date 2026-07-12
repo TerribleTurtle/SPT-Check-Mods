@@ -30,7 +30,11 @@ public sealed class MisplacedModDetectorTests : IDisposable
             new FakeModCheckReporter(),
             _fixture.FileSystem
         );
-        var serverExtractor = new ServerModExtractor(NullLogger<ServerModExtractor>.Instance, _fixture.FileSystem, new FakeModCheckReporter());
+        var serverExtractor = new ServerModExtractor(
+            NullLogger<ServerModExtractor>.Instance,
+            _fixture.FileSystem,
+            new FakeModCheckReporter()
+        );
         _detector = new MisplacedModDetector(
             new FakePluginScanCache(),
             new ModPartitioner(),
@@ -149,9 +153,3 @@ public class Plugin2 {}
         _fixture.Dispose();
     }
 }
-
-
-
-
-
-

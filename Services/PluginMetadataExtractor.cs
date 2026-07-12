@@ -35,7 +35,8 @@ public sealed class PluginMetadataExtractor(
     {
         var sptDir = Path.GetFullPath(Path.Combine(pluginsPath, "spt")) + Path.DirectorySeparatorChar;
 
-        return _fileSystem.GetFiles(pluginsPath, "*", SearchOption.AllDirectories)
+        return _fileSystem
+            .GetFiles(pluginsPath, "*", SearchOption.AllDirectories)
             .Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             .Where(f => !f.StartsWith(sptDir, StringComparison.OrdinalIgnoreCase))
             .Where(f => _fileSystem.GetFileLength(f) <= _options.MaxDllSizeBytes)
@@ -51,31 +52,38 @@ public sealed class PluginMetadataExtractor(
         var warnings = new ConcurrentBag<(string FileName, string Reason)>();
         var results = new ConcurrentBag<Mod?>();
 
-        return Task.Run(() =>
-        {
-            Parallel.ForEach(
-                dllFiles,
-                new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount,
-                    CancellationToken = cancellationToken,
-                },
-                (dllPath, state) =>
-                {
-                    var mod = ExtractClientModMetadata(dllPath, warnings, cancellationToken);
-                    results.Add(mod);
-                }
-            );
-
-            foreach (var (fileName, reason) in warnings)
+        return Task.Run(
+            () =>
             {
-                logger.LogDebug("Could not extract client mod metadata from {FileName}: {Reason}", fileName, reason);
-                reporter.CouldNotReadModDll(fileName, reason);
-            }
+                Parallel.ForEach(
+                    dllFiles,
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = Environment.ProcessorCount,
+                        CancellationToken = cancellationToken,
+                    },
+                    (dllPath, state) =>
+                    {
+                        var mod = ExtractClientModMetadata(dllPath, warnings, cancellationToken);
+                        results.Add(mod);
+                    }
+                );
 
-            var mods = results.Where(r => r is not null).Cast<Mod>().ToList();
-            return FilterDuplicateClientMods(mods);
-        }, cancellationToken);
+                foreach (var (fileName, reason) in warnings)
+                {
+                    logger.LogDebug(
+                        "Could not extract client mod metadata from {FileName}: {Reason}",
+                        fileName,
+                        reason
+                    );
+                    reporter.CouldNotReadModDll(fileName, reason);
+                }
+
+                var mods = results.Where(r => r is not null).Cast<Mod>().ToList();
+                return FilterDuplicateClientMods(mods);
+            },
+            cancellationToken
+        );
     }
 
     private static List<Mod> FilterDuplicateClientMods(List<Mod> mods)
@@ -110,75 +118,22 @@ public sealed class PluginMetadataExtractor(
     /// <inheritdoc />
     public Task<Mod?> TryDetectClientModAsync(string dllPath, CancellationToken cancellationToken = default)
     {
-        return Task.Run(() =>
-        {
-            try
-            {
-                using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                using var module = ModuleDefinition.ReadModule(stream);
-
-                foreach (var type in module.Types)
-                {
-                    var plugin = ExtractBepInPluginAttribute(type);
-                    if (plugin is not null)
-                    {
-                        return CreateModFromBepInPlugin(plugin, dllPath);
-                    }
-                }
-            }
-            catch (Exception ex)
-                when (ex
-                        is IOException
-                            or UnauthorizedAccessException
-                            or BadImageFormatException
-                            or System.Security.SecurityException
-                )
-            {
-                logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
-                reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
-            }
-
-            return null;
-        }, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task<List<PluginDll>> ReadPluginDllsAsync(
-        List<string> dllPaths,
-        CancellationToken cancellationToken = default
-    )
-    {
-        return Task.Run(() =>
-        {
-            List<PluginDll> plugins = [];
-
-            foreach (var dllPath in dllPaths)
+        return Task.Run(
+            () =>
             {
                 try
                 {
                     using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     using var module = ModuleDefinition.ReadModule(stream);
 
-                    BepInPluginAttribute? plugin = null;
                     foreach (var type in module.Types)
                     {
-                        plugin = ExtractBepInPluginAttribute(type);
+                        var plugin = ExtractBepInPluginAttribute(type);
                         if (plugin is not null)
                         {
-                            break;
+                            return CreateModFromBepInPlugin(plugin, dllPath);
                         }
                     }
-
-                    if (plugin is null)
-                    {
-                        continue;
-                    }
-
-                    var referencedNames = module
-                        .AssemblyReferences.Select(r => r.Name)
-                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                    plugins.Add(new PluginDll(dllPath, plugin, module.Assembly.Name.Name, referencedNames));
                 }
                 catch (Exception ex)
                     when (ex
@@ -188,13 +143,77 @@ public sealed class PluginMetadataExtractor(
                                 or System.Security.SecurityException
                     )
                 {
-                    logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
+                    logger.LogDebug(ex, "Could not inspect DLL as a client mod: {DllPath}", dllPath);
                     reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
                 }
-            }
 
-            return plugins;
-        }, cancellationToken);
+                return null;
+            },
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
+    public Task<List<PluginDll>> ReadPluginDllsAsync(
+        List<string> dllPaths,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.Run(
+            () =>
+            {
+                List<PluginDll> plugins = [];
+
+                foreach (var dllPath in dllPaths)
+                {
+                    try
+                    {
+                        using var stream = _fileSystem.Open(
+                            dllPath,
+                            FileMode.Open,
+                            FileAccess.Read,
+                            FileShare.ReadWrite
+                        );
+                        using var module = ModuleDefinition.ReadModule(stream);
+
+                        BepInPluginAttribute? plugin = null;
+                        foreach (var type in module.Types)
+                        {
+                            plugin = ExtractBepInPluginAttribute(type);
+                            if (plugin is not null)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (plugin is null)
+                        {
+                            continue;
+                        }
+
+                        var referencedNames = module
+                            .AssemblyReferences.Select(r => r.Name)
+                            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                        plugins.Add(new PluginDll(dllPath, plugin, module.Assembly.Name.Name, referencedNames));
+                    }
+                    catch (Exception ex)
+                        when (ex
+                                is IOException
+                                    or UnauthorizedAccessException
+                                    or BadImageFormatException
+                                    or System.Security.SecurityException
+                        )
+                    {
+                        logger.LogDebug(ex, "Skipping unreadable plugin DLL: {DllPath}", dllPath);
+                        reporter.CouldNotReadModDll(Path.GetFileName(dllPath), ex.Message);
+                    }
+                }
+
+                return plugins;
+            },
+            cancellationToken
+        );
     }
 
     /// <inheritdoc />
@@ -327,7 +346,9 @@ public sealed class PluginMetadataExtractor(
                 var fileName = Path.GetFileNameWithoutExtension(p.DllPath);
                 return fileName.Equals(directoryName, StringComparison.OrdinalIgnoreCase)
                     || fileName.Contains(normalizedDirName, StringComparison.OrdinalIgnoreCase)
-                    || PluginNamingStrategy.NormalizeModName(fileName).Equals(normalizedDirName, StringComparison.OrdinalIgnoreCase);
+                    || PluginNamingStrategy
+                        .NormalizeModName(fileName)
+                        .Equals(normalizedDirName, StringComparison.OrdinalIgnoreCase);
             })
             .OrderBy(p => Path.GetFileNameWithoutExtension(p.DllPath).Length)
             .FirstOrDefault();
@@ -358,4 +379,3 @@ public sealed class PluginMetadataExtractor(
             .First();
     }
 }
-

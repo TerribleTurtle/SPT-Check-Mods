@@ -32,4 +32,3 @@ public sealed class LoggingOptions
     /// </summary>
     public string LogFilePath { get; set; } = "checkmod.log";
 }
-

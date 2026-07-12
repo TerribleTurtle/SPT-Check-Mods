@@ -1,8 +1,8 @@
-using CheckModsExtended.Models;
-using OneOf;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CheckModsExtended.Models;
+using OneOf;
 
 namespace CheckModsExtended.Services.Interfaces;
 
@@ -23,7 +23,11 @@ public interface IModUpdateClient
     /// - <see cref="NotFound"/> if the update information could not be found.
     /// - <see cref="ApiError"/> if an error occurs while communicating with the Forge API.
     /// </returns>
-    Task<OneOf<ModUpdatesData, NotFound, ApiError>> GetModUpdatesAsync(IEnumerable<(int ModId, string CurrentVersion)> modUpdates, SemanticVersioning.Version sptVersion, CancellationToken cancellationToken = default);
+    Task<OneOf<ModUpdatesData, NotFound, ApiError>> GetModUpdatesAsync(
+        IEnumerable<(int ModId, string CurrentVersion)> modUpdates,
+        SemanticVersioning.Version sptVersion,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Retrieves the dependency tree for a collection of mod versions.
@@ -36,5 +40,8 @@ public interface IModUpdateClient
     /// - <see cref="NotFound"/> if the dependency information could not be found.
     /// - <see cref="ApiError"/> if an error occurs while communicating with the Forge API.
     /// </returns>
-    Task<OneOf<List<ModDependency>, NotFound, ApiError>> GetModDependenciesAsync(IEnumerable<(string Identifier, string Version)> modVersions, CancellationToken cancellationToken = default);
+    Task<OneOf<List<ModDependency>, NotFound, ApiError>> GetModDependenciesAsync(
+        IEnumerable<(string Identifier, string Version)> modVersions,
+        CancellationToken cancellationToken = default
+    );
 }

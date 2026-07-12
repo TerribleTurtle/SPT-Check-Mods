@@ -9,6 +9,7 @@ namespace CheckModsExtended.Tests.Models;
 public sealed class MisplacedModReportTests
 {
     private static string MockPath(params string[] parts) => System.IO.Path.Combine(parts);
+
     private static MisplacedMod Mod(string name, string filePath, bool isServerMod = false)
     {
         return new MisplacedMod(isServerMod, $"com.author.{name}", name, "1.0.0", filePath);
@@ -27,7 +28,11 @@ public sealed class MisplacedModReportTests
     [Fact]
     public void Wrong_folder_mods_are_excluded_by_file_path()
     {
-        var serverInClient = Mod("ServerMod", MockPath("SPT", "BepInEx", "plugins", "ServerMod.dll"), isServerMod: true);
+        var serverInClient = Mod(
+            "ServerMod",
+            MockPath("SPT", "BepInEx", "plugins", "ServerMod.dll"),
+            isServerMod: true
+        );
         var clientInServer = Mod("ClientMod", MockPath("SPT", "SPT", "user", "mods", "ClientMod", "ClientMod.dll"));
 
         var report = new MisplacedModReport([serverInClient, clientInServer], []);

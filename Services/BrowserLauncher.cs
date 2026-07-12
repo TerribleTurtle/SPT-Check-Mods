@@ -9,7 +9,10 @@ namespace CheckModsExtended.Services;
 /// Default <see cref="IBrowserLauncher"/>. Opens URLs via the OS shell.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class BrowserLauncher(ILogger<BrowserLauncher> logger, CheckModsExtended.Utils.IProcessRunner processRunner) : IBrowserLauncher
+public sealed class BrowserLauncher(
+    ILogger<BrowserLauncher> logger,
+    CheckModsExtended.Utils.IProcessRunner processRunner
+) : IBrowserLauncher
 {
     /// <inheritdoc />
     public bool TryOpenUrl(string url)
@@ -38,4 +41,3 @@ public sealed class BrowserLauncher(ILogger<BrowserLauncher> logger, CheckModsEx
         }
     }
 }
-

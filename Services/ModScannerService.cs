@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CheckModsExtended.Utils;
 using CheckModsExtended.Models;
-using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Services.Interfaces;
+using CheckModsExtended.Services.Utils;
+using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
@@ -28,7 +28,6 @@ public sealed class ModScannerService(
     IFileSystem fileSystem
 ) : IModScannerService
 {
-
     /// <inheritdoc />
     public async Task<List<Mod>> ScanServerModsAsync(string sptPath, CancellationToken cancellationToken = default)
     {
@@ -61,7 +60,10 @@ public sealed class ModScannerService(
                 {
                     try
                     {
-                        var mod = await Task.Run(() => serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, ct), ct);
+                        var mod = await Task.Run(
+                            () => serverExtractor.ExtractServerModMetadataAsync(dllPath, sptPath, ct),
+                            ct
+                        );
                         if (mod is not null)
                         {
                             concurrentMods.Add(mod);
@@ -124,7 +126,10 @@ public sealed class ModScannerService(
         // Process loose DLLs (directly in plugins folder) as individual mods
         if (dllsByDirectory.TryGetValue(pluginsDir, out var looseDlls))
         {
-            var looseResults = await Task.Run(() => pluginExtractor.ProcessClientDllsInParallelAsync(looseDlls, cancellationToken), cancellationToken);
+            var looseResults = await Task.Run(
+                () => pluginExtractor.ProcessClientDllsInParallelAsync(looseDlls, cancellationToken),
+                cancellationToken
+            );
             foreach (var mod in looseResults)
             {
                 concurrentMods.Add(mod);
@@ -142,7 +147,10 @@ public sealed class ModScannerService(
                 var directory = kvp.Key;
                 var directoryDlls = kvp.Value;
 
-                var (dirMods, allPlugins) = await Task.Run(() => pluginExtractor.ConsolidateDirectoryModsAsync(directory, directoryDlls, ct), ct);
+                var (dirMods, allPlugins) = await Task.Run(
+                    () => pluginExtractor.ConsolidateDirectoryModsAsync(directory, directoryDlls, ct),
+                    ct
+                );
                 pluginScanCache.AddPlugins(directory, allPlugins);
 
                 foreach (var m in dirMods)
@@ -164,7 +172,6 @@ public sealed class ModScannerService(
     /// </summary>
     /// <param name="dllFiles">A list of all discovered DLL files.</param>
     /// <param name="pluginsDir">The absolute path to the plugins directory.</param>
-
     /// <inheritdoc />
     public async Task<(List<Mod> ServerMods, List<Mod> ClientMods)> ScanAllModsAsync(
         string sptPath,
@@ -214,6 +221,3 @@ public sealed class ModScannerService(
         return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
     }
 }
-
-
-

@@ -1,8 +1,8 @@
-using CheckModsExtended.Models;
-using OneOf;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CheckModsExtended.Models;
+using OneOf;
 
 namespace CheckModsExtended.Services.Interfaces;
 
@@ -32,7 +32,10 @@ public interface ISptVersionClient
     /// );
     /// </code>
     /// </example>
-    Task<OneOf<bool, InvalidSptVersion, ApiError>> ValidateSptVersionAsync(string sptVersion, CancellationToken cancellationToken = default);
+    Task<OneOf<bool, InvalidSptVersion, ApiError>> ValidateSptVersionAsync(
+        string sptVersion,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Retrieves all known SPT versions from the Forge API.

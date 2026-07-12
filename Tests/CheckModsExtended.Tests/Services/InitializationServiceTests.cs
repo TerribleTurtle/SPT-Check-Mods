@@ -1,9 +1,9 @@
-using CheckModsExtended.Services;
-using CheckModsExtended.Tests.Fakes;
-using CheckModsExtended.Tests.Fixtures;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using CheckModsExtended.Services;
+using CheckModsExtended.Tests.Fakes;
+using CheckModsExtended.Tests.Fixtures;
 using Xunit;
 
 namespace CheckModsExtended.Tests.Services;
@@ -17,7 +17,12 @@ public sealed class InitializationServiceTests
 
     public InitializationServiceTests()
     {
-        _sut = new InitializationService(_reporter, _logger, Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.AppPaths()), _fileSystem);
+        _sut = new InitializationService(
+            _reporter,
+            _logger,
+            Microsoft.Extensions.Options.Options.Create(new CheckModsExtended.Configuration.AppPaths()),
+            _fileSystem
+        );
     }
 
     [Fact]

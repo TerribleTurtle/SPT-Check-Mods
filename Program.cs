@@ -42,9 +42,18 @@ public sealed class Program
     /// Sets up dependency injection, runs the application, and handles any unhandled exceptions.
     /// </summary>
     /// <param name="args">Command line arguments. The only argument is the SPT installation path.</param>
-    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All, typeof(Commands.CheckModsCommand))]
-    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All, typeof(Commands.CheckModsCommand.Settings))]
-    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All, typeof(Commands.GlobalSettings))]
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(
+        System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All,
+        typeof(Commands.CheckModsCommand)
+    )]
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(
+        System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All,
+        typeof(Commands.CheckModsCommand.Settings)
+    )]
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(
+        System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All,
+        typeof(Commands.GlobalSettings)
+    )]
     public static async Task<int> Main(string[] args)
     {
         int exitCode = ExitCodes.Success;
@@ -68,16 +77,17 @@ public sealed class Program
         {
             runtimeConfig = new RuntimeConfig
             {
-                IsVerbose = args.Contains("-v") || args.Contains("--verbose")
+                IsVerbose = args.Contains("-v") || args.Contains("--verbose"),
+                IsDebug = args.Contains("-d") || args.Contains("--debug"),
             };
-
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
 
-            var loggingOptions = configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
+            var loggingOptions =
+                configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
             var appPaths = configuration.GetSection("AppPaths").Get<AppPaths>() ?? new AppPaths();
 
             finalLogPath = loggingOptions.LogFilePath;
@@ -104,6 +114,18 @@ public sealed class Program
                     .AddCommand<ListModsCommand>("list")
                     .WithDescription("List locally installed mods without checking for updates.");
 
+                config.AddCommand<LicenseCommand>("license").WithDescription("Display the application license.");
+
+                config
+                    .AddCommand<CleanCommand>("clean")
+                    .WithDescription(
+                        "Manage local app data (clears configuration overrides, ignored updates, and logs)."
+                    );
+
+                config
+                    .AddCommand<DiagCommand>("diag")
+                    .WithDescription("Zip and export the application's log files from AppData for easy sharing.");
+
                 config.AddBranch(
                     "ignore",
                     ignore =>
@@ -127,7 +149,24 @@ public sealed class Program
         }
         catch (Exception ex)
         {
-            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
+            if (runtimeConfig?.IsDebug == true)
+            {
+                AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[red]A fatal error occurred:[/] {ex.Message.EscapeMarkup()}");
+                if (finalLogPath != null)
+                {
+                    AnsiConsole.MarkupLine(
+                        $"[grey]Please check the log file for the full stack trace: {finalLogPath.EscapeMarkup()}[/]"
+                    );
+                }
+
+                string reportUrl = CrashReportUrl.Build(ex, VersionInfo.SemVer);
+                AnsiConsole.MarkupLine("[yellow]You can report this crash on GitHub:[/]");
+                AnsiConsole.MarkupLine($"[link]{reportUrl.EscapeMarkup()}[/]");
+            }
             exitCode = ExitCodes.Error;
         }
         finally
@@ -146,7 +185,9 @@ public sealed class Program
 
             var isHeadless =
                 (runtimeConfig?.IsHeadless == true)
-                || Console.IsInputRedirected || args.Contains("--no-prompt") || args.Contains("-y");
+                || Console.IsInputRedirected
+                || args.Contains("--no-prompt")
+                || args.Contains("-y");
 
             if (!_wasCancelled && !isHeadless)
             {

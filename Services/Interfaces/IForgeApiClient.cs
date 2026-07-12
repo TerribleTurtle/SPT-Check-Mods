@@ -1,6 +1,6 @@
 using System.Net;
-using System.Threading;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
@@ -19,10 +19,7 @@ public interface IForgeApiClient
     /// <param name="url">The URL to send the GET request to.</param>
     /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>The <see cref="HttpResponseMessage"/> containing the HTTP response.</returns>
-    Task<HttpResponseMessage> GetJsonAsync(
-        string url,
-        CancellationToken cancellationToken = default
-    );
+    Task<HttpResponseMessage> GetJsonAsync(string url, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Issues a GET request and deserializes the JSON response into the specified type.
@@ -43,4 +40,3 @@ public interface IForgeApiClient
         CancellationToken cancellationToken = default
     );
 }
-

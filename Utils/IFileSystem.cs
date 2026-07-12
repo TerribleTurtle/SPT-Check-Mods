@@ -219,6 +219,3 @@ public sealed class FileSystem : IFileSystem
         return new FileInfo(path).Length;
     }
 }
-
-
-

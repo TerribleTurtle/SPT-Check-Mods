@@ -293,10 +293,7 @@ public sealed class UpdateCheckServiceTests
     [Fact]
     public async Task Checkasync_reports_unavailable_when_the_mod_is_not_found()
     {
-        var searchClient = new FakeModSearchClient
-        {
-            OnGetModById = _ => new NotFound(),
-        };
+        var searchClient = new FakeModSearchClient { OnGetModById = _ => new NotFound() };
         var updateClient = new FakeModUpdateClient { OnGetModUpdates = () => new NotFound() };
 
         var result = await CreateService(searchClient, updateClient).CheckAsync(SptVersion);
@@ -307,10 +304,7 @@ public sealed class UpdateCheckServiceTests
     [Fact]
     public async Task Checkasync_reports_unavailable_when_the_mod_has_no_versions()
     {
-        var searchClient = new FakeModSearchClient
-        {
-            OnGetModById = _ => ModWithVersions(detailUrl: "https://detail"),
-        };
+        var searchClient = new FakeModSearchClient { OnGetModById = _ => ModWithVersions(detailUrl: "https://detail") };
         var updateClient = new FakeModUpdateClient { OnGetModUpdates = () => new NotFound() };
 
         var result = await CreateService(searchClient, updateClient).CheckAsync(SptVersion);

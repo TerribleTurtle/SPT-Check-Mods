@@ -9,4 +9,3 @@ public interface IPluginScanCache
     bool TryGetPlugins(string directory, out IReadOnlyList<PluginDll>? plugins);
     void Clear();
 }
-

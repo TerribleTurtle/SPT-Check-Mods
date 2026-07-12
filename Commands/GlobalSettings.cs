@@ -13,8 +13,12 @@ public class GlobalSettings : CommandSettings
     public bool NoPrompt { get; set; }
 
     [CommandOption("-v|--verbose")]
-    [Description("Enable verbose/debug logging output.")]
+    [Description("Enable verbose logging output.")]
     public bool Verbose { get; set; }
+
+    [CommandOption("-d|--debug")]
+    [Description("Enable debug logging output (includes stack traces).")]
+    public bool Debug { get; set; }
 
     [CommandOption("-f|--format <TYPE>")]
     [Description("Sets the output format. Valid values: table, json, csv. Defaults to table.")]

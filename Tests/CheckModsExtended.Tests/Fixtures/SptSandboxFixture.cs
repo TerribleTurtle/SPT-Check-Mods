@@ -55,9 +55,5 @@ public sealed class SptSandboxFixture : IDisposable
         return fullPath;
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 }
-
-

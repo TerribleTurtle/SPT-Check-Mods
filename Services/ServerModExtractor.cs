@@ -33,7 +33,11 @@ namespace CheckModsExtended.Services;
     "IL2075",
     Justification = "We are inspecting dynamically loaded mod assemblies, not application code."
 )]
-public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, CheckModsExtended.Utils.IFileSystem fileSystem, IModCheckReporter reporter) : IServerModExtractor
+public sealed class ServerModExtractor(
+    ILogger<ServerModExtractor> logger,
+    CheckModsExtended.Utils.IFileSystem fileSystem,
+    IModCheckReporter reporter
+) : IServerModExtractor
 {
     /// <inheritdoc />
     public Task<Mod?> ExtractServerModMetadataAsync(
@@ -76,7 +80,12 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
 
             var version = modVersion ?? GetAssemblyVersion(module);
 
-            var warnings = ModMetadataValidator.ValidateModMetadata(name ?? string.Empty, author ?? string.Empty, version, modGuid);
+            var warnings = ModMetadataValidator.ValidateModMetadata(
+                name ?? string.Empty,
+                author ?? string.Empty,
+                version,
+                modGuid
+            );
 
             return new Mod
             {
@@ -250,4 +259,3 @@ public sealed class ServerModExtractor(ILogger<ServerModExtractor> logger, Check
         return $"{version.Major}.{version.Minor}.{version.Build}";
     }
 }
-

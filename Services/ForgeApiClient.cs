@@ -1,14 +1,14 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
-using OneOf;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using OneOf;
 
 namespace CheckModsExtended.Services;
 
@@ -18,17 +18,14 @@ namespace CheckModsExtended.Services;
 public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient> logger) : IForgeApiClient
 {
     /// <inheritdoc />
-    public async Task<HttpResponseMessage> GetJsonAsync(
-        string url,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<HttpResponseMessage> GetJsonAsync(string url, CancellationToken cancellationToken = default)
     {
         logger.LogDebug("API Request: GET {Url}", url);
         var req = new HttpRequestMessage(HttpMethod.Get, url);
         req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         return await httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
     }
-    
+
     /// <inheritdoc />
     public async Task<OneOf<T, NotFound, ApiError>> GetFromJsonAsync<T>(
         string url,
@@ -48,7 +45,7 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("API request to {Url} failed: {StatusCode}", url, response.StatusCode);
-                return new ApiError($"API returned status {response.StatusCode}", (int) response.StatusCode);
+                return new ApiError($"API returned status {response.StatusCode}", (int)response.StatusCode);
             }
 
             await using var bodyStream = await response.Content.ReadAsStreamAsync(cancellationToken);

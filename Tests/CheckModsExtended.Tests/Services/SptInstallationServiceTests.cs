@@ -81,4 +81,3 @@ public sealed class SptInstallationServiceTests : IDisposable
         _fixture.Dispose();
     }
 }
-

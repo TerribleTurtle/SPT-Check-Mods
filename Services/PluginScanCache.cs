@@ -10,7 +10,9 @@ namespace CheckModsExtended.Services;
 [Injectable(InjectionType.Singleton)]
 public sealed class PluginScanCache : IPluginScanCache
 {
-    private readonly ConcurrentDictionary<string, IReadOnlyList<PluginDll>> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IReadOnlyList<PluginDll>> _cache = new(
+        StringComparer.OrdinalIgnoreCase
+    );
 
     public void AddPlugins(string directory, IReadOnlyList<PluginDll> plugins)
     {
@@ -27,4 +29,3 @@ public sealed class PluginScanCache : IPluginScanCache
         _cache.Clear();
     }
 }
-
