@@ -23,6 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnConsoleToggle = document.getElementById('btn-console-toggle');
     const btnCopyLog = document.getElementById('btn-copy-log');
 
+    const ignoreModal = document.getElementById('ignore-modal');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const ignoreModalBody = document.getElementById('ignore-modal-body');
+
     function init() {
         // Restore theme
         const savedTheme = localStorage.getItem('cme-theme') || 'dark';
@@ -73,6 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Event delegation for mod list actions
         modsList.addEventListener('click', handleModListClick);
         detailContent.addEventListener('click', handleDetailClick);
+        if (ignoreModalBody) {
+            ignoreModalBody.addEventListener('click', handleDetailClick);
+        }
+
+        if (btnCloseModal) {
+            btnCloseModal.addEventListener('click', () => {
+                if (ignoreModal) ignoreModal.classList.add('hidden');
+            });
+        }
+        
+        if (ignoreModal) {
+            ignoreModal.addEventListener('click', (e) => {
+                if (e.target === ignoreModal) ignoreModal.classList.add('hidden');
+            });
+        }
 
         document.addEventListener('keydown', handleKeyboardNavigation);
 
@@ -255,6 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 await unignoreMod(id);
                 logToConsole(`> Successfully un-ignored ${id}.`, 'success');
                 detailPane.classList.add('hidden');
+                
+                const ignoreModal = document.getElementById('ignore-modal');
+                if (ignoreModal && !ignoreModal.classList.contains('hidden')) {
+                    import('./ui/dashboard.js').then(d => d.renderIgnoreDashboard());
+                }
+                
                 handleScan();
             } catch(err) {
                 logToConsole(`> Error un-ignoring mod: ${err.message}`, 'error');

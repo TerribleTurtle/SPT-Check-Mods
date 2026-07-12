@@ -19,8 +19,7 @@ export async function renderIgnoreDashboard() {
     try {
         const ignores = await fetchIgnores();
         
-        let html = '<div class="ignore-dashboard" style="flex-basis: 100%; margin-top: 10px;">';
-        html += '<h3 style="color: var(--text-primary); margin-bottom: 10px; font-size: 1.1rem;">Manage Ignore List</h3>';
+        let html = '';
         if (!ignores || ignores.length === 0) {
             html += '<p style="color: var(--text-muted); font-size: 0.9rem;">No mods are currently ignored.</p>';
         } else {
@@ -33,11 +32,17 @@ export async function renderIgnoreDashboard() {
             });
             html += '</ul>';
         }
-        html += '</div>';
         
+        const modalBody = document.getElementById('ignore-modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = html;
+        }
         return html;
     } catch (e) {
-        return `<div style="color: var(--status-error); margin-top: 20px;">Error loading ignores: ${e.message}</div>`;
+        const modalBody = document.getElementById('ignore-modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = `<div style="color: var(--status-error); margin-top: 20px;">Error loading ignores: ${e.message}</div>`;
+        }
     }
 }
 
@@ -89,15 +94,13 @@ export async function showOverview() {
                 <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
                 ${updateMods.filter(m => m.downloadUrl).length > 0 ? `<button id="btn-download-updates" class="btn-primary">Download Updates (${updateMods.filter(m => m.downloadUrl).length})</button>` : ''}
                 ${updateMods.filter(m => m.modUrl).length > 0 ? `<button id="btn-open-pages" class="btn-secondary">Open Update Pages (${updateMods.filter(m => m.modUrl).length})</button>` : ''}
+                <button id="btn-manage-ignored" class="btn-secondary">Manage Ignored Mods</button>
                 <button id="btn-edit-settings" class="btn-secondary">Edit Settings</button>
             </div>
         </div>
     `;
 
-    // Add ignore dashboard inline
-    const ignoreHtml = await renderIgnoreDashboard();
-    
-    overviewPane.innerHTML = summaryHtml + bulkToolbar + ignoreHtml;
+    overviewPane.innerHTML = summaryHtml + bulkToolbar;
 
     const btnCopyMods = document.getElementById('btn-copy-mods');
     if (btnCopyMods) {
@@ -136,6 +139,15 @@ export async function showOverview() {
                     logToConsole(`> Error opening page for ${m.name}: ${e}`, 'error');
                 }
             }
+        });
+    }
+
+    const btnManageIgnored = document.getElementById('btn-manage-ignored');
+    if (btnManageIgnored) {
+        btnManageIgnored.addEventListener('click', async () => {
+            await renderIgnoreDashboard();
+            const modal = document.getElementById('ignore-modal');
+            if (modal) modal.classList.remove('hidden');
         });
     }
 

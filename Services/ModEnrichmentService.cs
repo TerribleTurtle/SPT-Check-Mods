@@ -24,7 +24,14 @@ public sealed class ModEnrichmentService(IModUpdateClient forgeApiService, ILogg
         var matchedMods = mods.Where(m => m.IsMatched && m.Api.ApiModId.HasValue).ToList();
 
         // Group by API mod ID to deduplicate.
-        var uniqueModsById = matchedMods.GroupBy(m => m.Api.ApiModId!.Value).ToDictionary(g => g.Key, g => g.ToList());
+        var uniqueModsById = matchedMods
+            .GroupBy(m => m.Api.ApiModId!.Value)
+            .ToDictionary(
+                g => g.Key, 
+                g => g.OrderByDescending(m => 
+                    CheckModsExtended.Utils.SemVer.TryParse(m.Local.LocalVersion, "ModEnrichment").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
+                ).ToList()
+            );
 
         if (uniqueModsById.Count == 0)
         {
@@ -69,6 +76,36 @@ public sealed class ModEnrichmentService(IModUpdateClient forgeApiService, ILogg
         ProcessUpdates(updatesData.Blocked, b => b.ModId, (m, b) => m.WithBlocked(b));
         ProcessUpdates(updatesData.UpToDate, u => u.ModId, (m, u) => m.WithUpToDate(u));
         ProcessUpdates(updatesData.Incompatible, i => i.ModId, (m, i) => m.WithIncompatible(i));
+
+        // Fix duplicate mod statuses: if a mod is an older duplicate, it cannot be UpToDate.
+        foreach (var group in uniqueModsById.Values.Where(g => g.Count > 1))
+        {
+            var highestMod = modsDict[group[0].Local.Guid];
+            var latestVer = highestMod.Update.LatestVersion ?? highestMod.Local.LocalVersion;
+            
+            for (int i = 1; i < group.Count; i++)
+            {
+                var olderMod = modsDict[group[i].Local.Guid];
+                
+                var inheritedStatus = highestMod.Update.UpdateStatus;
+                if (inheritedStatus == UpdateStatus.UpToDate || inheritedStatus == UpdateStatus.Unknown)
+                {
+                    inheritedStatus = UpdateStatus.UpdateAvailable;
+                }
+
+                modsDict[group[i].Local.Guid] = olderMod with 
+                { 
+                    Update = olderMod.Update with 
+                    { 
+                        UpdateStatus = inheritedStatus,
+                        LatestVersion = latestVer,
+                        BlockReason = highestMod.Update.BlockReason,
+                        BlockingMods = highestMod.Update.BlockingMods,
+                        IncompatibilityReason = highestMod.Update.IncompatibilityReason
+                    } 
+                };
+            }
+        }
 
         return modsDict.Values.ToList();
     }

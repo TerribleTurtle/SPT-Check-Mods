@@ -202,7 +202,12 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
 
     internal static string FormatVersionDisplay(Mod mod)
     {
-        var latestVersion = mod.Update.LatestVersion!;
+        var latestVersion = mod.Update.LatestVersion;
+
+        if (latestVersion == null)
+        {
+            return "[grey]Unknown[/]";
+        }
 
         if (mod.Update.UpdateSuppressed)
         {
@@ -274,16 +279,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
 
     private static List<Mod> GetDeduplicatedVerifiedMods(List<Mod> mods)
     {
-        return mods.Where(m => m.IsMatched && m.Update.LatestVersion is not null)
-            .GroupBy(m => m.Api.ApiModId!.Value)
-            .Select(g =>
-                g.OrderByDescending(m =>
-                        SemVer
-                            .TryParse(m.Local.LocalVersion, nameof(VersionTableUiRenderer))
-                            .Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
-                    )
-                    .First()
-            )
+        return mods.Where(m => m.IsMatched)
             .OrderBy(m => m.DisplayName)
             .ToList();
     }
