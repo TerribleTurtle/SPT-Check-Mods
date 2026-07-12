@@ -109,9 +109,6 @@
           
           string bat1 = Path.Combine(ProjectDirectory, "CheckModsExtended - Start Web Manager.bat");
           if (File.Exists(bat1)) archive.CreateEntryFromFile(bat1, "CheckModsExtended - Start Web Manager.bat", CompressionLevel.Optimal);
-          
-          string bat2 = Path.Combine(ProjectDirectory, "CheckModsExtended - CLI.bat");
-          if (File.Exists(bat2)) archive.CreateEntryFromFile(bat2, "CheckModsExtended - CLI.bat", CompressionLevel.Optimal);
         ]]>
       </Code>
     </Task>
@@ -136,7 +133,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CheckModsExtended - Start Web Manager.bat" CopyToPublishDirectory="PreserveNewest" />
-    <None Include="CheckModsExtended - CLI.bat" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LICENSE" />
