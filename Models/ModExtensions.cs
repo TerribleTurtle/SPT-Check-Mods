@@ -73,6 +73,7 @@ public static class ModExtensions
             Update = mod.Update with
             {
                 LatestVersion = blocked.LatestVersion?.Version,
+                DownloadLink = blocked.LatestVersion?.Link,
                 BlockingMods = blocked.BlockingMods,
                 BlockReason = blocked.BlockReason,
                 UpdateStatus = UpdateStatus.UpdateBlocked,
@@ -88,9 +89,17 @@ public static class ModExtensions
     /// <returns>A new <see cref="Mod"/> instance marked as up-to-date.</returns>
     public static Mod WithUpToDate(this Mod mod, UpToDateMod upToDate)
     {
+        var link = mod.Api.ApiVersions?.FirstOrDefault(v => v.Version == upToDate.Version)?.Link 
+                ?? (mod.Api.ApiVersions?.Count > 0 ? mod.Api.ApiVersions[0].Link : null);
+
         return mod with
         {
-            Update = mod.Update with { LatestVersion = upToDate.Version, UpdateStatus = UpdateStatus.UpToDate },
+            Update = mod.Update with 
+            { 
+                LatestVersion = upToDate.Version, 
+                DownloadLink = link,
+                UpdateStatus = UpdateStatus.UpToDate 
+            },
         };
     }
 
@@ -102,11 +111,13 @@ public static class ModExtensions
     /// <returns>A new <see cref="Mod"/> instance with the incompatibility reason.</returns>
     public static Mod WithIncompatible(this Mod mod, IncompatibleMod incompatible)
     {
+        var link = incompatible.LatestCompatibleVersion?.Link ?? (mod.Api.ApiVersions?.Count > 0 ? mod.Api.ApiVersions[0].Link : null);
         return mod with
         {
             Update = mod.Update with
             {
                 IncompatibilityReason = incompatible.Reason,
+                DownloadLink = link,
                 UpdateStatus = UpdateStatus.Incompatible,
             },
         };

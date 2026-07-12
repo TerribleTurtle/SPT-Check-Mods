@@ -84,8 +84,7 @@ public sealed class ModEnrichmentService(
         foreach (var modId in modsDict.Keys.ToList())
         {
             var mod = modsDict[modId];
-            if (mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable &&
-                string.IsNullOrWhiteSpace(mod.Update.DownloadLink) &&
+            if (string.IsNullOrWhiteSpace(mod.Update.DownloadLink) &&
                 !string.IsNullOrWhiteSpace(mod.Api.ApiSourceCodeUrl))
             {
                 var assetUrl = await gitHubReleaseClient.TryGetLatestReleaseAssetUrlAsync(mod.Api.ApiSourceCodeUrl, cancellationToken);
