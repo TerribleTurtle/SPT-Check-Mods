@@ -17,6 +17,10 @@
   --status-warning-bg: rgba(251, 146, 60, 0.08);
   --status-error-bg:   rgba(248, 113, 113, 0.08);
   --status-info-bg:    rgba(96, 165, 250, 0.08);
+  --status-neutral-bg: rgba(156, 163, 175, 0.08);
+  --accent-brand-focus: rgba(228, 98, 49, 0.2);
+  --accent-brand-subtle: rgba(228, 98, 49, 0.04);
+  --text-on-accent:     #FFFFFF;
   --border-subtle:  #1E2228;
   --border-default: #2E333B;
   --border-strong:  #374151;
@@ -41,6 +45,10 @@
   --status-warning-bg: rgba(217, 119, 6, 0.08);
   --status-error-bg:   rgba(220, 38, 38, 0.08);
   --status-info-bg:    rgba(37, 99, 235, 0.08);
+  --status-neutral-bg: rgba(107, 114, 128, 0.08);
+  --accent-brand-focus: rgba(212, 83, 30, 0.2);
+  --accent-brand-subtle: rgba(212, 83, 30, 0.04);
+  --text-on-accent:     #FFFFFF;
   --border-subtle:  #E9ECEF;
   --border-default: #DEE2E6;
   --border-strong:  #CED4DA;
@@ -75,6 +83,10 @@
   --status-warning-bg: rgba(251, 146, 60, 0.08);
   --status-error-bg:   rgba(248, 113, 113, 0.08);
   --status-info-bg:    rgba(96, 165, 250, 0.08);
+  --status-neutral-bg: rgba(156, 163, 175, 0.08);
+  --accent-brand-focus: rgba(228, 98, 49, 0.2);
+  --accent-brand-subtle: rgba(228, 98, 49, 0.04);
+  --text-on-accent:     #FFFFFF;
   --border-subtle:  #1E2228;
   --border-default: #2E333B;
   --border-strong:  #374151;
@@ -100,6 +112,10 @@
     --status-warning-bg: rgba(217, 119, 6, 0.08);
     --status-error-bg:   rgba(220, 38, 38, 0.08);
     --status-info-bg:    rgba(37, 99, 235, 0.08);
+    --status-neutral-bg: rgba(107, 114, 128, 0.08);
+    --accent-brand-focus: rgba(212, 83, 30, 0.2);
+    --accent-brand-subtle: rgba(212, 83, 30, 0.04);
+    --text-on-accent:     #FFFFFF;
     --border-subtle:  #E9ECEF;
     --border-default: #DEE2E6;
     --border-strong:  #CED4DA;
@@ -493,7 +509,7 @@ a.btn-secondary {
 .status-pill-blocked  { color: var(--status-error);   background: var(--status-error-bg); }
 .status-pill-incompat { color: var(--status-error);   background: var(--status-error-bg); }
 .status-pill-newer    { color: var(--status-info);    background: var(--status-info-bg); }
-.status-pill-unknown  { color: var(--status-neutral); background: rgba(156,163,175,0.08); }
+.status-pill-unknown  { color: var(--status-neutral); background: var(--status-neutral-bg); }
 
 .health-banner {
   padding: var(--space-md) var(--space-lg);
@@ -511,7 +527,7 @@ a.btn-secondary {
   border-radius: var(--radius-md); color: var(--text-primary);
   font-family: var(--font-ui); font-size: 0.875rem;
 }
-.search-input:focus { border-color: var(--accent-brand); outline: none; box-shadow: 0 0 0 2px rgba(228,98,49,0.2); }
+.search-input:focus { border-color: var(--accent-brand); outline: none; box-shadow: 0 0 0 2px var(--accent-brand-focus); }
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
 .search-count { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.75rem; font-family: var(--font-mono); }
 
@@ -523,7 +539,7 @@ a.btn-secondary {
   font-size: 0.8rem; cursor: pointer; transition: all var(--transition-fast); white-space: nowrap;
 }
 .chip:hover { border-color: var(--text-secondary); }
-.chip.active { background: var(--accent-brand); color: white; border-color: var(--accent-brand); }
+.chip.active { background: var(--accent-brand); color: var(--text-on-accent); border-color: var(--accent-brand); }
 .chip-count { font-family: var(--font-mono); font-size: 0.7rem; margin-left: 4px; opacity: 0.7; }
 
 th[data-sortable] { cursor: pointer; user-select: none; }
@@ -551,7 +567,7 @@ thead th { position: sticky; top: 0; z-index: 10; }
 
 .theme-toggle { background: none; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-xs) var(--space-sm); color: var(--text-secondary); cursor: pointer; }
 .theme-toggle:hover { border-color: var(--text-primary); color: var(--text-primary); }
-tr.selected { background: rgba(228, 98, 49, 0.04); }
+tr.selected { background: var(--accent-brand-subtle); }
 tr.keyboard-focus { outline: 2px solid var(--accent-brand); outline-offset: -2px; }
 .row-checkbox { width: 16px; height: 16px; accent-color: var(--accent-brand); cursor: pointer; }
 .console-toggle { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: var(--space-xs); }
