@@ -81,6 +81,18 @@ public sealed class ModNameNormalizerTests
     }
 
     [Fact]
+    public void Normalize_removes_backend_suffix()
+    {
+        Assert.Equal("mymod", ModNameNormalizer.Normalize("MyModBackend", removeComponentSuffixes: true));
+    }
+
+    [Fact]
+    public void Normalize_removes_frontend_suffix()
+    {
+        Assert.Equal("mymod", ModNameNormalizer.Normalize("MyModFrontend", removeComponentSuffixes: true));
+    }
+
+    [Fact]
     public void Getfuzzymatchscore_is_100_for_identical_normalized_names()
     {
         Assert.Equal(100, ModNameNormalizer.GetFuzzyMatchScore("My Mod", "my-mod"));

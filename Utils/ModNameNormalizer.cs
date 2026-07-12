@@ -13,11 +13,11 @@ public static class ModNameNormalizer
     /// Common suffixes used in mod names that are targeted for removal during normalization to improve match accuracy.
     /// Components like "server" or "plugin" are often omitted from API names but present locally.
     /// </summary>
-    public static readonly ImmutableArray<string> SuffixesToRemove = ["server", "client", "plugin", "api"];
+    public static readonly ImmutableArray<string> SuffixesToRemove = ["server", "client", "plugin", "api", "backend", "frontend"];
 
     /// <summary>
     /// Normalizes a mod name for comparison by removing special characters,
-    /// converting to lowercase, and optionally removing server/client/plugin suffixes.
+    /// converting to lowercase, and optionally removing component suffixes (like server, client, backend, frontend).
     /// </summary>
     /// <param name="name">The name to normalize.</param>
     /// <param name="removeComponentSuffixes">Whether to remove component suffixes.</param>
