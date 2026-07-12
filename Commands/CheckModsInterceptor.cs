@@ -21,6 +21,12 @@ public sealed class CheckModsInterceptor : ICommandInterceptor
         {
             _runtimeConfig.IsHeadless = globalSettings.NoPrompt;
             _runtimeConfig.IsVerbose = globalSettings.Verbose;
+            _runtimeConfig.Format = globalSettings.Format;
+
+            if (!_runtimeConfig.Format.Equals("table", System.StringComparison.OrdinalIgnoreCase))
+            {
+                _runtimeConfig.IsHeadless = true;
+            }
         }
     }
 }

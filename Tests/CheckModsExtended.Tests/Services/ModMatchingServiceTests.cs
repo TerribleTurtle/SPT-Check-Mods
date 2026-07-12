@@ -199,6 +199,13 @@ public sealed class ModMatchingServiceTests
         Assert.Empty(results);
     }
 
+    private sealed class SyncProgress<T> : IProgress<T>
+    {
+        private readonly Action<T> _handler;
+        public SyncProgress(Action<T> handler) => _handler = handler;
+        public void Report(T value) => _handler(value);
+    }
+
     [Fact]
     public async Task Invokes_progress_callback_once_per_mod()
     {
@@ -210,7 +217,7 @@ public sealed class ModMatchingServiceTests
             .MatchModsAsync(
                 mods,
                 SptVersion,
-                new Progress<int>(current =>
+                new SyncProgress<int>(current =>
                 {
                     lock (progressCalls)
                     {

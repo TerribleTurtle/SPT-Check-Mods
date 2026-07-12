@@ -181,6 +181,13 @@ public sealed class ModDependencyServiceTests
         Assert.Empty(nodeB.Children); // the circular back-edge to com.a was pruned
     }
 
+    private sealed class SyncProgress<T> : IProgress<T>
+    {
+        private readonly Action<T> _handler;
+        public SyncProgress(Action<T> handler) => _handler = handler;
+        public void Report(T value) => _handler(value);
+    }
+
     [Fact]
     public async Task Invokes_progress_once_per_unique_matched_mod()
     {
@@ -194,7 +201,7 @@ public sealed class ModDependencyServiceTests
             .AnalyzeDependenciesAsync(
                 [m1, m2],
                 new HashSet<string>(),
-                new Progress<int>(fetched => calls.Add(fetched))
+                new SyncProgress<int>(fetched => calls.Add(fetched))
             );
 
         Assert.Equal(1, Assert.Single(calls));

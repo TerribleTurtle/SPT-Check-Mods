@@ -42,6 +42,9 @@ public sealed class Program
     /// Sets up dependency injection, runs the application, and handles any unhandled exceptions.
     /// </summary>
     /// <param name="args">Command line arguments. The only argument is the SPT installation path.</param>
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All, typeof(Commands.CheckModsCommand))]
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All, typeof(Commands.CheckModsCommand.Settings))]
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All, typeof(Commands.GlobalSettings))]
     public static async Task<int> Main(string[] args)
     {
         int exitCode = ExitCodes.Success;

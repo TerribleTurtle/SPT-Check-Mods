@@ -63,7 +63,11 @@ public sealed class TextRenderer : ITextRenderer
 
     public void Exception(Exception ex)
     {
-        AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths);
+        AnsiConsole.MarkupLine($"[red]Exception:[/] {ex.Message.EscapeMarkup()}");
+        if (ex.StackTrace != null)
+        {
+            AnsiConsole.MarkupLine($"[grey]{ex.StackTrace.EscapeMarkup()}[/]");
+        }
     }
 
     public void CouldNotReadModDll(string fileName, string reason)

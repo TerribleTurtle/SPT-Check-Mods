@@ -15,4 +15,9 @@ public class GlobalSettings : CommandSettings
     [CommandOption("-v|--verbose")]
     [Description("Enable verbose/debug logging output.")]
     public bool Verbose { get; set; }
+
+    [CommandOption("-f|--format <TYPE>")]
+    [Description("Sets the output format. Valid values: table, json, csv. Defaults to table.")]
+    [DefaultValue("table")]
+    public string Format { get; set; } = "table";
 }

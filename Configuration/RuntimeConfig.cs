@@ -14,4 +14,9 @@ public sealed class RuntimeConfig
     /// Gets or sets a value indicating whether verbose logging is enabled.
     /// </summary>
     public bool IsVerbose { get; set; }
+
+    /// <summary>
+    /// Gets or sets the requested output format.
+    /// </summary>
+    public string Format { get; set; } = "table";
 }
