@@ -9,13 +9,14 @@ namespace CheckModsExtended.Tests.Services;
 public sealed class ModEnrichmentServiceTests
 {
     private readonly FakeModUpdateClient _forgeApiService = new();
+    private readonly FakeGitHubReleaseClient _gitHubClient = new();
     private readonly FakeLogger<ModEnrichmentService> _logger = new();
     private readonly ModEnrichmentService _service;
     private readonly Version _sptVersion = Version.Parse("3.9.0");
 
     public ModEnrichmentServiceTests()
     {
-        _service = new ModEnrichmentService(_forgeApiService, _logger);
+        _service = new ModEnrichmentService(_forgeApiService, _gitHubClient, _logger);
     }
 
     [Fact]

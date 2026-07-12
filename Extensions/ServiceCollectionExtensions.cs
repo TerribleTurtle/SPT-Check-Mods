@@ -249,6 +249,16 @@ public static class ServiceCollectionExtensions
             )
             .AddStandardResilienceHandler();
 
+        services
+            .AddHttpClient<IGitHubReleaseClient, GitHubReleaseClient>(
+                (serviceProvider, client) =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(10);
+                    ConfigureDefaultUserAgent(client);
+                }
+            )
+            .AddStandardResilienceHandler();
+
         services.AddTransient<IWorkflowStep, RemoveLegacyApiKeyStep>();
         services.AddTransient<IWorkflowStep, ValidateSptPathStep>();
         services.AddTransient<IWorkflowStep, ValidateSptVersionStep>();

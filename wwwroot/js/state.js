@@ -54,6 +54,9 @@ export function applySort(mods, sort) {
             valA = a.name ? a.name.toLowerCase() : '';
             valB = b.name ? b.name.toLowerCase() : '';
         } else if (sort.column === 'status') {
+            if (a.isIgnored && !b.isIgnored) return sort.direction === 'asc' ? 1 : -1;
+            if (!a.isIgnored && b.isIgnored) return sort.direction === 'asc' ? -1 : 1;
+
             const order = { 'UpdateBlocked': 0, 'Incompatible': 1, 'Error': 2, 'NoVersionsFound': 3, 'UpdateAvailable': 4, 'NewerInstalled': 5, 'UpToDate': 6, 'Unknown': 7 };
             valA = order[a.status] !== undefined ? order[a.status] : 8;
             valB = order[b.status] !== undefined ? order[b.status] : 8;

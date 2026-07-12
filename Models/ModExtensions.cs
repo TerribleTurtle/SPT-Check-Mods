@@ -49,37 +49,12 @@ public static class ModExtensions
     /// <returns>A new <see cref="Mod"/> instance with the available update details.</returns>
     public static Mod WithSafeToUpdate(this Mod mod, SafeToUpdateMod update)
     {
-        var link = update.RecommendedVersion?.Link;
-        if (string.IsNullOrWhiteSpace(link) && !string.IsNullOrWhiteSpace(mod.Api.ApiSourceCodeUrl))
-        {
-            if (System.Uri.TryCreate(mod.Api.ApiSourceCodeUrl, System.UriKind.Absolute, out var uri) &&
-                uri.Host.Equals("github.com", System.StringComparison.OrdinalIgnoreCase))
-            {
-                var segments = uri.Segments;
-                // segments[0] is "/", segments[1] is "owner/", segments[2] is "repo/"
-                if (segments.Length >= 3)
-                {
-                    var owner = segments[1].Trim('/');
-                    var repo = segments[2].Trim('/');
-                    link = $"https://github.com/{owner}/{repo}/releases/latest";
-                }
-                else
-                {
-                    link = mod.Api.ApiSourceCodeUrl;
-                }
-            }
-            else
-            {
-                link = mod.Api.ApiSourceCodeUrl;
-            }
-        }
-
         return mod with
         {
             Update = mod.Update with
             {
                 LatestVersion = update.RecommendedVersion?.Version,
-                DownloadLink = link,
+                DownloadLink = update.RecommendedVersion?.Link,
                 UpdateStatus = UpdateStatus.UpdateAvailable,
             },
         };

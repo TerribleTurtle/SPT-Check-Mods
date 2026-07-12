@@ -91,13 +91,25 @@ export async function showOverview() {
     const downloadableUpdates = selectors.downloadableUpdates(state);
     const pageUpdates = selectors.pageUpdates(state);
 
+    const downloadCount = downloadableUpdates.length;
+    const pageCount = pageUpdates.length;
+    
+    let downloadTooltip = '';
+    if (downloadCount < pageCount) {
+        downloadTooltip = `title="${pageCount - downloadCount} update(s) must be downloaded manually from their mod page"`;
+    }
+
     const bulkToolbar = `
         <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
             <h4 style="color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; font-size: 0.8rem;">Workspace Actions</h4>
             <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                 <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
-                ${downloadableUpdates.length > 0 ? `<button id="btn-download-updates" class="btn-primary">Download Updates (${downloadableUpdates.length})</button>` : ''}
-                ${pageUpdates.length > 0 ? `<button id="btn-open-pages" class="btn-secondary">Open Update Pages (${pageUpdates.length})</button>` : ''}
+                <button id="btn-download-updates" class="btn-primary" ${downloadCount === 0 ? 'disabled' : ''} ${downloadTooltip}>
+                    Download Updates ${downloadCount > 0 ? `(${downloadCount})` : ''}
+                </button>
+                <button id="btn-open-pages" class="btn-secondary" ${pageCount === 0 ? 'disabled' : ''}>
+                    Open Update Pages ${pageCount > 0 ? `(${pageCount})` : ''}
+                </button>
                 <button id="btn-manage-ignored" class="btn-secondary">Manage Ignored Mods</button>
                 <button id="btn-edit-settings" class="btn-secondary">Edit Settings</button>
             </div>
