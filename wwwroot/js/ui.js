@@ -575,7 +575,7 @@ export function startLoaderAnimation() {
         i = (i + 1) % states.length;
         const lt = document.getElementById('loader-text');
         if (lt) lt.textContent = states[i];
-    }, 1200);
+    }, 2500);
 }
 
 export function stopLoaderAnimation() {

@@ -284,8 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
         btnScan.textContent = '[ SCANNING... ]';
         
         modsList.innerHTML = `
-            <tr><td colspan="4" class="empty-state" id="loader-cell">
-                <span id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</span>
+            <tr><td colspan="4" style="padding: 0; border: none; height: 300px;">
+                <div class="scan-loader-container">
+                    <div class="loader-spinner"></div>
+                    <div id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</div>
+                </div>
             </td></tr>
         `;
         detailPane.classList.add('hidden');
