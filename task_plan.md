@@ -19,13 +19,13 @@ Phase 3
 - **Status:** completed
 
 ### Phase 4: JavaScript Refactor, Interactivity & System Integration
-- [ ] Step 4.1 — State Management & Master-Detail Render Architecture
-- [ ] Step 4.2 — Search, Filter & Sort
-- [ ] Step 4.3 — Overview Dashboard & Bulk Actions
-- [ ] Step 4.4 — Auto-Scan, Export & Ignore Persistence
+- [x] Step 4.1 — State Management & Master-Detail Render Architecture
+- [/] Step 4.2 — Search, Filter & Sort
+- [x] Step 4.3 — Overview Dashboard & Bulk Actions
+- [/] Step 4.4 — Auto-Scan, Export & Ignore Persistence
 - [ ] Step 4.5 — Detail Pane Enhancements (ZIPs, Folders, Color versions)
 - [ ] Step 4.6 — Backend System Integration (Open Folder API & Settings)
-- **Status:** pending
+- **Status:** in progress
 
 ### Phase 5: Polish, Accessibility & Final Verification
 - [ ] Step 5.1 — Animations & Transitions
