@@ -52,22 +52,25 @@ public static class ModExtensions
         var link = update.RecommendedVersion?.Link;
         if (string.IsNullOrWhiteSpace(link) && !string.IsNullOrWhiteSpace(mod.Api.ApiSourceCodeUrl))
         {
-            var sourceUrl = mod.Api.ApiSourceCodeUrl.TrimEnd('/');
-            if (sourceUrl.Contains("github.com", System.StringComparison.OrdinalIgnoreCase))
+            if (System.Uri.TryCreate(mod.Api.ApiSourceCodeUrl, System.UriKind.Absolute, out var uri) &&
+                uri.Host.Equals("github.com", System.StringComparison.OrdinalIgnoreCase))
             {
-                if (!sourceUrl.EndsWith("/releases/latest", System.StringComparison.OrdinalIgnoreCase) && 
-                    !sourceUrl.EndsWith("/releases", System.StringComparison.OrdinalIgnoreCase))
+                var segments = uri.Segments;
+                // segments[0] is "/", segments[1] is "owner/", segments[2] is "repo/"
+                if (segments.Length >= 3)
                 {
-                    link = sourceUrl + "/releases/latest";
+                    var owner = segments[1].Trim('/');
+                    var repo = segments[2].Trim('/');
+                    link = $"https://github.com/{owner}/{repo}/releases/latest";
                 }
                 else
                 {
-                    link = sourceUrl;
+                    link = mod.Api.ApiSourceCodeUrl;
                 }
             }
             else
             {
-                link = sourceUrl;
+                link = mod.Api.ApiSourceCodeUrl;
             }
         }
 
