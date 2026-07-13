@@ -58,6 +58,16 @@ public static class WebEndpoints
             }
         });
         
+        api.MapGet("/cache", async (CheckModsExtended.Services.Interfaces.IScanCacheService cacheService, CancellationToken token) => 
+        {
+            var cache = await cacheService.LoadCacheAsync(token);
+            if (cache != null)
+            {
+                return Results.Ok(cache);
+            }
+            return Results.NotFound(new ErrorResponse("No cache available"));
+        });
+
         api.MapPost("/scan", async (CheckModsExtended.Services.Interfaces.IUpdateWorkflowOrchestrator orchestrator, CancellationToken token) => 
         {
             var context = await orchestrator.RunPipelineAsync(args, token);

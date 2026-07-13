@@ -47,3 +47,17 @@ export async function systemOpen(target) {
     });
     if (!response.ok) throw new Error(`Failed to open target`);
 }
+
+export async function fetchCache() {
+    try {
+        const response = await fetch('/api/cache');
+        if (!response.ok) {
+            if (response.status === 404) return null;
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (err) {
+        logToConsole(`Error fetching cache: ${err}`, 'error');
+        return null;
+    }
+}

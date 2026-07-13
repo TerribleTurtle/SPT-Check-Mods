@@ -21,6 +21,53 @@ public class WebEndpointsTests
     public record OpenSystemRequest(string Target);
 
     [Fact]
+    public async Task Get_Cache_WithValidCache_ReturnsOk()
+    {
+        var cacheService = new FakeScanCacheService();
+        var cacheRecord = new ScanCacheRecord(System.DateTimeOffset.UtcNow, new ScanResponse(new List<ModDto>(), null, null));
+        await cacheService.SaveCacheAsync(cacheRecord);
+
+        var launcher = new TestBrowserLauncher();
+        using var cts = new CancellationTokenSource();
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services => 
+        {
+            services.AddSingleton<IScanCacheService>(cacheService);
+            services.AddSingleton<IBrowserLauncher>(launcher);
+        });
+
+        var url = await launcher.WaitForUrlAsync();
+        using var client = new HttpClient();
+        var response = await client.GetAsync($"{url}/api/cache");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        cts.Cancel();
+        try { await runTask; } catch { }
+    }
+
+    [Fact]
+    public async Task Get_Cache_WithNoCache_ReturnsNotFound()
+    {
+        var cacheService = new FakeScanCacheService();
+        var launcher = new TestBrowserLauncher();
+        using var cts = new CancellationTokenSource();
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services => 
+        {
+            services.AddSingleton<IScanCacheService>(cacheService);
+            services.AddSingleton<IBrowserLauncher>(launcher);
+        });
+
+        var url = await launcher.WaitForUrlAsync();
+        using var client = new HttpClient();
+        var response = await client.GetAsync($"{url}/api/cache");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        cts.Cancel();
+        try { await runTask; } catch { }
+    }
+
+    [Fact]
     public async Task Post_SystemOpen_WithInvalidTarget_ReturnsBadRequest()
     {
         var launcher = new TestBrowserLauncher();

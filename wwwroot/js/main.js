@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { fetchStatus, fetchScan, ignoreMod, unignoreMod, systemOpen } from './api.js';
+import { fetchStatus, fetchScan, fetchCache, ignoreMod, unignoreMod, systemOpen } from './api.js';
 import { logToConsole } from './utils.js';
 import { setTheme, setFilter, render } from './ui/table.js';
 import { toggleConsole, handleCopyLog, updateLastScanTime, startLoaderAnimation, stopLoaderAnimation, renderEmptyState } from './ui/components.js';
@@ -50,8 +50,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 sptVersionEl.textContent = `SPT v${data.sptVersion}`;
                 sptVersionEl.hidden = false;
             }
-        }).finally(() => {
-            handleScan();
+        }).finally(async () => {
+            const cacheData = await fetchCache();
+            if (cacheData && cacheData.response) {
+                state.mods = cacheData.response.mods || [];
+                state.meta.lastScan = new Date(cacheData.cachedAtUtc).getTime();
+                
+                const cacheIndicator = document.getElementById('cache-indicator');
+                if (cacheIndicator) {
+                    cacheIndicator.style.display = 'inline-block';
+                }
+                
+                render();
+                updateLastScanTime();
+                
+                // Fire silent background scan
+                handleBackgroundScan();
+            } else {
+                handleScan();
+            }
         });
 
         setInterval(updateLastScanTime, 30000);
@@ -374,6 +391,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    async function handleBackgroundScan() {
+        if (state.ui.scanning) return;
+        state.ui.scanning = true;
+        btnScan.disabled = true;
+        btnScan.textContent = '[ SCANNING... ]';
+        
+        logToConsole('> INITIATING BACKGROUND SCAN...', 'warn');
+
+        try {
+            const results = await fetchScan();
+            state.mods = results.mods || [];
+            
+            state.meta.lastScan = Date.now();
+            updateLastScanTime();
+            
+            const cacheIndicator = document.getElementById('cache-indicator');
+            if (cacheIndicator) {
+                cacheIndicator.style.display = 'none';
+            }
+            
+            logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
+            render();
+        } catch (error) {
+            logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
+        } finally {
+            state.ui.scanning = false;
+            btnScan.disabled = false;
+            btnScan.textContent = '[ SCAN LOCAL MODS ]';
+        }
+    }
+
     async function handleScan() {
         if (state.ui.scanning) return;
         
