@@ -6,6 +6,15 @@ import { toggleConsole, handleCopyLog, updateLastScanTime, startLoaderAnimation,
 import { showOverview } from './ui/dashboard.js';
 import { renderDetailRow } from './ui/details.js';
 
+/**
+ * Main application entry point and master-detail UI controller.
+ *
+ * Master-Detail View Heuristic:
+ * - The left pane (master) contains the list of all filtered and sorted mods.
+ * - Clicking a row marks it as 'selected' and populates the right pane (detail) via renderDetailRow.
+ * - Selecting multiple rows or unselected all rows hides the detail pane and triggers showOverview() to display workspace summaries.
+ * - Keyboard navigation (j/k, up/down arrows) automatically moves the selection and updates the detail pane dynamically.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const btnScan = document.getElementById('btn-scan');
     const btnTheme = document.getElementById('btn-theme');

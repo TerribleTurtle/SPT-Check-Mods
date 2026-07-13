@@ -4,6 +4,10 @@ import { renderEmptyState } from './components.js';
 import { renderVersionCell, renderStatusPill } from './renderers.js';
 import { renderBulkBar, showOverview } from './dashboard.js';
 
+/**
+ * Renders the top health banner indicating overall mod workspace status.
+ * @param {Array<Object>} mods - List of all mods.
+ */
 export function renderHealthBanner(mods) {
     const healthBanner = document.getElementById('health-banner');
     if (!healthBanner) return;
@@ -28,10 +32,21 @@ export function renderHealthBanner(mods) {
     }
 }
 
+/**
+ * Renders statistics (removed feature, handled in Workspace Overview).
+ * @param {Array<Object>} mods - List of all mods.
+ * @param {Object} filters - Current filters.
+ */
 export function renderStats(mods, filters) {
     // Top health board removed. Stats are now handled in Workspace Overview.
 }
 
+/**
+ * Renders the main mods table body.
+ * @param {Array<Object>} filteredMods - Filtered list of mods.
+ * @param {Object} sort - Sort state.
+ * @param {Object} ui - UI state.
+ */
 export function renderTable(filteredMods, sort, ui) {
     const modsList = document.getElementById('mods-list');
     if (!modsList) return;
@@ -99,6 +114,10 @@ export function renderTable(filteredMods, sort, ui) {
     });
 }
 
+/**
+ * Updates the document title based on the number of outdated/actionable mods.
+ * @param {Array<Object>} mods - List of all mods.
+ */
 export function updateTitle(mods) {
     if (!mods || mods.length === 0) {
         document.title = "CheckModsExtended // MANAGER";
@@ -112,6 +131,12 @@ export function updateTitle(mods) {
     }
 }
 
+/**
+ * Updates the counts displayed on filter chips.
+ * @param {Array<Object>} mods - List of all mods.
+ * @param {Array<Object>} filteredMods - Filtered list of mods.
+ * @param {Object} filters - Current filters.
+ */
 export function renderChipCounts(mods, filteredMods, filters) {
     const countAll = document.getElementById('chip-count-all');
     const countOk = document.getElementById('chip-count-ok');
@@ -145,6 +170,9 @@ export function renderChipCounts(mods, filteredMods, filters) {
     });
 }
 
+/**
+ * Main render cycle. Applies filters, sorting, and triggers rendering of UI components.
+ */
 export function render() {
     state.filteredMods = applyFilters(state.mods, state.filters);
     state.filteredMods = applySort(state.filteredMods, state.sort);
@@ -175,6 +203,10 @@ export function render() {
     }
 }
 
+/**
+ * Sets the current status filter and triggers a re-render.
+ * @param {string} filter - The filter to apply.
+ */
 export function setFilter(filter) {
     state.filters.status = filter;
     localStorage.setItem('cme-filter-status', filter);
@@ -190,6 +222,10 @@ export function setFilter(filter) {
     render();
 }
 
+/**
+ * Sets the UI theme and updates local storage.
+ * @param {string} theme - 'dark' or 'light'.
+ */
 export function setTheme(theme) {
     state.meta.theme = theme;
     document.documentElement.dataset.theme = theme;

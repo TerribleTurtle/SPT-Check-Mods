@@ -41,7 +41,7 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 Download the latest release for your operating system (`CheckModsExtended-win-x64.exe` or `CheckModsExtended-linux-x64`) from the [Releases](https://github.com/TerribleTurtle/CheckModsExtended/releases) page.
 
 - **Windows**: Move the `.exe` into the root of your SPT installation directory.
-- **Linux**: Move the binary into your SPT directory and make it executable: `chmod +x CheckModsExtended-linux-x64`.
+- **Linux**: Download both `CheckModsExtended-linux-x64` and `CheckMods-CLI.sh`. Move them into your SPT directory and make them executable: `chmod +x CheckModsExtended-linux-x64 CheckMods-CLI.sh`. The CLI script provides an easier way to pass arguments.
 
 Running the application from the root directory will automatically check the mods in that installation.
 
@@ -60,13 +60,13 @@ The easiest way to launch the **Web Manager GUI** is to double-click the include
 
 Alternatively, you can start the Web Manager manually by passing the `gui` argument:
 
-``bash
+```bash
 # Windows
 CheckModsExtended-win-x64.exe gui
 
 # Linux
 ./CheckMods-CLI.sh gui
-``
+```
 
 The Web Manager will automatically start on `http://localhost:37194` (and fallback to dynamic ports if that is taken).
 

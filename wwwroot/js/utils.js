@@ -15,6 +15,8 @@ export function escapeHtml(unsafe) {
 
 /**
  * Logs a message to the UI console drawer.
+ * @param {string} message - The message to log.
+ * @param {string} [type=''] - Optional log type (e.g., 'error', 'success', 'warn').
  * @example logToConsole('Scan complete', 'success')
  */
 export function logToConsole(message, type = '') {

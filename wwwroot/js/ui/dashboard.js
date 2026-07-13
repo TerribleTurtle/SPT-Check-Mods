@@ -2,6 +2,10 @@ import { state, selectors } from '../state.js';
 import { fetchIgnores, systemOpen } from '../api.js';
 import { escapeHtml, logToConsole } from '../utils.js';
 
+/**
+ * Renders the bulk actions bar when multiple mods are selected.
+ * @param {Set<string>} selectedIds - Set of selected mod IDs.
+ */
 export function renderBulkBar(selectedIds) {
     const bulkBar = document.getElementById('bulk-bar');
     const bulkCount = document.getElementById('bulk-count');
@@ -15,6 +19,10 @@ export function renderBulkBar(selectedIds) {
     }
 }
 
+/**
+ * Fetches and renders the ignore dashboard modal content.
+ * @returns {Promise<string>} HTML string for the modal body.
+ */
 export async function renderIgnoreDashboard() {
     try {
         const ignores = await fetchIgnores();
@@ -50,6 +58,8 @@ export async function renderIgnoreDashboard() {
  * Shows the workspace overview and builds the summary HTML logic based on the count
  * of updates available, updates blocked, and incompatible mods.
  * It injects a success message if all systems are nominal, or a warning list otherwise.
+ *
+ * @returns {Promise<void>}
  */
 export async function showOverview() {
     const overviewPane = document.getElementById('workspace-overview');

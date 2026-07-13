@@ -1,6 +1,10 @@
 import { escapeHtml } from '../utils.js';
 import { renderActions } from './renderers.js';
 
+/**
+ * Renders the detail pane for a selected mod, showing metadata, dependencies, and warnings.
+ * @param {Object} mod - The mod object to render.
+ */
 export function renderDetailRow(mod) {
     const detailTitle = document.getElementById('detail-title');
     const detailContent = document.getElementById('detail-content');

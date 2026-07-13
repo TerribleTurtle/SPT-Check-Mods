@@ -2,6 +2,12 @@ import { state } from '../state.js';
 import { escapeHtml, logToConsole } from '../utils.js';
 import { setFilter } from './table.js';
 
+/**
+ * Renders an empty state message in the mod table.
+ * @param {string} message - The message to display.
+ * @param {string} [type='info'] - The type of message ('info', 'error').
+ * @param {boolean} [isFilterEmpty=false] - Whether the empty state is due to filtering.
+ */
 export function renderEmptyState(message, type = 'info', isFilterEmpty = false) {
     const modsList = document.getElementById('mods-list');
     if (!modsList) return;
@@ -28,6 +34,10 @@ export function renderEmptyState(message, type = 'info', isFilterEmpty = false) 
     }
 }
 
+/**
+ * Toggles the visibility of the UI console drawer.
+ * @param {boolean} collapsed - Whether the console should be collapsed.
+ */
 export function toggleConsole(collapsed) {
     state.ui.consoleCollapsed = collapsed;
     localStorage.setItem('cme-console-collapsed', collapsed);
@@ -44,6 +54,9 @@ export function toggleConsole(collapsed) {
     }
 }
 
+/**
+ * Copies the contents of the console logs to the clipboard.
+ */
 export function handleCopyLog() {
     const consoleLogs = document.getElementById('console-logs');
     const btnCopyLog = document.getElementById('btn-copy-log');
@@ -59,6 +72,9 @@ export function handleCopyLog() {
         .catch(err => logToConsole(`Failed to copy logs: ${err}`, 'error'));
 }
 
+/**
+ * Updates the "Last scanned" time display in the UI.
+ */
 export function updateLastScanTime() {
     if (!state.meta.lastScan) return;
     const lastScanEl = document.getElementById('last-scan-time');
@@ -148,6 +164,9 @@ export function startLoaderAnimation() {
     }, 100);
 }
 
+/**
+ * Stops the loader animation and sets the progress bar to 100%.
+ */
 export function stopLoaderAnimation() {
     loaderState.active = false;
     if (loaderState.interval) {

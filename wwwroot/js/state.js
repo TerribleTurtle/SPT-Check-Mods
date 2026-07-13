@@ -1,3 +1,7 @@
+/**
+ * Global application state object holding mods, filters, sort, UI state, and metadata.
+ * @type {Object}
+ */
 export const state = {
     mods: [],
     filteredMods: [],
@@ -7,6 +11,10 @@ export const state = {
     meta: { sptVersion: null, appVersion: null, lastScan: null, theme: 'dark' }
 };
 
+/**
+ * Selector functions for deriving specific subsets of mods from the state.
+ * @type {Object}
+ */
 export const selectors = {
     activeMods: (s) => s.mods.filter(m => !m.isIgnored),
     ignoredMods: (s) => s.mods.filter(m => m.isIgnored),
@@ -19,6 +27,12 @@ export const selectors = {
     upToDate: (s) => selectors.activeMods(s).filter(m => ['UpToDate', 'NewerInstalled'].includes(m.status)),
 };
 
+/**
+ * Applies current search and status filters to the list of mods.
+ * @param {Array<Object>} mods - List of mod objects.
+ * @param {Object} filters - Filter criteria.
+ * @returns {Array<Object>} Filtered array of mods.
+ */
 export function applyFilters(mods, filters) {
     return mods.filter(mod => {
         if (filters.search) {
@@ -54,6 +68,10 @@ export function applyFilters(mods, filters) {
  * - status: Custom severity order (e.g. UpdateAvailable first), with ignored mods typically at the bottom.
  * - version: Parsed semantic version comparison (e.g. 1.2.10 > 1.2.2).
  * - type: Orders by Client, Server, Paired based on the selected sort direction.
+ *
+ * @param {Array<Object>} mods - List of mod objects to sort.
+ * @param {Object} sort - Sort criteria containing column and direction.
+ * @returns {Array<Object>} Sorted array of mods.
  */
 export function applySort(mods, sort) {
     return [...mods].sort((a, b) => {

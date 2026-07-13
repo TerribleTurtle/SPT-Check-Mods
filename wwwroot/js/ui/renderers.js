@@ -1,5 +1,11 @@
 import { escapeHtml } from '../utils.js';
 
+/**
+ * Renders an HTML string for a mod's status pill.
+ * @param {string} status - Status string.
+ * @param {boolean} [isIgnored=false] - Whether the mod is ignored.
+ * @returns {string} HTML string of the status pill.
+ */
 export function renderStatusPill(status, isIgnored = false) {
     if (isIgnored) {
         return `<span class="status-pill status-pill-unknown" title="Status: IGNORED">IGNORED</span>`;
@@ -17,6 +23,11 @@ export function renderStatusPill(status, isIgnored = false) {
     return `<span class="status-pill ${colorClass}" title="Status: ${text}">${text}</span>`;
 }
 
+/**
+ * Renders an HTML string for the version cell, showing transition if outdated.
+ * @param {Object} mod - Mod object.
+ * @returns {string} HTML string of the version cell.
+ */
 export function renderVersionCell(mod) {
     if (mod.status === 'UpdateAvailable' && !mod.isIgnored) {
         return `<span class="version-outdated" title="Current Version">v${escapeHtml(mod.localVersion)}</span> <span class="version-arrow">→</span> <span class="version-newer" title="Latest Version">v${escapeHtml(mod.latestVersion)}</span>`;
@@ -27,6 +38,11 @@ export function renderVersionCell(mod) {
     return '';
 }
 
+/**
+ * Renders an HTML string of action buttons for a mod.
+ * @param {Object} mod - Mod object.
+ * @returns {string} HTML string of the actions.
+ */
 export function renderActions(mod) {
     let actions = '';
     if (mod.downloadUrl) {
