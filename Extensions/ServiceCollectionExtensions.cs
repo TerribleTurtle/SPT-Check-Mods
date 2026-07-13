@@ -75,6 +75,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IIgnoreService, IgnoreService>();
         services.AddTransient<IMaintenanceService, MaintenanceService>();
         services.AddTransient<IDiagnosticService, DiagnosticService>();
+        services.AddTransient<IMisplacedModAnalyzerService, MisplacedModAnalyzerService>();
+        services.AddTransient<IModLinkResolverService, ModLinkResolverService>();
+        services.AddSingleton<ICacheManager, CacheManager>();
 
         // Parsers
         services.AddTransient<IBinaryParser, BinaryParser>();
