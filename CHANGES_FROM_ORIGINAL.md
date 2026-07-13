@@ -15,7 +15,9 @@ This fork builds upon that foundation by modifying the internal architecture and
 ## Reliability & Error Handling
 
 - **Error Handling Architecture:** Standard exception-based control flow for API communication has been replaced with Discriminated Unions using the `OneOf` library, establishing strictly typed API errors.
+- **Global API Safeguards:** All embedded web endpoints utilize global exception handling to map internal pipeline failures (e.g., `IOException` or network timeouts) to structured HTTP 500 JSON payloads, ensuring the frontend renders clean error toasts instead of crashing.
 - **Network Resilience:** The application utilizes `Microsoft.Extensions.Http.Resilience` for managing network retries and circuit-breaking. It handles malformed version numbers explicitly and displays warnings upon network disconnection.
+- **Graceful File Locks:** Diagnostic tools and caching services proactively detect and gracefully handle file locks (`UnauthorizedAccessException` or `IOException`) by creating temporary copies or safely skipping operations without interrupting the user experience.
 - **Structured Logging:** Standard console logging has been replaced with `Serilog` file sinks, directing diagnostic logs to a persistent file rather than the user interface.
 - **Fallback Link Extraction:** If Forge API data is unavailable, the application attempts to extract fallback GitHub repository links directly from local mod configuration files.
 
