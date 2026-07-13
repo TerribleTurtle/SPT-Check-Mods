@@ -1,4 +1,4 @@
-import { state, selectors, applyFilters, applySort } from '../state.js';
+import { state, selectors, applyFilters, applySort , setMods, setFilteredMods, setSearchFilter, setStatusFilter, setSortColumn, setSortDirection, setScanning, setConsoleCollapsed, setLastFocus, setLastScan, setAppVersion, setSptVersion, setThemeMeta, clearSelectedIds, addSelectedId, removeSelectedId } from '../state.js';;
 import { escapeHtml } from '../utils.js';
 import { renderEmptyState } from './components.js';
 import { renderVersionCell, renderStatusPill } from './renderers.js';
@@ -88,7 +88,7 @@ export function renderTable(filteredMods, sort, ui) {
 
         tr.innerHTML = `
             <td>
-                <input type="checkbox" class="row-checkbox action-select" value="${escapeHtml(mod.id)}" aria-label="Select mod" ${ui.selectedIds.has(String(mod.id)) ? 'checked' : ''}>
+                <input type="checkbox" class="row-checkbox action-select" value="${escapeHtml(mod.id)}" aria-label="Select ${escapedName}" ${ui.selectedIds.has(String(mod.id)) ? 'checked' : ''}>
             </td>
             <td data-label="Status">
                 <div class="flex items-center gap-md">
@@ -174,8 +174,8 @@ export function renderChipCounts(mods, filteredMods, filters) {
  * Main render cycle. Applies filters, sorting, and triggers rendering of UI components.
  */
 export function render() {
-    state.filteredMods = applyFilters(state.mods, state.filters);
-    state.filteredMods = applySort(state.filteredMods, state.sort);
+    setFilteredMods(applyFilters(state.mods, state.filters));
+    setFilteredMods(applySort(state.filteredMods, state.sort));
     
     renderHealthBanner(state.mods);
     renderStats(state.mods, state.filters);
@@ -208,7 +208,7 @@ export function render() {
  * @param {string} filter - The filter to apply.
  */
 export function setFilter(filter) {
-    state.filters.status = filter;
+    setStatusFilter(filter);
     localStorage.setItem('cme-filter-status', filter);
     document.querySelectorAll('.chip').forEach(c => {
         if (c.dataset.filter === filter) {
@@ -227,7 +227,7 @@ export function setFilter(filter) {
  * @param {string} theme - 'dark' or 'light'.
  */
 export function setTheme(theme) {
-    state.meta.theme = theme;
+    setThemeMeta(theme);
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('cme-theme', theme);
     const btnTheme = document.getElementById('btn-theme');

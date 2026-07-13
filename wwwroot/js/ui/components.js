@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { state , setMods, setFilteredMods, setSearchFilter, setStatusFilter, setSortColumn, setSortDirection, setScanning, setConsoleCollapsed, setLastFocus, setLastScan, setAppVersion, setSptVersion, setThemeMeta, clearSelectedIds, addSelectedId, removeSelectedId } from '../state.js';;
 import { escapeHtml, logToConsole } from '../utils.js';
 import { setFilter } from './table.js';
 
@@ -27,7 +27,7 @@ export function renderEmptyState(message, type = 'info', isFilterEmpty = false) 
             btnClear.addEventListener('click', () => {
                 const searchInput = document.getElementById('search-input');
                 if (searchInput) searchInput.value = '';
-                state.filters.search = '';
+                setSearchFilter('');
                 setFilter('all');
             });
         }
@@ -39,7 +39,7 @@ export function renderEmptyState(message, type = 'info', isFilterEmpty = false) 
  * @param {boolean} collapsed - Whether the console should be collapsed.
  */
 export function toggleConsole(collapsed) {
-    state.ui.consoleCollapsed = collapsed;
+    setConsoleCollapsed(collapsed);
     localStorage.setItem('cme-console-collapsed', collapsed);
     const consoleDrawer = document.getElementById('console-drawer');
     const btnConsoleToggle = document.getElementById('btn-console-toggle');
@@ -195,6 +195,8 @@ export function showToast(message, type = 'info') {
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     toast.textContent = message;
     
     container.appendChild(toast);

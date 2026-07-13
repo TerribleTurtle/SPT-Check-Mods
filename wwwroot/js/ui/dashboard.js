@@ -1,4 +1,4 @@
-import { state, selectors } from '../state.js';
+import { state, selectors , setMods, setFilteredMods, setSearchFilter, setStatusFilter, setSortColumn, setSortDirection, setScanning, setConsoleCollapsed, setLastFocus, setLastScan, setAppVersion, setSptVersion, setThemeMeta, clearSelectedIds, addSelectedId, removeSelectedId } from '../state.js';;
 import { fetchIgnores, systemOpen } from '../api.js';
 import { escapeHtml, logToConsole } from '../utils.js';
 
@@ -177,7 +177,7 @@ export async function showOverview() {
     const btnManageIgnored = document.getElementById('btn-manage-ignored');
     if (btnManageIgnored) {
         btnManageIgnored.addEventListener('click', async () => {
-            state.ui.lastFocus = document.activeElement;
+            setLastFocus(document.activeElement);
             const modal = document.getElementById('ignore-modal');
             if (modal) {
                 modal.classList.remove('hidden');
