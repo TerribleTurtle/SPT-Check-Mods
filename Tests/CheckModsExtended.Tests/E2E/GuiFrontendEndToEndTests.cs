@@ -23,7 +23,7 @@ public sealed class GuiFrontendEndToEndTests
         // Playwright requires browsers to be installed. We will skip the test if they aren't,
         // or just let it fail so CI catches it if they are missing.
         // Usually `playwright install` must be run.
-        
+
         // Arrange
         var server = WireMockServer.Start();
         Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", server.Urls[0] + "/");
@@ -156,10 +156,10 @@ public sealed class GuiFrontendEndToEndTests
             // 3. Start Web Manager
             var launcher = new TestBrowserLauncher();
             using var cts = new CancellationTokenSource();
-            
+
             var webArgs = new[] { sptRoot };
-            
-            var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services => 
+
+            var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services =>
             {
                 services.AddSingleton<IBrowserLauncher>(launcher);
             });
@@ -172,37 +172,37 @@ public sealed class GuiFrontendEndToEndTests
                 throw new Exception("WebManagerHost exited prematurely before URL was broadcast.");
             }
             var url = await urlTask;
-            
+
             // 5. Run Playwright
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-            
+
             var page = await browser.NewPageAsync();
             await page.GotoAsync(url);
-            
+
             // Assert title
             var title = await page.TitleAsync();
             Assert.Contains("CheckModsExtended // MANAGER", title);
 
             // Click scan just in case it doesn't auto-scan
             await page.ClickAsync("#btn-scan");
-            
+
             // Wait for the table to populate with the FakeMod
             var modRow = page.Locator("text='FakeMod'");
             await modRow.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-            
+
             // Wait for version 1.0.1 (from the mocked API) to appear
             var versionCell = page.Locator("text='v1.0.1'");
             await versionCell.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
             // Cleanup
             await browser.CloseAsync();
-            
+
             cts.Cancel();
-            try 
-            { 
-                await runTask; 
-            } 
+            try
+            {
+                await runTask;
+            }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
         }

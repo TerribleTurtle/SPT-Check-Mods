@@ -1,5 +1,5 @@
-using Raffinert.FuzzySharp;
 using System.Collections.Immutable;
+using Raffinert.FuzzySharp;
 
 namespace CheckModsExtended.Utils;
 

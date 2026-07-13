@@ -143,7 +143,7 @@ public sealed class GitHubReleaseClientTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => 
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             client.TryGetLatestReleaseAssetUrlAsync("https://github.com/owner/repo", cts.Token));
     }
 }

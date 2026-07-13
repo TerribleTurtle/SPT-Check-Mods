@@ -57,7 +57,7 @@ public static class ScanResponseMapper
             IsPaired: m.Local.PairedComponentPath != null,
             LocalDirectory: m.Local.FilePath != null ? System.IO.Path.GetDirectoryName(m.Local.FilePath) : null
         )).ToList();
-        
+
         MisplacedModReportDto? misplacedReportDto = null;
         if (context.MisplacedReport != null && context.MisplacedReport.Any)
         {
@@ -80,7 +80,7 @@ public static class ScanResponseMapper
                 )).ToList()
             );
         }
-        
+
         return new ScanResponse(response, misplacedReportDto, context.SptVersion?.ToString());
     }
 }

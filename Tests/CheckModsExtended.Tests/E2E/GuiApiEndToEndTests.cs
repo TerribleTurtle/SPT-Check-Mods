@@ -164,11 +164,11 @@ public sealed class GuiApiEndToEndTests
             // 3. Start Web Manager
             var launcher = new TestBrowserLauncher();
             using var cts = new CancellationTokenSource();
-            
+
             // Program.Main strips "gui", so we pass what WebManagerHost expects
             var webArgs = new[] { sptRoot };
-            
-            var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services => 
+
+            var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services =>
             {
                 services.AddSingleton<IBrowserLauncher>(launcher);
             });
@@ -182,28 +182,28 @@ public sealed class GuiApiEndToEndTests
             }
             var url = await urlTask;
             using var client = new HttpClient();
-            
+
             // Act - Test Status
             var statusRes = await client.GetAsync($"{url}/api/status");
             statusRes.EnsureSuccessStatusCode();
             var statusContent = await statusRes.Content.ReadAsStringAsync();
             Assert.Contains("running", statusContent);
-            
+
             // Act - Test Scan
             var scanRes = await client.PostAsync($"{url}/api/scan", null);
             scanRes.EnsureSuccessStatusCode();
             var scanContent = await scanRes.Content.ReadAsStringAsync();
-            
+
             // Assert
             Assert.Contains("FakeMod", scanContent);
             Assert.Contains("1.0.1", scanContent);
-            
+
             // Cleanup
             cts.Cancel();
-            try 
-            { 
-                await runTask; 
-            } 
+            try
+            {
+                await runTask;
+            }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
         }

@@ -17,7 +17,7 @@ public class CacheResultsStepTests
         // Arrange
         var cacheService = new FakeScanCacheService();
         var step = new CacheResultsStep(cacheService);
-        
+
         var context = new UpdateWorkflowContext
         {
             Args = [],
@@ -40,7 +40,7 @@ public class CacheResultsStepTests
         // Arrange
         var cacheService = new FakeScanCacheService();
         var step = new CacheResultsStep(cacheService);
-        
+
         var context = new UpdateWorkflowContext
         {
             Args = [],

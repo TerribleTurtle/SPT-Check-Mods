@@ -1,8 +1,8 @@
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
 using SemanticVersioning;
+using SPTarkov.DI.Annotations;
 
 namespace CheckModsExtended.Services;
 
@@ -11,7 +11,7 @@ namespace CheckModsExtended.Services;
 /// </summary>
 [Injectable(InjectionType.Transient)]
 public sealed class ModEnrichmentService(
-    IModUpdateClient forgeApiService, 
+    IModUpdateClient forgeApiService,
     IGitHubReleaseClient gitHubReleaseClient,
     ILogger<ModEnrichmentService> logger)
     : IModEnrichmentService
@@ -31,8 +31,8 @@ public sealed class ModEnrichmentService(
         var uniqueModsById = matchedMods
             .GroupBy(m => m.Api.ApiModId!.Value)
             .ToDictionary(
-                g => g.Key, 
-                g => g.OrderByDescending(m => 
+                g => g.Key,
+                g => g.OrderByDescending(m =>
                     CheckModsExtended.Utils.SemVer.TryParse(m.Local.LocalVersion, "ModEnrichment").Match(v => v, _ => new SemanticVersioning.Version(0, 0, 0))
                 ).ToList()
             );
@@ -91,9 +91,9 @@ public sealed class ModEnrichmentService(
                 var assetUrl = await gitHubReleaseClient.TryGetLatestReleaseAssetUrlAsync(mod.Api.ApiSourceCodeUrl, cancellationToken);
                 if (!string.IsNullOrWhiteSpace(assetUrl))
                 {
-                    modsDict[modId] = mod with 
-                    { 
-                        Update = mod.Update with { DownloadLink = assetUrl } 
+                    modsDict[modId] = mod with
+                    {
+                        Update = mod.Update with { DownloadLink = assetUrl }
                     };
                 }
             }
@@ -109,13 +109,13 @@ public sealed class ModEnrichmentService(
 
             var highestMod = modsDict[group[0].Local.Guid];
             var latestVer = highestMod.Update.LatestVersion ?? highestMod.Local.LocalVersion;
-            
+
             for (int i = 1; i < group.Count; i++)
             {
                 var olderMod = modsDict[group[i].Local.Guid];
-                
+
                 var inheritedStatus = highestMod.Update.UpdateStatus;
-                
+
                 // If it's a duplicate, we only mark it as UpdateAvailable if its version is strictly older than the highest installed version.
                 // Otherwise, if they are identical versions, it should just remain whatever the highest mod's status is (e.g. UpToDate).
                 var isStrictlyOlder = !string.Equals(olderMod.Local.LocalVersion, highestMod.Local.LocalVersion, StringComparison.OrdinalIgnoreCase);
@@ -125,16 +125,16 @@ public sealed class ModEnrichmentService(
                     inheritedStatus = UpdateStatus.UpdateAvailable;
                 }
 
-                modsDict[group[i].Local.Guid] = olderMod with 
-                { 
-                    Update = olderMod.Update with 
-                    { 
+                modsDict[group[i].Local.Guid] = olderMod with
+                {
+                    Update = olderMod.Update with
+                    {
                         UpdateStatus = inheritedStatus,
                         LatestVersion = latestVer,
                         BlockReason = highestMod.Update.BlockReason,
                         BlockingMods = highestMod.Update.BlockingMods,
                         IncompatibilityReason = highestMod.Update.IncompatibilityReason
-                    } 
+                    }
                 };
             }
         }

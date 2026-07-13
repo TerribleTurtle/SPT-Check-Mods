@@ -63,7 +63,7 @@ public static class WebManagerHost
 
         // Find a free port in our fallback range
         int port = FindAvailablePort(BasePort, MaxPort);
-        
+
         builder.WebHost.UseKestrel(options =>
         {
             options.Listen(IPAddress.Loopback, port);
@@ -77,8 +77,8 @@ public static class WebManagerHost
         );
 
         app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = embeddedProvider });
-        app.UseStaticFiles(new StaticFileOptions { FileProvider = embeddedProvider }); 
-        
+        app.UseStaticFiles(new StaticFileOptions { FileProvider = embeddedProvider });
+
         WebEndpoints.MapEndpoints(app, args);
 
         return app;
@@ -90,7 +90,7 @@ public static class WebManagerHost
     public static async Task RunAsync(string[] args, CancellationToken cancellationToken, Action<IServiceCollection>? configureTestServices = null)
     {
         AnsiConsole.MarkupLine("[grey]Starting CheckModsExtended Web Manager...[/]");
-        
+
         var app = BuildApp(args, configureTestServices);
 
         // Hook into the start event to launch the browser
@@ -99,11 +99,11 @@ public static class WebManagerHost
             var server = app.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.Server.IServer>();
             var serverAddresses = server.Features.Get<Microsoft.AspNetCore.Hosting.Server.Features.IServerAddressesFeature>();
             string actualUrl = serverAddresses?.Addresses.FirstOrDefault() ?? $"http://127.0.0.1:{BasePort}";
-            
+
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine($"[green]Web Manager is running at: {actualUrl}[/]");
             AnsiConsole.MarkupLine("[grey]Press Ctrl+C to shut down.[/]");
-            
+
             var browserLauncher = app.Services.GetRequiredService<IBrowserLauncher>();
             var _ = browserLauncher.TryOpenUrl(actualUrl);
         });
@@ -128,6 +128,6 @@ public static class WebManagerHost
         }
 
         // Fallback to random dynamic port if entire range is taken
-        return 0; 
+        return 0;
     }
 }

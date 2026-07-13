@@ -3,9 +3,9 @@ using System.Linq;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
+using SemanticVersioning;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
-using SemanticVersioning;
 
 namespace CheckModsExtended.Services.UI;
 
@@ -240,7 +240,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                 mod.Name,
                 mod.Author
             );
-            
+
             var latestVersionDisplay = mod.Status switch
             {
                 "UpToDate" => $"[green]{mod.LatestVersion?.EscapeMarkup()}[/]",
@@ -249,7 +249,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
                 "NewerInstalled" => $"[blue]{mod.LatestVersion?.EscapeMarkup()}[/]",
                 _ => mod.LatestVersion?.EscapeMarkup() ?? "[grey]Unknown[/]"
             };
-            
+
             if (mod.IsIgnored)
             {
                 latestVersionDisplay = $"[grey]{mod.LatestVersion?.EscapeMarkup() ?? "Unknown"} (ignored)[/]";
@@ -391,7 +391,7 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
         {
             return 8;
         }
-        
+
         return status switch
         {
             "UpdateAvailable" => 0,

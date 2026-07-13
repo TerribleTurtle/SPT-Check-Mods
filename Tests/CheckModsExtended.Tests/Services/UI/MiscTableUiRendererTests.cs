@@ -24,7 +24,7 @@ public class MiscTableUiRendererTests
         // Arrange
         var console = new TestConsole();
         AnsiConsole.Console = console;
-        
+
         var ignores = new List<IgnoredUpdate>
         {
             new IgnoredUpdate(1, "1.0", "2.0", "Mod A", null, IgnoreSource.User),
@@ -54,18 +54,18 @@ public class MiscTableUiRendererTests
         // Arrange
         var console = new TestConsole();
         AnsiConsole.Console = console;
-        
+
         var serverMods = new List<Mod>
         {
             new Mod
             {
-                Local = new LocalModIdentity 
-                { 
+                Local = new LocalModIdentity
+                {
                     Guid = "guidA",
                     FilePath = "C:/path/A",
                     IsServerMod = true,
-                    LocalName = "ServerModA", 
-                    LocalVersion = "1.0.0", 
+                    LocalName = "ServerModA",
+                    LocalVersion = "1.0.0",
                     LocalAuthor = "Author"
                 },
                 Api = new ForgeApiMetadata { ApiName = "Server Mod A" }
@@ -76,14 +76,14 @@ public class MiscTableUiRendererTests
         {
             new Mod
             {
-                Local = new LocalModIdentity 
-                { 
+                Local = new LocalModIdentity
+                {
                     Guid = "guidB",
                     FilePath = "C:/path/B",
                     IsServerMod = false,
-                    LocalName = "ClientModB", 
-                    LocalVersion = "2.0.0", 
-                    LocalAuthor = "Author" 
+                    LocalName = "ClientModB",
+                    LocalVersion = "2.0.0",
+                    LocalAuthor = "Author"
                 },
                 Api = new ForgeApiMetadata { ApiName = "Client Mod B" }
             },

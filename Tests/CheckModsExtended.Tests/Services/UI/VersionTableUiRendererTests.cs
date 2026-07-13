@@ -3,10 +3,10 @@ using CheckModsExtended.Models;
 using CheckModsExtended.Services.UI;
 using CheckModsExtended.Tests.Fakes;
 using CheckModsExtended.Tests.Fixtures;
+using SemanticVersioning;
 using Spectre.Console;
 using Spectre.Console.Testing;
 using Xunit;
-using SemanticVersioning;
 
 namespace CheckModsExtended.Tests.Services.UI;
 

@@ -76,8 +76,22 @@ public sealed class SptInstallationServiceTests : IDisposable
         Assert.Null(result);
     }
 
+
+    [Fact]
+    public async Task GetAndValidateSptVersionAsync_FileExistsThrowsUnauthorizedAccess_ReturnsNullAndLogsError()
+    {
+        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        _fixture.FileSystem.UnauthorizedPaths.Add(coreDllPath);
+
+        var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
+
+        Assert.Null(result);
+        Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core DLL"));
+    }
+
     public void Dispose()
     {
         _fixture.Dispose();
     }
 }
+

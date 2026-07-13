@@ -28,7 +28,7 @@ public sealed class GitHubReleaseClient(HttpClient httpClient, ILogger<GitHubRel
             return null;
         }
 
-        if (!Uri.TryCreate(sourceCodeUrl, UriKind.Absolute, out var uri) || 
+        if (!Uri.TryCreate(sourceCodeUrl, UriKind.Absolute, out var uri) ||
             !uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
         {
             return null;
@@ -53,9 +53,9 @@ public sealed class GitHubReleaseClient(HttpClient httpClient, ILogger<GitHubRel
         try
         {
             logger.LogDebug("Querying GitHub API for latest release of {Owner}/{Repo}", owner, repo);
-            
+
             var response = await httpClient.GetAsync(apiUrl, token);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
                 logger.LogWarning("GitHub API rate limit hit when querying {Repo}. Falling back gracefully.", repo);
@@ -77,10 +77,10 @@ public sealed class GitHubReleaseClient(HttpClient httpClient, ILogger<GitHubRel
             }
 
             // Find an asset that looks like an archive
-            var asset = release.Assets.FirstOrDefault(a => 
-                !string.IsNullOrWhiteSpace(a.Name) && 
-                (a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || 
-                 a.Name.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) || 
+            var asset = release.Assets.FirstOrDefault(a =>
+                !string.IsNullOrWhiteSpace(a.Name) &&
+                (a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                 a.Name.EndsWith(".7z", StringComparison.OrdinalIgnoreCase) ||
                  a.Name.EndsWith(".rar", StringComparison.OrdinalIgnoreCase)));
 
             return asset?.BrowserDownloadUrl;

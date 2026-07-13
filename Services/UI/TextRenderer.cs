@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
+using SemanticVersioning;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
-using SemanticVersioning;
 
 namespace CheckModsExtended.Services.UI;
 

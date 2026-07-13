@@ -6,6 +6,7 @@ namespace CheckModsExtended.Tests.Fakes;
 public sealed class FakeServerModExtractor : IServerModExtractor
 {
     public Mod? ExtractedMod { get; set; }
+    public bool ThrowUnauthorizedAccess { get; set; }
 
     public Task<Mod?> ExtractServerModMetadataAsync(
         string dllPath,
@@ -13,6 +14,11 @@ public sealed class FakeServerModExtractor : IServerModExtractor
         CancellationToken cancellationToken = default
     )
     {
+        if (ThrowUnauthorizedAccess)
+        {
+            throw new System.UnauthorizedAccessException("Access denied");
+        }
+
         return Task.FromResult(ExtractedMod);
     }
 
@@ -21,6 +27,11 @@ public sealed class FakeServerModExtractor : IServerModExtractor
         CancellationToken cancellationToken = default
     )
     {
+        if (ThrowUnauthorizedAccess)
+        {
+            throw new System.UnauthorizedAccessException("Access denied");
+        }
+
         return Task.FromResult(ExtractedMod);
     }
 }

@@ -13,12 +13,25 @@ public class FakeFileSystem : IFileSystem
     public readonly Dictionary<string, byte[]> Files = new(StringComparer.OrdinalIgnoreCase);
     public readonly HashSet<string> Directories = new(StringComparer.OrdinalIgnoreCase);
 
-    public bool FileExists(string path) => Files.ContainsKey(path);
+    public readonly System.Collections.Generic.HashSet<string> UnauthorizedPaths = new(System.StringComparer.OrdinalIgnoreCase);
+
+    public bool FileExists(string path)
+    {
+        if (UnauthorizedPaths.Contains(path))
+        {
+            throw new System.UnauthorizedAccessException("Access denied");
+        }
+
+        return Files.ContainsKey(path);
+    }
 
     public Stream OpenRead(string path)
     {
         if (!Files.TryGetValue(path, out var content))
+        {
             throw new FileNotFoundException("File not found.", path);
+        }
+
         return new MemoryStream(content);
     }
 
@@ -46,7 +59,10 @@ public class FakeFileSystem : IFileSystem
     public Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken = default)
     {
         if (!Files.TryGetValue(path, out var content))
+        {
             throw new FileNotFoundException("File not found.", path);
+        }
+
         return Task.FromResult(System.Text.Encoding.UTF8.GetString(content));
     }
 
@@ -59,10 +75,14 @@ public class FakeFileSystem : IFileSystem
     public void MoveFile(string sourceFileName, string destFileName, bool overwrite)
     {
         if (!Files.TryGetValue(sourceFileName, out var content))
+        {
             throw new FileNotFoundException("File not found.", sourceFileName);
+        }
 
         if (!overwrite && Files.ContainsKey(destFileName))
+        {
             throw new IOException("File already exists.");
+        }
 
         Files[destFileName] = content;
         Files.Remove(sourceFileName);
@@ -78,7 +98,10 @@ public class FakeFileSystem : IFileSystem
         }
     }
 
-    public bool DirectoryExists(string path) => Directories.Contains(path);
+    public bool DirectoryExists(string path)
+    {
+        return Directories.Contains(path);
+    }
 
     public string[] GetDirectories(string path)
     {
@@ -110,20 +133,35 @@ public class FakeFileSystem : IFileSystem
             .Where(f =>
             {
                 if (searchPattern == "*")
+                {
                     return true;
+                }
+
                 if (
                     searchPattern.StartsWith("*")
                     && f.EndsWith(searchPattern.Substring(1), StringComparison.OrdinalIgnoreCase)
                 )
+                {
                     return true;
+                }
+
                 return true; // Simplified pattern matching
             })
             .ToArray();
     }
 
-    public string GetCurrentDirectory() => Path.GetFullPath("MockDir");
+    public string GetCurrentDirectory()
+    {
+        return Path.GetFullPath("MockDir");
+    }
 
-    public string GetFileVersion(string path) => "3.10.0";
+    public string GetFileVersion(string path)
+    {
+        return "3.10.0";
+    }
 
-    public long GetFileLength(string path) => Files.TryGetValue(path, out var c) ? c.Length : 0;
+    public long GetFileLength(string path)
+    {
+        return Files.TryGetValue(path, out var c) ? c.Length : 0;
+    }
 }
