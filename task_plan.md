@@ -35,24 +35,24 @@ Phase 3
 - **Status:** completed
 
 ### Phase 6: Cache-then-Network Architecture
-- [ ] Step 6.1 — Persistent Disk Cache (Backend)
-  - [ ] Create Shared Mapper (`ScanResponseMapper.cs`) and verify via xUnit
-  - [ ] Define Cache Data Model (`ScanCacheRecord.cs`) and verify Native AOT compat
-  - [ ] Implement Cache Service (`ScanCacheService.cs`) and verify via FakeFileSystem xUnit
-  - [ ] Add Cache Pipeline Step (`CacheResultsStep.cs`) and verify via xUnit
-- [ ] Step 6.2 — CLI End-of-Run Flow
-  - [ ] Expand `EndOfRunChoice` enum
-  - [ ] Update `InteractivePromptService` prompts
-  - [ ] Refactor `IIgnoredUpdateWorkflow.RunAsync` return type and verify compilation
-- [ ] Step 6.3 — CLI Orchestration (CheckModsCommand.cs)
-  - [ ] Wrap execution in `while (true)` loop and route `Rescan`
-  - [ ] Implement startup cache loading prompt and `Rehydrate` bypass
-  - [ ] Implement `LaunchWebGui` DI handoff and verify manually in CLI
-- [ ] Step 6.4 — Web GUI Cold Start (Cache-then-Network)
-  - [ ] New Cache Endpoint (`GET /api/cache`) and verify via curl
-  - [ ] Frontend API (`fetchCache()`)
-  - [ ] Frontend Bootstrapping & UI indicators (`main.js` & CSS) and verify manually
-- **Status:** pending
+- [x] Step 6.1 — Persistent Disk Cache (Backend)
+  - [x] Create Shared Mapper (`ScanResponseMapper.cs`) and verify via xUnit
+  - [x] Define Cache Data Model (`ScanCacheRecord.cs`) and verify Native AOT compat
+  - [x] Implement Cache Service (`ScanCacheService.cs`) and verify via FakeFileSystem xUnit
+  - [x] Add Cache Pipeline Step (`CacheResultsStep.cs`) and verify via xUnit
+- [x] Step 6.2 — CLI End-of-Run Flow
+  - [x] Expand `EndOfRunChoice` enum
+  - [x] Update `InteractivePromptService` prompts
+  - [x] Refactor `IIgnoredUpdateWorkflow.RunAsync` return type and verify compilation
+- [x] Step 6.3 — CLI Orchestration (CheckModsCommand.cs)
+  - [x] Wrap execution in `while (true)` loop and route `Rescan`
+  - [x] Implement startup cache loading prompt and `Rehydrate` bypass
+  - [x] Implement `LaunchWebGui` DI handoff and verify manually in CLI
+- [x] Step 6.4 — Web GUI Cold Start (Cache-then-Network)
+  - [x] New Cache Endpoint (`GET /api/cache`) and verify via curl
+  - [x] Frontend API (`fetchCache()`)
+  - [x] Frontend Bootstrapping & UI indicators (`main.js` & CSS) and verify manually
+- **Status:** completed
 
 ## Decisions Made
 | Decision | Rationale |

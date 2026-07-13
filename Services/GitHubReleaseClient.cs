@@ -83,7 +83,7 @@ public sealed class GitHubReleaseClient(HttpClient httpClient, ILogger<GitHubRel
 
             return asset?.BrowserDownloadUrl;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException)
         {
             logger.LogDebug(ex, "Failed to fetch GitHub release asset for {Repo}", repo);
             return null;
