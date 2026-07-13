@@ -91,6 +91,19 @@ public sealed class ServerModExtractorTests : IDisposable
     }
 
     [Fact]
+    public async Task ExtractServerModPackageMetadataAsync_returns_null_for_invalid_json()
+    {
+        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "InvalidJsonMod");
+        _fixture.FileSystem.CreateDirectory(modDir);
+        var packagePath = Path.Combine(modDir, "package.json");
+        await _fixture.FileSystem.WriteAllTextAsync(packagePath, "{ invalid json }");
+
+        var mod = await _extractor.ExtractServerModPackageMetadataAsync(modDir);
+
+        Assert.Null(mod);
+    }
+
+    [Fact]
     public async Task Extractservermodmetadataasync_returnsnull_formissingguid()
     {
         var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
