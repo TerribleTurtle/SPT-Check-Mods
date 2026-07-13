@@ -107,6 +107,14 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         }
     }
 
+        public void ApiError(ApiError error)
+    {
+        if (ShouldRender())
+        {
+            _textRenderer.ApiError(error);
+        }
+    }
+
     public void Error(string text)
     {
         if (ShouldRender())

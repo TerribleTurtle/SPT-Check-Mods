@@ -110,6 +110,13 @@ public sealed class FakeModCheckReporter : IModCheckReporter
     }
 
     /// <inheritdoc />
+    
+    public void ApiError(CheckModsExtended.Models.ApiError error)
+    {
+        if (error.StatusCode == 429) _warnings.Add("Rate limit exceeded. Please wait a moment and try again.");
+        else _errors.Add($"Network error: {error.Message}");
+    }
+
     public void Error(string text)
     {
         _errors.Add(text);

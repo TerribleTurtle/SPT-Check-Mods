@@ -28,6 +28,7 @@ public sealed class FakeTextRenderer : ITextRenderer
     public void Warning(string text) { }
 
     public void Error(string text) { }
+    public void ApiError(CheckModsExtended.Models.ApiError error) { }
 
     public void Exception(Exception ex) { }
 

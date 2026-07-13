@@ -65,6 +65,18 @@ public sealed class TextRenderer : ITextRenderer
         AnsiConsole.MarkupLine($"[yellow]{text.EscapeMarkup()}[/]");
     }
 
+        public void ApiError(CheckModsExtended.Models.ApiError error)
+    {
+        if (error.StatusCode == 429)
+        {
+            Warning("Rate limit exceeded. Please wait a moment and try again.");
+        }
+        else
+        {
+            Error($"Network error: {error.Message}");
+        }
+    }
+
     public void Error(string text)
     {
         AnsiConsole.MarkupLine($"[red]{text.EscapeMarkup()}[/]");

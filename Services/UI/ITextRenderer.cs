@@ -19,6 +19,7 @@ public interface ITextRenderer
     void Success(string text);
     void Warning(string text);
     void Error(string text);
+    void ApiError(CheckModsExtended.Models.ApiError error);
     void Exception(Exception ex);
     void CouldNotReadModDll(string fileName, string reason);
     void CouldNotReadSptVersion(string reason);

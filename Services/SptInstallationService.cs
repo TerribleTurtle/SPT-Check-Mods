@@ -67,7 +67,7 @@ public sealed class SptInstallationService(
             validationResult.Switch(
                 _ => { },
                 _ => reporter.Error("Failed. SPT version not recognized by Forge API."),
-                apiError => reporter.Error($"Failed. API error: {apiError.Message}")
+                apiError => reporter.ApiError(apiError)
             );
 
             return null;

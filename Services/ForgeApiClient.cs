@@ -64,6 +64,11 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
             logger.LogError(ex, "Network error during request to {Url}", url);
             return new ApiError("Network error occurred", Exception: ex);
         }
+        catch (System.OperationCanceledException ex)
+        {
+            logger.LogError(ex, "Request to {Url} timed out or was canceled", url);
+            return new ApiError("Request timed out or was canceled", Exception: ex);
+        }
         catch (JsonException ex)
         {
             logger.LogError(ex, "Failed to parse API response from {Url}", url);

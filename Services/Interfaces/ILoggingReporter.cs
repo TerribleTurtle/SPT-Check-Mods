@@ -19,6 +19,7 @@ public interface ILoggingReporter
     void Success(string text);
     void Warning(string text);
     void Error(string text);
+    void ApiError(ApiError error);
     void CouldNotReadModDll(string fileName, string reason);
     void CouldNotReadSptVersion(string reason);
     void PluginsDirectoryNotFound(string path);
