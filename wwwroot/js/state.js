@@ -47,6 +47,14 @@ export function applyFilters(mods, filters) {
     });
 }
 
+/**
+ * Sorts the list of mods based on the provided sort criteria.
+ * Heuristics:
+ * - name: Alphabetical string comparison.
+ * - status: Custom severity order (e.g. UpdateAvailable first), with ignored mods typically at the bottom.
+ * - version: Parsed semantic version comparison (e.g. 1.2.10 > 1.2.2).
+ * - type: Orders by Client, Server, Paired based on the selected sort direction.
+ */
 export function applySort(mods, sort) {
     return [...mods].sort((a, b) => {
         let valA, valB;

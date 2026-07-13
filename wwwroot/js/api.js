@@ -1,5 +1,9 @@
 import { logToConsole } from './utils.js';
 
+/**
+ * Fetches the current status of the application.
+ * @returns {Promise<Object|null>} The status object (e.g., version, scan state) or null on error.
+ */
 export async function fetchStatus() {
     try {
         const response = await fetch('/api/status');
@@ -11,6 +15,10 @@ export async function fetchStatus() {
     }
 }
 
+/**
+ * Initiates a new scan and fetches the results.
+ * @returns {Promise<Object>} The scan result containing the parsed mod data.
+ */
 export async function fetchScan() {
     const response = await fetch('/api/scan', { method: 'POST' });
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);

@@ -95,6 +95,12 @@ export function updateLastScanTime() {
 }
 
 let loaderState = { active: false, interval: null };
+/**
+ * Starts the loader animation with asymptotic progression to simulate loading.
+ * Math heuristic:
+ * The progress bar increments by 5% of the remaining distance to a max of 95%,
+ * ensuring it never reaches 100% until explicitly stopped, slowing down as it nears 95%.
+ */
 export function startLoaderAnimation() {
     if (loaderState.active) return;
     loaderState.active = true;

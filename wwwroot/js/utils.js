@@ -1,3 +1,7 @@
+/**
+ * Escapes HTML characters in a string to prevent XSS.
+ * @example escapeHtml('<div>"Hello" & ''World''</div>') // returns '&lt;div&gt;&quot;Hello&quot; &amp; &#039;World&#039;&lt;/div&gt;'
+ */
 export function escapeHtml(unsafe) {
     if (unsafe == null) return '';
     return unsafe
@@ -9,6 +13,10 @@ export function escapeHtml(unsafe) {
          .replace(/'/g, "&#039;");
 }
 
+/**
+ * Logs a message to the UI console drawer.
+ * @example logToConsole('Scan complete', 'success')
+ */
 export function logToConsole(message, type = '') {
     const consoleLogs = document.getElementById('console-logs');
     if (!consoleLogs) return;

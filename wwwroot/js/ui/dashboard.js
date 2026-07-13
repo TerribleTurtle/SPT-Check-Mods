@@ -46,6 +46,11 @@ export async function renderIgnoreDashboard() {
     }
 }
 
+/**
+ * Shows the workspace overview and builds the summary HTML logic based on the count
+ * of updates available, updates blocked, and incompatible mods.
+ * It injects a success message if all systems are nominal, or a warning list otherwise.
+ */
 export async function showOverview() {
     const overviewPane = document.getElementById('workspace-overview');
     const detailTitle = document.getElementById('detail-title');

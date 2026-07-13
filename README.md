@@ -56,21 +56,17 @@ dotnet build
 
 ### Basic Usage
 
-The easiest way to launch the **Web Manager GUI** is to double-click the included `Start Web Manager.bat` shortcut. This will automatically open the application in your default browser on `http://localhost:37194`.
+The easiest way to launch the **Web Manager GUI** is to double-click the included `CheckModsExtended - Start Web Manager.bat` shortcut. This will automatically open the application in your default browser on `http://localhost:37194`.
 
 Alternatively, you can start the Web Manager manually by passing the `gui` argument:
 
-```bash
+``bash
 # Windows
-CheckModsExtended-win-x64.exe
-
-# Linux
-./CheckModsExtended-linux-x64
 CheckModsExtended-win-x64.exe gui
 
 # Linux
-./CheckModsExtended-linux-x64 gui
-```
+./CheckMods-CLI.sh gui
+``
 
 The Web Manager will automatically start on `http://localhost:37194` (and fallback to dynamic ports if that is taken).
 
@@ -81,7 +77,7 @@ The CLI is the default execution mode. Simply running the executable or double-c
 CheckModsExtended-win-x64.exe
 ```
 ```bash
-./CheckModsExtended-linux-x64
+./CheckMods-CLI.sh
 ```
 
 It checks the mods in the current directory. You can also point it at an SPT installation elsewhere by passing the path:
@@ -89,7 +85,7 @@ It checks the mods in the current directory. You can also point it at an SPT ins
 CheckModsExtended-win-x64.exe "C:\path\to\spt"
 ```
 ```bash
-./CheckModsExtended-linux-x64 "/path/to/spt"
+./CheckMods-CLI.sh "/path/to/spt"
 ```
 
 If you built from source, use `dotnet run` instead. You must run this command from the `CheckModsExtended` source directory where the `.csproj` is located. The `--` passes the path through to the application rather than to the .NET CLI:
@@ -163,7 +159,7 @@ $env:LoggingOptions__MinimumLogLevel="Debug"
 .\CheckModsExtended-win-x64.exe
 
 # Linux CLI with custom log level
-LoggingOptions__MinimumLogLevel=Debug ./CheckModsExtended-linux-x64
+LoggingOptions__MinimumLogLevel=Debug ./CheckMods-CLI.sh
 ```
 
 
