@@ -114,4 +114,9 @@ export function renderDetailRow(mod) {
     
     detailContent.innerHTML = html;
     detailPane.classList.remove('hidden');
+    
+    const overviewPane = document.getElementById('workspace-overview');
+    if (overviewPane) {
+        overviewPane.classList.add('hidden');
+    }
 }

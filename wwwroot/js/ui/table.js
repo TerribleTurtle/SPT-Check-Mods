@@ -200,6 +200,9 @@ export function render() {
     // Show overview if no mod is selected
     if (!document.querySelector('#mods-list tr.selected')) {
         showOverview();
+    } else {
+        const overviewPane = document.getElementById('workspace-overview');
+        if (overviewPane) overviewPane.classList.add('hidden');
     }
 }
 

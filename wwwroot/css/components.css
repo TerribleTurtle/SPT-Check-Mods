@@ -418,6 +418,3 @@ a.btn-secondary {
     animation: spin 0.75s linear infinite;
     color: var(--text-primary);
 }
-.btn-primary.is-loading::after {
-    color: var(--bg-base);
-}

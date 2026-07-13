@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const cacheIndicator = document.getElementById('cache-indicator');
                 if (cacheIndicator) {
-                    cacheIndicator.style.display = 'inline-block';
                     cacheIndicator.classList.remove('hidden');
                 }
                 
@@ -429,16 +428,17 @@ document.addEventListener('DOMContentLoaded', () => {
         logToConsole('> INITIATING BACKGROUND SCAN...', 'warn');
         
         const tableLoader = document.getElementById('table-loading-indicator');
-        if (tableLoader) tableLoader.style.display = 'block';
+        if (tableLoader) tableLoader.classList.remove('hidden');
 
         const cacheIndicator = document.getElementById('cache-indicator');
         const cacheText = document.getElementById('cache-indicator-text');
         const cacheIcon = document.getElementById('cache-indicator-icon');
         if (cacheIndicator) {
-            cacheIndicator.style.display = 'inline-block';
-                    cacheIndicator.classList.remove('hidden');
-            cacheIndicator.style.backgroundColor = 'var(--status-warning)';
-            cacheIndicator.style.borderColor = 'var(--status-warning)';
+            cacheIndicator.classList.remove('hidden');
+            cacheIndicator.classList.remove('badge-success');
+            cacheIndicator.classList.add('badge-warning');
+            cacheIndicator.style.backgroundColor = '';
+            cacheIndicator.style.borderColor = '';
             cacheIndicator.classList.add('pulsing-cache');
             
             if (cacheIcon) {
@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             showToast(`Scan failed: ${error.message}`, 'error');
         } finally {
-            if (tableLoader) tableLoader.style.display = 'none';
+            if (tableLoader) tableLoader.classList.add('hidden');
             setScanning(false);
             updateLastScanTime();
             btnScan.disabled = false;

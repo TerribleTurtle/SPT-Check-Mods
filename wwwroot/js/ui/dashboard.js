@@ -77,11 +77,11 @@ export async function showOverview() {
     if (!overviewPane) return;
     
     if (state.mods.length === 0) {
-        overviewPane.style.display = 'none';
+        overviewPane.classList.add('hidden');
         return;
     }
     
-    overviewPane.style.display = 'flex';
+    overviewPane.classList.remove('hidden');
 
     const updateMods = selectors.updatesAvailable(state);
     const blockedMods = selectors.updatesBlocked(state);

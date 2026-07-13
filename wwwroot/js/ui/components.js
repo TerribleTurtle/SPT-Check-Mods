@@ -95,9 +95,11 @@ export function updateLastScanTime() {
     const cacheIndicator = document.getElementById('cache-indicator');
     const cacheText = document.getElementById('cache-indicator-text');
     if (cacheIndicator && cacheText && !state.ui.scanning && state.meta.lastScan > 0) {
-        cacheIndicator.style.display = 'inline-block';
-        cacheIndicator.style.backgroundColor = 'var(--status-success)';
-        cacheIndicator.style.borderColor = 'var(--status-success)';
+        cacheIndicator.classList.remove('hidden');
+        cacheIndicator.classList.remove('badge-warning');
+        cacheIndicator.classList.add('badge-success');
+        cacheIndicator.style.backgroundColor = '';
+        cacheIndicator.style.borderColor = '';
         cacheIndicator.classList.remove('pulsing-cache');
         
         const icon = document.getElementById('cache-indicator-icon');
