@@ -23,6 +23,15 @@ public interface IModSearchClient
     /// - A <see cref="List{ModSearchResult}"/> containing matching mods.
     /// - An <see cref="ApiError"/> if an API or network error occurs.
     /// </returns>
+    /// <example>
+    /// <code>
+    /// var result = await client.SearchModsAsync("mod", version);
+    /// result.Switch(
+    ///     mods => Console.WriteLine($"Found {mods.Count} mods"),
+    ///     error => Console.WriteLine($"Error: {error.Message}")
+    /// );
+    /// </code>
+    /// </example>
     Task<OneOf<List<ModSearchResult>, ApiError>> SearchModsAsync(
         string modName,
         SemanticVersioning.Version sptVersion,
@@ -40,6 +49,15 @@ public interface IModSearchClient
     /// - A <see cref="List{ModSearchResult}"/> containing matching client mods.
     /// - An <see cref="ApiError"/> if an API or network error occurs.
     /// </returns>
+    /// <example>
+    /// <code>
+    /// var result = await client.SearchClientModsAsync("mod", version);
+    /// result.Switch(
+    ///     mods => Console.WriteLine($"Found {mods.Count} mods"),
+    ///     error => Console.WriteLine($"Error: {error.Message}")
+    /// );
+    /// </code>
+    /// </example>
     Task<OneOf<List<ModSearchResult>, ApiError>> SearchClientModsAsync(
         string modName,
         SemanticVersioning.Version sptVersion,
@@ -58,6 +76,17 @@ public interface IModSearchClient
     /// - An <see cref="InvalidInput"/> if the ID is invalid.
     /// - An <see cref="ApiError"/> if an API or network error occurs.
     /// </returns>
+    /// <example>
+    /// <code>
+    /// var result = await client.GetModByIdAsync(123);
+    /// result.Switch(
+    ///     mod => Console.WriteLine(mod.Name),
+    ///     notFound => Console.WriteLine("Not found"),
+    ///     invalid => Console.WriteLine("Invalid ID"),
+    ///     error => Console.WriteLine($"Error: {error.Message}")
+    /// );
+    /// </code>
+    /// </example>
     Task<OneOf<ModSearchResult, NotFound, InvalidInput, ApiError>> GetModByIdAsync(
         int modId,
         CancellationToken cancellationToken = default
@@ -76,6 +105,17 @@ public interface IModSearchClient
     /// - A <see cref="NoCompatibleVersion"/> if the mod exists but lacks a version compatible with the given SPT version.
     /// - An <see cref="ApiError"/> if an API or network error occurs.
     /// </returns>
+    /// <example>
+    /// <code>
+    /// var result = await client.GetModByGuidAsync("guid", version);
+    /// result.Switch(
+    ///     mod => Console.WriteLine(mod.Name),
+    ///     notFound => Console.WriteLine("Not found"),
+    ///     noVer => Console.WriteLine("No compatible version"),
+    ///     error => Console.WriteLine($"Error: {error.Message}")
+    /// );
+    /// </code>
+    /// </example>
     Task<OneOf<ModSearchResult, NotFound, NoCompatibleVersion, ApiError>> GetModByGuidAsync(
         string modGuid,
         SemanticVersioning.Version sptVersion,

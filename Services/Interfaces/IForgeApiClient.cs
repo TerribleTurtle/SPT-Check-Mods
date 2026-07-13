@@ -34,6 +34,16 @@ public interface IForgeApiClient
     /// - A <see cref="NotFound"/> if the requested resource could not be found (404) or was empty.
     /// - An <see cref="ApiError"/> if an error occurs during HTTP transport, receiving a non-success status code, or JSON parsing.
     /// </returns>
+    /// <example>
+    /// <code>
+    /// var result = await client.GetFromJsonAsync(url, jsonTypeInfo);
+    /// result.Switch(
+    ///     success => Console.WriteLine(success),
+    ///     notFound => Console.WriteLine("Not found"),
+    ///     error => Console.WriteLine($"Error: {error.Message}")
+    /// );
+    /// </code>
+    /// </example>
     Task<OneOf<T, NotFound, ApiError>> GetFromJsonAsync<T>(
         string url,
         JsonTypeInfo<T> jsonTypeInfo,
