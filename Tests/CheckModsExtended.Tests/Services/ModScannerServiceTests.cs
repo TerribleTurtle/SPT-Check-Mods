@@ -167,14 +167,10 @@ public sealed class ModScannerServiceTests : IDisposable
         var realPluginExtractor = new PluginMetadataExtractor(
             new ModPartitioner(),
             options,
-            NullLogger<PluginMetadataExtractor>.Instance,
-            _reporter,
-            _fixture.FileSystem
+            NullLogger<PluginMetadataExtractor>.Instance, _reporter, _fixture.FileSystem, new BinaryParser(_fixture.FileSystem)
         );
         var realServerExtractor = new ServerModExtractor(
-            NullLogger<ServerModExtractor>.Instance,
-            _fixture.FileSystem,
-            _reporter
+            NullLogger<ServerModExtractor>.Instance, _reporter, new BinaryParser(_fixture.FileSystem), new JsonManifestParser(_fixture.FileSystem), _fixture.FileSystem
         );
         var realMisplacedDetector = new MisplacedModDetector(
             new FakePluginScanCache(),
@@ -238,4 +234,5 @@ namespace BepInEx {
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
+
 
