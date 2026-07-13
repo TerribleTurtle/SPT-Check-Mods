@@ -22,6 +22,7 @@ public static class ModNameNormalizer
     /// </summary>
     /// <param name="name">The name to normalize.</param>
     /// <param name="removeComponentSuffixes">Whether to remove component suffixes.</param>
+    /// <returns>The normalized name string.</returns>
     public static string Normalize(string? name, bool removeComponentSuffixes = false)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -93,6 +94,7 @@ public static class ModNameNormalizer
     /// <param name="name1">The first name.</param>
     /// <param name="name2">The second name.</param>
     /// <param name="removeComponentSuffixes">Whether to remove server/client suffixes.</param>
+    /// <returns>True if the names match exactly after normalization, false otherwise.</returns>
     public static bool IsExactMatch(string? name1, string? name2, bool removeComponentSuffixes = false)
     {
         var normalized1 = Normalize(name1, removeComponentSuffixes);
