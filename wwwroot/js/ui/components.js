@@ -13,7 +13,7 @@ export function renderEmptyState(message, type = 'info', isFilterEmpty = false) 
     if (!modsList) return;
     modsList.innerHTML = `
         <tr>
-            <td colspan="4">
+            <td colspan="5">
                 <div class="empty-state" style="color: ${type === 'error' ? 'var(--status-error)' : 'inherit'};">
                     ${escapeHtml(message)}
                     ${isFilterEmpty ? '<br><br><button class="btn-secondary" id="btn-clear-filters">Clear Filters</button>' : ''}
@@ -184,3 +184,27 @@ export function stopLoaderAnimation() {
     }
 }
 
+
+/**
+ * Shows a toast message.
+ * @param {string} message - The message.
+ * @param {string} type - 'success', 'error', 'info', 'warning'
+ */
+export function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}

@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { fetchStatus, fetchScan, fetchCache, ignoreMod, unignoreMod, systemOpen } from './api.js';
 import { logToConsole } from './utils.js';
 import { setTheme, setFilter, render } from './ui/table.js';
-import { toggleConsole, handleCopyLog, updateLastScanTime, startLoaderAnimation, stopLoaderAnimation, renderEmptyState } from './ui/components.js';
+import { toggleConsole, handleCopyLog, updateLastScanTime, startLoaderAnimation, stopLoaderAnimation, renderEmptyState, showToast } from './ui/components.js';
 import { showOverview } from './ui/dashboard.js';
 import { renderDetailRow } from './ui/details.js';
 
@@ -189,16 +189,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnBulkOpen) {
             btnBulkOpen.addEventListener('click', async () => {
                 const selectedMods = state.mods.filter(m => state.ui.selectedIds.has(String(m.id)));
+                btnBulkOpen.disabled = true;
+                btnBulkOpen.classList.add('is-loading');
                 for (const m of selectedMods) {
                     const url = m.downloadUrl || m.modUrl;
                     if (url) {
                         try {
                             await systemOpen(url);
                         } catch (e) {
-                            logToConsole(`> Error opening URL for ${m.name}: ${e}`, 'error');
+                            showToast(`Error opening URL for ${m.name}: ${e}`, 'error');
                         }
                     }
                 }
+                btnBulkOpen.disabled = false;
+                btnBulkOpen.classList.remove('is-loading');
             });
         }
 
@@ -206,14 +210,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnBulkIgnore) {
             btnBulkIgnore.addEventListener('click', async () => {
                 const selectedMods = state.mods.filter(m => state.ui.selectedIds.has(String(m.id)));
+                btnBulkIgnore.disabled = true;
+                btnBulkIgnore.classList.add('is-loading');
                 for (const mod of selectedMods) {
                     try {
                         await ignoreMod(mod.id, mod.localVersion, mod.latestVersion);
-                        logToConsole(`> Successfully ignored ${mod.id}.`, 'success');
+                        showToast(`Successfully ignored ${mod.id}.`, 'success');
                     } catch(err) {
-                        logToConsole(`> Error ignoring mod ${mod.id}: ${err.message}`, 'error');
+                        showToast(`Error ignoring mod ${mod.id}: ${err.message}`, 'error');
                     }
                 }
+                btnBulkIgnore.disabled = false;
+                btnBulkIgnore.classList.remove('is-loading');
                 state.ui.selectedIds.clear();
                 handleScan();
             });
@@ -361,23 +369,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const localVer = btn.dataset.local;
             const latestVer = btn.dataset.latest;
             
-            logToConsole(`> Adding ${id} to ignore list...`);
+            btn.disabled = true;
+            btn.classList.add('is-loading');
             try {
                 await ignoreMod(id, localVer, latestVer);
-                logToConsole(`> Successfully ignored ${id}.`, 'success');
+                showToast(`Successfully ignored ${id}.`, 'success');
                 detailPane.classList.add('hidden');
                 handleScan();
             } catch(err) {
-                logToConsole(`> Error ignoring mod: ${err.message}`, 'error');
+                showToast(`Error ignoring mod: ${err.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
             }
         } else if (e.target.classList.contains('action-unignore')) {
             const btn = e.target;
             const id = btn.dataset.id;
             
-            logToConsole(`> Removing ${id} from ignore list...`);
+            btn.disabled = true;
+            btn.classList.add('is-loading');
             try {
                 await unignoreMod(id);
-                logToConsole(`> Successfully un-ignored ${id}.`, 'success');
+                showToast(`Successfully un-ignored ${id}.`, 'success');
                 detailPane.classList.add('hidden');
                 
                 const ignoreModal = document.getElementById('ignore-modal');
@@ -387,7 +400,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 handleScan();
             } catch(err) {
-                logToConsole(`> Error un-ignoring mod: ${err.message}`, 'error');
+                showToast(`Error un-ignoring mod: ${err.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
             }
         } else if (e.target.classList.contains('action-system-open')) {
             const btn = e.target;
@@ -397,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await systemOpen(targetStr);
             } catch(err) {
-                logToConsole(`> Error opening target: ${err.message}`, 'error');
+                showToast(`Error opening target: ${err.message}`, 'error');
             }
         }
     }
@@ -434,10 +450,10 @@ document.addEventListener('DOMContentLoaded', () => {
             state.mods = results.mods || [];
             state.meta.lastScan = Date.now();
             
-            logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
+            showToast(`Scan complete. ${state.mods.length} entities analyzed.`, 'success');
             render();
         } catch (error) {
-            logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
+            showToast(`Scan failed: ${error.message}`, 'error');
         } finally {
             if (tableLoader) tableLoader.style.display = 'none';
             state.ui.scanning = false;
@@ -455,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnScan.textContent = '[ SCANNING... ]';
         
         modsList.innerHTML = `
-            <tr><td colspan="4" style="padding: 0; border: none; height: 300px;">
+            <tr><td colspan="5" style="padding: 0; border: none; height: 300px;">
                 <div class="scan-loader-container">
                     <div class="loader-spinner" style="display: none;"></div>
                     <div class="progress-bar-container">
@@ -476,11 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             state.meta.lastScan = Date.now();
             
-            logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
+            showToast(`Scan complete. ${state.mods.length} entities analyzed.`, 'success');
             render();
             
         } catch (error) {
-            logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
+            showToast(`Scan failed: ${error.message}`, 'error');
             renderEmptyState(`Scan failed: ${error.message}`, 'error');
         } finally {
             stopLoaderAnimation();

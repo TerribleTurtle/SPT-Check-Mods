@@ -24,6 +24,10 @@ export function renderBulkBar(selectedIds) {
  * @returns {Promise<string>} HTML string for the modal body.
  */
 export async function renderIgnoreDashboard() {
+    const modalBody = document.getElementById('ignore-modal-body');
+    if (modalBody) {
+        modalBody.innerHTML = `<div style="display:flex; justify-content:center; padding: 20px;"><div class="loader-spinner" style="display:block; width: 24px; height: 24px; border: 2px solid var(--text-muted); border-right-color: transparent; border-radius: 50%; animation: spin 0.75s linear infinite;"></div><span style="margin-left: 10px; color: var(--text-muted);">Loading ignored mods...</span></div>`;
+    }
     try {
         const ignores = await fetchIgnores();
         
@@ -47,7 +51,6 @@ export async function renderIgnoreDashboard() {
         }
         return html;
     } catch (e) {
-        const modalBody = document.getElementById('ignore-modal-body');
         if (modalBody) {
             modalBody.innerHTML = `<div class="text-error mt-20">Error loading ignores: ${e.message}</div>`;
         }
@@ -152,7 +155,7 @@ export async function showOverview() {
                 try {
                     await systemOpen(m.downloadUrl);
                 } catch (e) {
-                    logToConsole(`> Error opening download for ${m.name}: ${e}`, 'error');
+                    import('./components.js').then(c => c.showToast(`Error opening download for ${m.name}: ${e}`, 'error'));
                 }
             }
         });
@@ -165,7 +168,7 @@ export async function showOverview() {
                 try {
                     await systemOpen(m.modUrl);
                 } catch (e) {
-                    logToConsole(`> Error opening page for ${m.name}: ${e}`, 'error');
+                    import('./components.js').then(c => c.showToast(`Error opening page for ${m.name}: ${e}`, 'error'));
                 }
             }
         });
@@ -175,7 +178,6 @@ export async function showOverview() {
     if (btnManageIgnored) {
         btnManageIgnored.addEventListener('click', async () => {
             state.ui.lastFocus = document.activeElement;
-            await renderIgnoreDashboard();
             const modal = document.getElementById('ignore-modal');
             if (modal) {
                 modal.classList.remove('hidden');
@@ -184,6 +186,7 @@ export async function showOverview() {
                     if (closeBtn) closeBtn.focus();
                 }, 50);
             }
+            await renderIgnoreDashboard();
         });
     }
 
@@ -193,7 +196,7 @@ export async function showOverview() {
             try {
                 await systemOpen('appsettings.json');
             } catch (e) {
-                logToConsole(`> Error opening settings: ${e}`, 'error');
+                import('./components.js').then(c => c.showToast(`Error opening settings: ${e}`, 'error'));
             }
         });
     }
