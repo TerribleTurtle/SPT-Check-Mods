@@ -18,7 +18,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
     private readonly IUserPromptService _userPromptService;
     private readonly CheckModsExtended.Utils.IProcessRunner _processRunner;
     private readonly IPluginScanCache _pluginScanCache;
-    private readonly Microsoft.Extensions.Caching.Memory.IMemoryCache _memoryCache;
+    private readonly ICacheManager _cacheManager;
     private readonly IScanCacheService _scanCacheService;
     private readonly IModCheckReporter _reporter;
 
@@ -38,7 +38,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
         IUserPromptService userPromptService,
         CheckModsExtended.Utils.IProcessRunner processRunner,
         IPluginScanCache pluginScanCache,
-        Microsoft.Extensions.Caching.Memory.IMemoryCache memoryCache,
+        ICacheManager cacheManager,
         IScanCacheService scanCacheService,
         IModCheckReporter reporter)
     {
@@ -47,7 +47,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
         _userPromptService = userPromptService;
         _processRunner = processRunner;
         _pluginScanCache = pluginScanCache;
-        _memoryCache = memoryCache;
+        _cacheManager = cacheManager;
         _scanCacheService = scanCacheService;
         _reporter = reporter;
     }
@@ -78,10 +78,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
                 if (endOfRunChoice == EndOfRunChoice.Rescan)
                 {
                     _pluginScanCache.Clear();
-                    if (_memoryCache is Microsoft.Extensions.Caching.Memory.MemoryCache concreteCache)
-                    {
-                        concreteCache.Clear();
-                    }
+                    _cacheManager.Clear();
                     continue;
                 }
 

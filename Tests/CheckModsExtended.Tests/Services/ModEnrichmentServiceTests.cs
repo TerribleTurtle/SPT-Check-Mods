@@ -17,7 +17,7 @@ public sealed class ModEnrichmentServiceTests
 
     public ModEnrichmentServiceTests()
     {
-        _service = new ModEnrichmentService(_forgeApiService, _gitHubClient, _logger);
+        _service = new ModEnrichmentService(_forgeApiService, _gitHubClient, _logger, new CheckModsExtended.Services.ModLinkResolverService());
     }
 
     [Fact]

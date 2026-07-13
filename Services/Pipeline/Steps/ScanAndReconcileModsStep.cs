@@ -18,7 +18,8 @@ public sealed class ScanAndReconcileModsStep(
     IModResolutionService modResolutionService,
     IModReconciliationService modReconciliationService,
     IModCheckReporter reporter,
-    ILogger<ScanAndReconcileModsStep> logger
+    ILogger<ScanAndReconcileModsStep> logger,
+    IMisplacedModAnalyzerService misplacedModAnalyzer
 ) : IWorkflowStep
 {
     /// <inheritdoc />
@@ -30,8 +31,8 @@ public sealed class ScanAndReconcileModsStep(
 
         if (context.MisplacedReport is not null && context.MisplacedReport.Any)
         {
-            serverMods = ExcludeMisplacedMods(serverMods, context.MisplacedReport);
-            clientMods = ExcludeMisplacedMods(clientMods, context.MisplacedReport);
+            serverMods = ExcludeMisplacedMods(serverMods, context.MisplacedReport, misplacedModAnalyzer);
+            clientMods = ExcludeMisplacedMods(clientMods, context.MisplacedReport, misplacedModAnalyzer);
         }
 
         if (serverMods.Count == 0 && clientMods.Count == 0)
@@ -107,10 +108,10 @@ public sealed class ScanAndReconcileModsStep(
         logger.LogInformation("Found {ModCount} mods after reconciliation", context.Mods.Count);
     }
 
-    private static List<Mod> ExcludeMisplacedMods(List<Mod> mods, MisplacedModReport report)
+    private static List<Mod> ExcludeMisplacedMods(List<Mod> mods, MisplacedModReport report, IMisplacedModAnalyzerService misplacedModAnalyzer)
     {
-        var excludedFiles = new HashSet<string>(report.ExcludedFilePaths, StringComparer.OrdinalIgnoreCase);
-        var excludedDirectories = report.ExcludedDirectories;
+        var excludedFiles = new HashSet<string>(misplacedModAnalyzer.GetExcludedFilePaths(report), StringComparer.OrdinalIgnoreCase);
+        var excludedDirectories = misplacedModAnalyzer.GetExcludedDirectories(report);
 
         return mods.Where(mod =>
                 !excludedFiles.Contains(mod.Local.FilePath)

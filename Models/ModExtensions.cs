@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace CheckModsExtended.Models;
 
 /// <summary>
@@ -89,19 +87,14 @@ public static class ModExtensions
     /// <param name="mod">The mod to modify.</param>
     /// <param name="upToDate">The up-to-date information.</param>
     /// <returns>A new <see cref="Mod"/> instance marked as up-to-date.</returns>
-    public static Mod WithUpToDate(this Mod mod, UpToDateMod upToDate)
+    public static Mod WithUpToDate(this Mod mod, UpToDateMod upToDate, string? downloadLink)
     {
-        // Fallback heuristic: If the specific version's link cannot be found, fallback to the most recent version (index 0)
-        // to provide a best-effort download link.
-        var link = mod.Api.ApiVersions?.FirstOrDefault(v => v.Version == upToDate.Version)?.Link
-                ?? (mod.Api.ApiVersions?.Count > 0 ? mod.Api.ApiVersions[0].Link : null);
-
         return mod with
         {
             Update = mod.Update with
             {
                 LatestVersion = upToDate.Version,
-                DownloadLink = link,
+                DownloadLink = downloadLink,
                 UpdateStatus = UpdateStatus.UpToDate
             },
         };
@@ -113,17 +106,14 @@ public static class ModExtensions
     /// <param name="mod">The mod to modify.</param>
     /// <param name="incompatible">The incompatibility information.</param>
     /// <returns>A new <see cref="Mod"/> instance with the incompatibility reason.</returns>
-    public static Mod WithIncompatible(this Mod mod, IncompatibleMod incompatible)
+    public static Mod WithIncompatible(this Mod mod, IncompatibleMod incompatible, string? downloadLink)
     {
-        // Fallback heuristic: If the latest compatible version is missing a link, fallback to the most recent version (index 0)
-        // to ensure a download link is still provided.
-        var link = incompatible.LatestCompatibleVersion?.Link ?? (mod.Api.ApiVersions?.Count > 0 ? mod.Api.ApiVersions[0].Link : null);
         return mod with
         {
             Update = mod.Update with
             {
                 IncompatibilityReason = incompatible.Reason,
-                DownloadLink = link,
+                DownloadLink = downloadLink,
                 UpdateStatus = UpdateStatus.Incompatible,
             },
         };

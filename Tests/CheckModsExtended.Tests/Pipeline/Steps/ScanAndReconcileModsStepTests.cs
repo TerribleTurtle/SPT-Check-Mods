@@ -23,7 +23,8 @@ public class ScanAndReconcileModsStepTests
             modResolutionService,
             modReconciliationService,
             reporter,
-            logger
+            logger,
+            new CheckModsExtended.Services.MisplacedModAnalyzerService()
         );
 
         var context = new UpdateWorkflowContext

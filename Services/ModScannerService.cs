@@ -187,7 +187,7 @@ public sealed class ModScannerService(
         var testVersionFile = Path.Combine(sptPath, "SPT", ".spt_version_test");
         if (fileSystem.FileExists(testVersionFile))
         {
-            return File.ReadAllText(testVersionFile).Trim();
+            return fileSystem.ReadAllTextAsync(testVersionFile).GetAwaiter().GetResult().Trim();
         }
 
         var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
@@ -199,8 +199,7 @@ public sealed class ModScannerService(
 
         try
         {
-            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(coreDllPath);
-            return versionInfo.FileVersion;
+            return fileSystem.GetFileVersion(coreDllPath);
         }
         catch (Exception ex)
             when (ex
