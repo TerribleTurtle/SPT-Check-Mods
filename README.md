@@ -109,9 +109,10 @@ The application supports additional commands for specific tasks:
   ```
   Options:
   - `-t`, `--type <TYPE>`: Filter by type (e.g., server, client)
-  - `-o`, `--outdated`: Only show mods that are locally outdated
-  - `-u`, `--unknown`: Only show mods whose version could not be determined
-  - `-c`, `--custom`: Only show custom mods (no `package.json` / `plugin.dll`)
+  - `-s`, `--status <STATUS>`: Filter by status
+  - `--sort <SORT>`: Sort by field (e.g., name, author, version)
+  - `-l`, `--limit <LIMIT>`: Limit the number of results
+  - `--search <SEARCH>`: Search by text
 
 - **Ignore List Management**: View or manage mods you don't want to receive update notifications for.
   ```bash
@@ -140,8 +141,9 @@ The application supports additional commands for specific tasks:
   ```
 
 **Global Options:**
-- `-v` or `--verbose`: Enables debug logging (equivalent to `LoggingOptions__MinimumLogLevel=Debug`).
-- `-f` or `--format`: Sets output format (e.g., `table`, `json`, `csv`).
+- `-v` or `--verbose`: Enables verbose logging output.
+- `-d` or `--debug`: Enables debug logging output (includes stack traces).
+- `-f` or `--format <TYPE>`: Sets output format (e.g., `table`, `json`, `csv`).
 - `-y` or `--no-prompt`: Runs headless without interactive prompts.
 
 ## Troubleshooting
