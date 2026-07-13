@@ -91,16 +91,16 @@ public static class ModExtensions
     /// <returns>A new <see cref="Mod"/> instance marked as up-to-date.</returns>
     public static Mod WithUpToDate(this Mod mod, UpToDateMod upToDate)
     {
-        var link = mod.Api.ApiVersions?.FirstOrDefault(v => v.Version == upToDate.Version)?.Link 
+        var link = mod.Api.ApiVersions?.FirstOrDefault(v => v.Version == upToDate.Version)?.Link
                 ?? (mod.Api.ApiVersions?.Count > 0 ? mod.Api.ApiVersions[0].Link : null);
 
         return mod with
         {
-            Update = mod.Update with 
-            { 
-                LatestVersion = upToDate.Version, 
+            Update = mod.Update with
+            {
+                LatestVersion = upToDate.Version,
                 DownloadLink = link,
-                UpdateStatus = UpdateStatus.UpToDate 
+                UpdateStatus = UpdateStatus.UpToDate
             },
         };
     }

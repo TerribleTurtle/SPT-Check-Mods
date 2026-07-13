@@ -17,7 +17,8 @@ internal sealed class FakeModUpdateClient : IModUpdateClient
     public Func<
         (string Identifier, string Version),
         OneOf<List<ModDependency>, NotFound, ApiError>
-    >? OnGetModDependenciesVersioned { get; set; }
+    >? OnGetModDependenciesVersioned
+    { get; set; }
 
     public Task<OneOf<ModUpdatesData, NotFound, ApiError>> GetModUpdatesAsync(
         IEnumerable<(int ModId, string CurrentVersion)> modUpdates,

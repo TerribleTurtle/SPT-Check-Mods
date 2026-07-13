@@ -277,5 +277,6 @@ public sealed class FakeModCheckReporter : IModCheckReporter
         IReadOnlyList<Mod> serverMods,
         IReadOnlyList<Mod> clientMods,
         ListFilterOptions? options = null
-    ) { }
+    )
+    { }
 }

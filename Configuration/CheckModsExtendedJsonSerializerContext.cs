@@ -39,5 +39,5 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(CheckModsExtended.Models.ScanCacheRecord))]
 [JsonSerializable(typeof(CheckModsExtended.Services.GitHubReleaseClient.GitHubReleaseResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.GitHubReleaseClient.GitHubAsset))]
-    internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }
+internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }
 

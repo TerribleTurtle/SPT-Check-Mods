@@ -2,8 +2,8 @@ using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
 using SemanticVersioning;
+using SPTarkov.DI.Annotations;
 
 namespace CheckModsExtended.Services;
 
@@ -28,14 +28,18 @@ public sealed class SptInstallationService(
         logger.LogDebug("Validating SPT installation at: {SptPath}", sptPath);
 
         var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
-        if (!fileSystem.FileExists(coreDllPath))
+        try
         {
-            logger.LogError("SPT core DLL not found: {CoreDllPath}", coreDllPath);
-            reporter.Error(
-                "Error: Could not find SPT installation. Run this file in your root SPT directory, or provide the SPT path as an argument."
-            );
-            return null;
+            if (!fileSystem.FileExists(coreDllPath))
+            {
+                logger.LogError("SPT core DLL not found: {CoreDllPath}", coreDllPath);
+                reporter.Error(
+                    "Error: Could not find SPT installation. Run this file in your root SPT directory, or provide the SPT path as an argument."
+                );
+                return null;
+            }
         }
+        catch (System.Exception ex) when (ex is System.IO.IOException || ex is System.UnauthorizedAccessException) { logger.LogError(ex, "Error"); reporter.Error("Could not access SPT core DLL"); return null; }
 
         var localSptVersionStr = scannerService.GetSptVersion(sptPath);
 
@@ -117,3 +121,5 @@ public sealed class SptInstallationService(
         );
     }
 }
+
+

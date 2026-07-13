@@ -29,7 +29,7 @@ public class WebEndpointsTests
 
         var launcher = new TestBrowserLauncher();
         using var cts = new CancellationTokenSource();
-        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services => 
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services =>
         {
             services.AddSingleton<IScanCacheService>(cacheService);
             services.AddSingleton<IBrowserLauncher>(launcher);
@@ -51,7 +51,7 @@ public class WebEndpointsTests
         var cacheService = new FakeScanCacheService();
         var launcher = new TestBrowserLauncher();
         using var cts = new CancellationTokenSource();
-        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services => 
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services =>
         {
             services.AddSingleton<IScanCacheService>(cacheService);
             services.AddSingleton<IBrowserLauncher>(launcher);
@@ -72,7 +72,7 @@ public class WebEndpointsTests
     {
         var launcher = new TestBrowserLauncher();
         using var cts = new CancellationTokenSource();
-        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services => 
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services =>
         {
             services.AddSingleton<IBrowserLauncher>(launcher);
         });
@@ -80,7 +80,7 @@ public class WebEndpointsTests
         var urlTask = launcher.WaitForUrlAsync();
         if (await Task.WhenAny(runTask, urlTask) == runTask)
         {
-            await runTask; 
+            await runTask;
             throw new System.Exception("WebManagerHost exited prematurely.");
         }
         var url = await urlTask;

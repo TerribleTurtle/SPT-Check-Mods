@@ -10,8 +10,8 @@ using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SPTarkov.DI.Annotations;
 using SemanticVersioning;
+using SPTarkov.DI.Annotations;
 
 namespace CheckModsExtended.Services;
 

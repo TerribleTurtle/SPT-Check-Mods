@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using CheckModsExtended.Models;
 using CheckModsExtended.Models.Pipeline;
 using CheckModsExtended.Services.Web;
 using Xunit;
-using CheckModsExtended.Models;
 
 namespace CheckModsExtended.Tests.Services.Web;
 

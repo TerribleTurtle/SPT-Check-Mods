@@ -34,14 +34,14 @@ public record BlockingModDto(int ModId, string Name, string Constraint);
 /// Data transfer object representing a mod and its update status.
 /// </summary>
 public record ModDto(
-    int? Id, 
-    string Name, 
-    string Author, 
-    string LocalVersion, 
-    string LatestVersion, 
-    string Status, 
-    bool IsServerMod, 
-    string? ModUrl, 
+    int? Id,
+    string Name,
+    string Author,
+    string LocalVersion,
+    string LatestVersion,
+    string Status,
+    bool IsServerMod,
+    string? ModUrl,
     string? DownloadUrl,
     string? IncompatibilityReason = null,
     string? CompatibleVersion = null,

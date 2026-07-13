@@ -42,9 +42,9 @@ public class ScanCacheServiceTests
         var record = new ScanCacheRecord(TimeProvider.System.GetUtcNow(), response);
 
         await _service.SaveCacheAsync(record);
-        
+
         var loaded = await _service.LoadCacheAsync();
-        
+
         Assert.NotNull(loaded);
         Assert.Equal("3.8.0", loaded.Response.SptVersion);
     }

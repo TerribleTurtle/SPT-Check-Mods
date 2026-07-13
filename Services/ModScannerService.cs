@@ -80,11 +80,8 @@ public sealed class ModScannerService(
 
                 if (!foundMod)
                 {
-                    var packageMod = await serverExtractor.ExtractServerModPackageMetadataAsync(modDir, ct);
-                    if (packageMod is not null)
-                    {
-                        concurrentMods.Add(packageMod);
-                    }
+                    try { var packageMod = await serverExtractor.ExtractServerModPackageMetadataAsync(modDir, ct); if (packageMod is not null) { concurrentMods.Add(packageMod); } } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { reporter.CouldNotReadModDll(modDir, ex.Message); }
+
                 }
             }
         );
@@ -228,3 +225,4 @@ public sealed class ModScannerService(
         return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
     }
 }
+

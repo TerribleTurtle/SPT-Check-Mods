@@ -89,6 +89,8 @@ public sealed class FakeTextRenderer : ITextRenderer
 
     public void IgnoreRemoveSuccess(int removedCount, int apiModId) { }
 
-    public System.Threading.Tasks.Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation) =>
-        System.Threading.Tasks.Task.FromResult(true);
+    public System.Threading.Tasks.Task<bool> PromptForConfirmationAsync(PendingConfirmation confirmation)
+    {
+        return System.Threading.Tasks.Task.FromResult(true);
+    }
 }

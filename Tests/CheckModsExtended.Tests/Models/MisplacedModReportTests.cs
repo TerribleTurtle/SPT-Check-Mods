@@ -8,7 +8,10 @@ namespace CheckModsExtended.Tests.Models;
 /// </summary>
 public sealed class MisplacedModReportTests
 {
-    private static string MockPath(params string[] parts) => System.IO.Path.Combine(parts);
+    private static string MockPath(params string[] parts)
+    {
+        return System.IO.Path.Combine(parts);
+    }
 
     private static MisplacedMod Mod(string name, string filePath, bool isServerMod = false)
     {

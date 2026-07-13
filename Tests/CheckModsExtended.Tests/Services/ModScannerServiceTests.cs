@@ -135,6 +135,23 @@ public sealed class ModScannerServiceTests : IDisposable
         Assert.Same(expectedReport, report);
     }
 
+
+    [Fact]
+    public async Task ScanServerModsAsync_ThrowsUnauthorizedAccess_LogsWarningAndContinues()
+    {
+        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "TestMod");
+        _fixture.FileSystem.CreateDirectory(modDir);
+        var dllPath = Path.Combine(modDir, "TestMod.dll");
+        await _fixture.FileSystem.WriteAllTextAsync(dllPath, "dummy");
+
+        _serverExtractor.ThrowUnauthorizedAccess = true;
+
+        var mods = await _service.ScanServerModsAsync(_sptPath);
+
+        Assert.Empty(mods);
+        Assert.Contains(_reporter.Warnings, w => w.Contains("CouldNotReadModDll"));
+    }
+
     public void Dispose()
     {
         _fixture.Dispose();
@@ -221,3 +238,4 @@ namespace BepInEx {
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
+

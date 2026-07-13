@@ -33,7 +33,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
     }
 
     public CheckModsCommand(
-        IUpdateWorkflowOrchestrator orchestrator, 
+        IUpdateWorkflowOrchestrator orchestrator,
         IIgnoredUpdateWorkflow ignoredUpdateWorkflow,
         IUserPromptService userPromptService,
         CheckModsExtended.Utils.IProcessRunner processRunner,
@@ -74,7 +74,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
             if (contextResult?.Mods is not null)
             {
                 var endOfRunChoice = await _ignoredUpdateWorkflow.RunAsync(contextResult.Mods, cancellationToken);
-                
+
                 if (endOfRunChoice == EndOfRunChoice.Rescan)
                 {
                     _pluginScanCache.Clear();
@@ -84,7 +84,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
                     }
                     continue;
                 }
-                
+
                 if (endOfRunChoice == EndOfRunChoice.LaunchWebGui)
                 {
                     var processPath = System.Environment.ProcessPath;

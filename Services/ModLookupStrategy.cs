@@ -7,9 +7,9 @@ using CheckModsExtended.Configuration;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
+using SemanticVersioning;
 using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
-using SemanticVersioning;
 
 namespace CheckModsExtended.Services;
 
