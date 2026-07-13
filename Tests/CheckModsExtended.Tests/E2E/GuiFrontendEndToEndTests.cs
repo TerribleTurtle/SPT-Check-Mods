@@ -26,16 +26,15 @@ public sealed class GuiFrontendEndToEndTests
 
         // Arrange
         var server = WireMockServer.Start();
-        Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", server.Urls[0] + "/");
-
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(tempDir);
-
-        var sptRoot = Path.Combine(tempDir, "SPT");
-        Directory.CreateDirectory(sptRoot);
 
         try
         {
+            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", server.Urls[0] + "/");
+            Directory.CreateDirectory(tempDir);
+
+            var sptRoot = Path.Combine(tempDir, "SPT");
+            Directory.CreateDirectory(sptRoot);
             // 1. Mock the Scanner Directory
             var fakeModDir = Path.Combine(sptRoot, "SPT", "user", "mods", "FakeMod");
             Directory.CreateDirectory(fakeModDir);
