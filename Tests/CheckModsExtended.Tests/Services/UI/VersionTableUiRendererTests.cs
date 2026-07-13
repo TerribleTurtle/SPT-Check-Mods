@@ -21,7 +21,7 @@ public sealed class VersionTableUiRendererTests
         var renderer = new VersionTableUiRenderer(new FakeTextRenderer());
 
         var mod = ModFixture.CreateClientMod("test.mod", "Test Mod");
-        mod = mod.WithUpToDate(new UpToDateMod(null, 123, null, null, "1.0.0", null));
+        mod = mod.WithUpToDate(new UpToDateMod(null, 123, null, null, "1.0.0", null), null);
         mod = mod.WithApiMatch(
             new ModSearchResult(123, null, "Test Mod", "test-mod", null, null, 0, null, null, null, null)
         );

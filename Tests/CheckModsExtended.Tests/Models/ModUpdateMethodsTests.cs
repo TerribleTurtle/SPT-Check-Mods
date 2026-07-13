@@ -204,7 +204,7 @@ public sealed class ModUpdateMethodsTests
     {
         var mod = NewMod();
 
-        mod = mod.WithUpToDate(new UpToDateMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", null));
+        mod = mod.WithUpToDate(new UpToDateMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", null), null);
 
         Assert.Equal("1.0.0", mod.Update.LatestVersion);
         Assert.Equal(UpdateStatus.UpToDate, mod.Update.UpdateStatus);
@@ -217,7 +217,7 @@ public sealed class ModUpdateMethodsTests
 
         mod = mod.WithIncompatible(
             new IncompatibleMod(null, 2471, "com.author.coolmod", "Cool Mod", "1.0.0", "no_version_for_spt", null)
-        );
+        , null);
 
         Assert.Equal("no_version_for_spt", mod.Update.IncompatibilityReason);
         Assert.Equal(UpdateStatus.Incompatible, mod.Update.UpdateStatus);

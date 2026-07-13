@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,6 @@ using CheckModsExtended.Services.Utils;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Mono.Cecil;
 using SPTarkov.DI.Annotations;
 
 namespace CheckModsExtended.Services;
@@ -24,7 +22,8 @@ public sealed class PluginMetadataExtractor(
     IOptions<ModScannerOptions> options,
     ILogger<PluginMetadataExtractor> logger,
     IModCheckReporter reporter,
-    IFileSystem fileSystem
+    IFileSystem fileSystem,
+    IBinaryParser binaryParser
 ) : IPluginMetadataExtractor
 {
     private readonly ModScannerOptions _options = options.Value;
@@ -123,16 +122,10 @@ public sealed class PluginMetadataExtractor(
             {
                 try
                 {
-                    using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    using var module = ModuleDefinition.ReadModule(stream);
-
-                    foreach (var type in module.Types)
+                    var plugin = binaryParser.ExtractBepInPlugin(dllPath);
+                    if (plugin is not null)
                     {
-                        var plugin = ExtractBepInPluginAttribute(type);
-                        if (plugin is not null)
-                        {
-                            return CreateModFromBepInPlugin(plugin, dllPath);
-                        }
+                        return CreateModFromBepInPlugin(plugin, dllPath);
                     }
                 }
                 catch (Exception ex)
@@ -168,34 +161,14 @@ public sealed class PluginMetadataExtractor(
                 {
                     try
                     {
-                        using var stream = _fileSystem.Open(
-                            dllPath,
-                            FileMode.Open,
-                            FileAccess.Read,
-                            FileShare.ReadWrite
-                        );
-                        using var module = ModuleDefinition.ReadModule(stream);
+                        var info = binaryParser.ReadPluginDllInfo(dllPath);
 
-                        BepInPluginAttribute? plugin = null;
-                        foreach (var type in module.Types)
-                        {
-                            plugin = ExtractBepInPluginAttribute(type);
-                            if (plugin is not null)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (plugin is null)
+                        if (info.Plugin is null)
                         {
                             continue;
                         }
 
-                        var referencedNames = module
-                            .AssemblyReferences.Select(r => r.Name)
-                            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                        plugins.Add(new PluginDll(dllPath, plugin, module.Assembly.Name.Name, referencedNames));
+                        plugins.Add(new PluginDll(dllPath, info.Plugin, info.AssemblyName, info.ReferencedNames ?? []));
                     }
                     catch (Exception ex)
                         when (ex
@@ -236,16 +209,10 @@ public sealed class PluginMetadataExtractor(
     {
         try
         {
-            using var stream = _fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var module = ModuleDefinition.ReadModule(stream);
-
-            foreach (var type in module.Types)
+            var plugin = binaryParser.ExtractBepInPlugin(dllPath);
+            if (plugin is not null)
             {
-                var plugin = ExtractBepInPluginAttribute(type);
-                if (plugin is not null)
-                {
-                    return CreateModFromBepInPlugin(plugin, dllPath);
-                }
+                return CreateModFromBepInPlugin(plugin, dllPath);
             }
 
             return null;
@@ -261,36 +228,6 @@ public sealed class PluginMetadataExtractor(
             warnings.Add((Path.GetFileName(dllPath), ex.Message));
             return null;
         }
-    }
-
-    private static BepInPluginAttribute? ExtractBepInPluginAttribute(TypeDefinition type)
-    {
-        if (!type.HasCustomAttributes)
-        {
-            return null;
-        }
-
-        var attr = type.CustomAttributes.FirstOrDefault(a =>
-            a.AttributeType.Name == "BepInPlugin"
-            || a.AttributeType.Name == "BepInPluginAttribute"
-            || a.AttributeType.FullName.Contains("BepInPlugin")
-        );
-
-        if (attr is null || !attr.HasConstructorArguments || attr.ConstructorArguments.Count < 3)
-        {
-            return null;
-        }
-
-        var guid = attr.ConstructorArguments[0].Value?.ToString() ?? "";
-        var name = attr.ConstructorArguments[1].Value?.ToString() ?? "";
-        var version = attr.ConstructorArguments[2].Value?.ToString() ?? "";
-
-        if (string.IsNullOrWhiteSpace(guid) || string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(version))
-        {
-            return null;
-        }
-
-        return new BepInPluginAttribute(guid, name, version);
     }
 
     private static Mod CreateConsolidatedMod(List<PluginDll> group, string directoryName)

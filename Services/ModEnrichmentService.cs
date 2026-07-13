@@ -13,7 +13,8 @@ namespace CheckModsExtended.Services;
 public sealed class ModEnrichmentService(
     IModUpdateClient forgeApiService,
     IGitHubReleaseClient gitHubReleaseClient,
-    ILogger<ModEnrichmentService> logger)
+    ILogger<ModEnrichmentService> logger,
+    IModLinkResolverService linkResolver)
     : IModEnrichmentService
 {
     /// <inheritdoc />
@@ -78,8 +79,8 @@ public sealed class ModEnrichmentService(
 
         ProcessUpdates(updatesData.SafeToUpdate, u => u.ModId, (m, u) => m.WithSafeToUpdate(u));
         ProcessUpdates(updatesData.Blocked, b => b.ModId, (m, b) => m.WithBlocked(b));
-        ProcessUpdates(updatesData.UpToDate, u => u.ModId, (m, u) => m.WithUpToDate(u));
-        ProcessUpdates(updatesData.Incompatible, i => i.ModId, (m, i) => m.WithIncompatible(i));
+        ProcessUpdates(updatesData.UpToDate, u => u.ModId, (m, u) => m.WithUpToDate(u, linkResolver.ResolveUpToDateLink(m, u)));
+        ProcessUpdates(updatesData.Incompatible, i => i.ModId, (m, i) => m.WithIncompatible(i, linkResolver.ResolveIncompatibleLink(m, i)));
 
         // GitHub API Fallback for missing download links
         foreach (var modId in modsDict.Keys.ToList())

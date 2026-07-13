@@ -27,8 +27,7 @@ public sealed class PluginMetadataExtractorTests : IDisposable
             new ModPartitioner(),
             options,
             NullLogger<PluginMetadataExtractor>.Instance,
-            new FakeModCheckReporter(),
-            _fixture.FileSystem
+            new FakeModCheckReporter(), _fixture.FileSystem, new BinaryParser(_fixture.FileSystem)
         );
     }
 
@@ -209,3 +208,4 @@ public class ModulePlugin {}
         _fixture.Dispose();
     }
 }
+

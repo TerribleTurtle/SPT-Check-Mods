@@ -52,26 +52,4 @@ public sealed record MisplacedModReport(
         get { return WrongFolder.Count > 0 || CrossInstalled.Count > 0; }
     }
 
-    /// <summary>
-    /// Exact DLL paths to drop from the remaining checks: every wrong-folder mod, plus the identified intruder(s) in
-    /// each non-ambiguous cross-installed directory. Ambiguous directories are excluded by folder instead (see
-    /// <see cref="ExcludedDirectories"/>).
-    /// </summary>
-    public IReadOnlyList<string> ExcludedFilePaths { get; } =
-        WrongFolder
-            .Select(mod => mod.FilePath)
-            .Concat(
-                CrossInstalled
-                    .Where(directory => !directory.Ambiguous)
-                    .SelectMany(directory => directory.Misplaced)
-                    .Select(mod => mod.FilePath)
-            )
-            .ToList();
-
-    /// <summary>
-    /// Cross-installed directories whose intruder could not be identified. Every mod inside such a folder is dropped
-    /// from the remaining checks.
-    /// </summary>
-    public IReadOnlyList<string> ExcludedDirectories { get; } =
-        CrossInstalled.Where(directory => directory.Ambiguous).Select(directory => directory.Directory).ToList();
 }

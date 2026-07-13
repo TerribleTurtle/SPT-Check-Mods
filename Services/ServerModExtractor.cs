@@ -1,42 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Loader;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Services.Utils;
-using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 
 namespace CheckModsExtended.Services;
 
 [Injectable(InjectionType.Transient)]
-[UnconditionalSuppressMessage(
-    "Trimming",
-    "IL2026",
-    Justification = "We are inspecting dynamically loaded mod assemblies, not application code."
-)]
-[UnconditionalSuppressMessage(
-    "Trimming",
-    "IL2072",
-    Justification = "We are inspecting dynamically loaded mod assemblies, not application code."
-)]
-[UnconditionalSuppressMessage(
-    "Trimming",
-    "IL2075",
-    Justification = "We are inspecting dynamically loaded mod assemblies, not application code."
-)]
 public sealed class ServerModExtractor(
     ILogger<ServerModExtractor> logger,
-    CheckModsExtended.Utils.IFileSystem fileSystem,
-    IModCheckReporter reporter
+    IModCheckReporter reporter,
+    IBinaryParser binaryParser,
+    IJsonManifestParser jsonManifestParser,
+    CheckModsExtended.Utils.IFileSystem fileSystem
 ) : IServerModExtractor
 {
     /// <inheritdoc />
@@ -54,51 +35,32 @@ public sealed class ServerModExtractor(
     {
         try
         {
-            using var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var module = Mono.Cecil.ModuleDefinition.ReadModule(stream);
+            var metadata = binaryParser.ExtractServerModMetadata(dllPath);
 
-            var metadataType = module.Types.FirstOrDefault(t =>
-                t.BaseType?.Name == "AbstractModMetadata" && !t.IsAbstract
-            );
-
-            if (metadataType is null)
+            if (metadata is null || string.IsNullOrEmpty(metadata.Guid))
             {
                 return null;
             }
-
-            var modGuid = GetStringProperty(metadataType, "ModGuid");
-            var name = GetStringProperty(metadataType, "Name");
-            var author = GetStringProperty(metadataType, "Author");
-            var modVersion = GetStringProperty(metadataType, "Version");
-            var sptVersion = GetStringProperty(metadataType, "SptVersion");
-            var modUrl = GetStringProperty(metadataType, "Url");
-
-            if (string.IsNullOrEmpty(modGuid))
-            {
-                return null;
-            }
-
-            var version = modVersion ?? GetAssemblyVersion(module);
 
             var warnings = ModMetadataValidator.ValidateModMetadata(
-                name ?? string.Empty,
-                author ?? string.Empty,
-                version,
-                modGuid
+                metadata.Name ?? string.Empty,
+                metadata.Author ?? string.Empty,
+                metadata.Version ?? string.Empty,
+                metadata.Guid
             );
 
             return new Mod
             {
                 Local = new LocalModIdentity
                 {
-                    Guid = modGuid,
+                    Guid = metadata.Guid,
                     FilePath = dllPath,
                     IsServerMod = true,
-                    LocalName = name ?? string.Empty,
-                    LocalAuthor = author ?? string.Empty,
-                    LocalVersion = version,
-                    LocalSptVersion = sptVersion,
-                    Url = modUrl,
+                    LocalName = metadata.Name ?? string.Empty,
+                    LocalAuthor = metadata.Author ?? string.Empty,
+                    LocalVersion = metadata.Version ?? string.Empty,
+                    LocalSptVersion = metadata.SptVersion,
+                    Url = metadata.Url,
                 },
                 LoadWarnings = warnings,
             };
@@ -132,18 +94,12 @@ public sealed class ServerModExtractor(
 
         try
         {
-            using var packageStream = fileSystem.OpenRead(packagePath);
-            using var packageDocument = await JsonDocument.ParseAsync(
-                packageStream,
-                cancellationToken: cancellationToken
-            );
-            var root = packageDocument.RootElement;
+            var manifest = await jsonManifestParser.ParseServerModManifestAsync(packagePath, cancellationToken);
             var directoryName = Path.GetFileName(modDirectory);
-            var name = GetStringPropertyFromJson(root, "name") ?? directoryName;
-            var author = GetStringPropertyFromJson(root, "author") ?? "Unknown";
-            var version = GetStringPropertyFromJson(root, "version") ?? string.Empty;
-            var sptVersion =
-                GetStringPropertyFromJson(root, "sptVersion") ?? GetStringPropertyFromJson(root, "akiVersion");
+            var name = manifest?.Name ?? directoryName;
+            var author = manifest?.Author ?? "Unknown";
+            var version = manifest?.Version ?? string.Empty;
+            var sptVersion = manifest?.SptVersion;
 
             var warnings = ModMetadataValidator.ValidateModMetadata(name, author, version, name);
 
@@ -162,100 +118,11 @@ public sealed class ServerModExtractor(
                 LoadWarnings = warnings,
             };
         }
-        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is System.Text.Json.JsonException or IOException or UnauthorizedAccessException)
         {
             logger.LogDebug(ex, "Could not parse package.json as a server mod: {Path}", packagePath);
             reporter.CouldNotReadModDll(Path.GetFileName(packagePath), ex.Message);
             return null;
         }
-    }
-
-    private static string? GetStringPropertyFromJson(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var value))
-        {
-            return null;
-        }
-
-        return value.ValueKind switch
-        {
-            JsonValueKind.String => value.GetString(),
-            JsonValueKind.Number => value.GetRawText(),
-            _ => null,
-        };
-    }
-
-    private static string? GetStringProperty(Mono.Cecil.TypeDefinition type, string propertyName)
-    {
-        var getter = type.Methods.FirstOrDefault(m => m.Name == $"get_{propertyName}");
-        if (getter?.HasBody == true)
-        {
-            foreach (var instruction in getter.Body.Instructions)
-            {
-                if (instruction.OpCode.Code == Mono.Cecil.Cil.Code.Ldstr)
-                {
-                    return instruction.Operand as string;
-                }
-            }
-        }
-
-        foreach (var ctor in type.Methods.Where(m => m.IsConstructor && !m.IsStatic && m.HasBody))
-        {
-            string? lastString = null;
-            foreach (var instruction in ctor.Body.Instructions)
-            {
-                if (instruction.OpCode.Code == Mono.Cecil.Cil.Code.Ldstr)
-                {
-                    lastString = instruction.Operand as string;
-                }
-                else if (instruction.OpCode.Code == Mono.Cecil.Cil.Code.Stfld)
-                {
-                    if (
-                        instruction.Operand is Mono.Cecil.FieldReference fieldRef
-                        && fieldRef.Name.Contains($"<{propertyName}>")
-                    )
-                    {
-                        if (lastString != null)
-                        {
-                            return lastString;
-                        }
-                    }
-
-                    // Reset the tracked string after ANY field assignment so it doesn't leak
-                    // into properties that are dynamically initialized (e.g. via reflection).
-                    lastString = null;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static string GetAssemblyVersion(Mono.Cecil.ModuleDefinition module)
-    {
-        var infoVersionAttr = module.Assembly.CustomAttributes.FirstOrDefault(a =>
-            a.AttributeType.Name == "AssemblyInformationalVersionAttribute"
-        );
-        if (infoVersionAttr is not null && infoVersionAttr.HasConstructorArguments)
-        {
-            var fullVersion = infoVersionAttr.ConstructorArguments[0].Value?.ToString();
-            if (!string.IsNullOrEmpty(fullVersion))
-            {
-                var plusIndex = fullVersion.IndexOf('+');
-                if (plusIndex > 0)
-                {
-                    return fullVersion[..plusIndex];
-                }
-                return fullVersion;
-            }
-        }
-
-        var version = module.Assembly.Name.Version;
-        if (version is null)
-        {
-            return string.Empty;
-        }
-
-        return $"{version.Major}.{version.Minor}.{version.Build}";
     }
 }
