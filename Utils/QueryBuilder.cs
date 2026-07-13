@@ -14,7 +14,9 @@ public sealed class QueryBuilder
     /// <summary>
     /// Adds a key-value pair to the query string, automatically escaping the value.
     /// </summary>
-    /// <returns>The current QueryBuilder instance for method chaining.</returns>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value to be escaped.</param>
+    /// <returns>The current <see cref="QueryBuilder"/> instance for method chaining.</returns>
     public QueryBuilder Add(string key, string? value)
     {
         _parameters.Add(new KeyValuePair<string, string?>(key, value != null ? Uri.EscapeDataString(value) : null));
@@ -24,7 +26,9 @@ public sealed class QueryBuilder
     /// <summary>
     /// Adds a key-value pair to the query string without escaping the value.
     /// </summary>
-    /// <returns>The current QueryBuilder instance for method chaining.</returns>
+    /// <param name="key">The key.</param>
+    /// <param name="rawValue">The raw value.</param>
+    /// <returns>The current <see cref="QueryBuilder"/> instance for method chaining.</returns>
     public QueryBuilder AddRaw(string key, string? rawValue)
     {
         _parameters.Add(new KeyValuePair<string, string?>(key, rawValue));
@@ -32,6 +36,7 @@ public sealed class QueryBuilder
     }
 
     /// <inheritdoc />
+    /// <returns>The constructed query string.</returns>
     public override string ToString()
     {
         if (_parameters.Count == 0)

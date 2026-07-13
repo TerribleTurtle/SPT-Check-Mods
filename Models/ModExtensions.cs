@@ -41,6 +41,7 @@ public static class ModExtensions
 
     /// <summary>
     /// Updates the mod indicating that a safe update is available.
+    /// Automatically falls back to using the recommended version\'s link as the download link.
     /// </summary>
     /// <param name="mod">The mod to modify.</param>
     /// <param name="update">The update information.</param>
@@ -83,6 +84,7 @@ public static class ModExtensions
 
     /// <summary>
     /// Updates the mod indicating it is currently up-to-date.
+    /// Accepts an explicit download link since up-to-date mods may need to preserve their existing link.
     /// </summary>
     /// <param name="mod">The mod to modify.</param>
     /// <param name="upToDate">The up-to-date information.</param>
@@ -102,6 +104,7 @@ public static class ModExtensions
 
     /// <summary>
     /// Updates the mod indicating it is incompatible with the current environment.
+    /// Accepts an explicit download link since incompatible mods may need to preserve their existing link.
     /// </summary>
     /// <param name="mod">The mod to modify.</param>
     /// <param name="incompatible">The incompatibility information.</param>

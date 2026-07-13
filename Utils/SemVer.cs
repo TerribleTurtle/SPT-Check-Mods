@@ -14,7 +14,7 @@ public static class SemVer
     /// </summary>
     /// <param name="version">The version string to parse.</param>
     /// <param name="context">Context about what this version represents, used for error reporting.</param>
-    /// <returns>The parsed version, or an InvalidSemVer error.</returns>
+    /// <returns>A <see cref="OneOf{T0, T1}"/> containing either the parsed <see cref="SemanticVersioning.Version"/> or an <see cref="InvalidSemVer"/> error.</returns>
     public static OneOf<SemanticVersioning.Version, InvalidSemVer> TryParse(string? version, string context)
     {
         if (string.IsNullOrWhiteSpace(version) || !SemanticVersioning.Version.TryParse(version, out var parsed))

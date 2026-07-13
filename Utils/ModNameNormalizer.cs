@@ -22,7 +22,7 @@ public static class ModNameNormalizer
     /// </summary>
     /// <param name="name">The name to normalize.</param>
     /// <param name="removeComponentSuffixes">Whether to remove component suffixes.</param>
-    /// <returns>The normalized name string.</returns>
+    /// <returns>The normalized name string, or an empty string if the input was null or whitespace.</returns>
     public static string Normalize(string? name, bool removeComponentSuffixes = false)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -51,7 +51,7 @@ public static class ModNameNormalizer
     /// Extracts a readable name from a mod GUID (e.g., "com.author.modname" -> "modname").
     /// </summary>
     /// <param name="guid">The GUID to extract from.</param>
-    /// <returns>The extracted name, or the original GUID if extraction fails.</returns>
+    /// <returns>The extracted name, or the original GUID if extraction fails or is null/whitespace.</returns>
     public static string ExtractNameFromGuid(string? guid)
     {
         if (string.IsNullOrWhiteSpace(guid))
@@ -74,7 +74,7 @@ public static class ModNameNormalizer
     /// </summary>
     /// <param name="name1">The first name.</param>
     /// <param name="name2">The second name.</param>
-    /// <returns>A score from 0-100 indicating similarity.</returns>
+    /// <returns>A score from 0-100 indicating similarity, or 0 if either name is invalid.</returns>
     public static int GetFuzzyMatchScore(string? name1, string? name2)
     {
         var normalized1 = Normalize(name1);
@@ -94,7 +94,7 @@ public static class ModNameNormalizer
     /// <param name="name1">The first name.</param>
     /// <param name="name2">The second name.</param>
     /// <param name="removeComponentSuffixes">Whether to remove server/client suffixes.</param>
-    /// <returns>True if the names match exactly after normalization, false otherwise.</returns>
+    /// <returns><c>true</c> if the names match exactly after normalization; otherwise, <c>false</c>.</returns>
     public static bool IsExactMatch(string? name1, string? name2, bool removeComponentSuffixes = false)
     {
         var normalized1 = Normalize(name1, removeComponentSuffixes);
