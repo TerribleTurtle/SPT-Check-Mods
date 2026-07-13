@@ -6,30 +6,24 @@ A .NET 9 console application that validates Single Player Tarkov (SPT) mod compa
 
 ## Acknowledgments
 
-This project is a fork of the original [SPT Check Mods](https://github.com/refringe/SPT-Check-Mods) by Refringe. We are incredibly grateful for their foundational work and continued contributions to the SPT modding community.
+This project is a fork of the original [SPT Check Mods](https://github.com/refringe/SPT-Check-Mods) by Refringe. We are incredibly grateful for their foundational work and continued contributions to the SPT modding community. 
+
+For a detailed list of architectural changes and features introduced in this fork, please read [Architectural & Feature Additions](CHANGES_FROM_ORIGINAL.md).
 
 ## Features
-
-> ✨ Indicates a feature added or improved in this fork.
 
 - **Forge API Integration**: Verifies mods against the official SPT Forge database
 - **Version Compatibility**: Checks installed mod versions against SPT version requirements
 - **Update Detection**: Identifies mods with available updates and provides download links
-- **Bulk Update Pages**: Opens every out-of-date mod's Forge page in your browser from the end-of-run menu
 - **Dependency Analysis**: Builds dependency trees, identifies missing dependencies, and detects conflicts
-- **Dependency Change Notices**: When an update is available, shows the dependencies it adds or removes, flagging ones you'll need to download or update
 - **Installation Checks**: Detects mods installed in the wrong folder and excludes them from the rest of the run
 - **Dismissable Update Prompts**: Lets you ignore false-positive "update available" prompts for mods whose files are already current, with an optional shared community list
-- **SPT Update Checking**: Notifies you when a new SPT version is available
-- **Self-Update Checking**: Notifies you when a newer version of Check Mods is available
-- ✨ **Security Analysis**: Mod files are scanned safely without executing their underlying code.
-- ✨ **Parallel Scanning**: The app checks your mods concurrently while respecting the Forge API's network limits.
-- ✨ **Network Resilience**: Displays explicit warnings if the network drops or if a mod has an invalid version number.
-- ✨ **Offline Commands**: Terminal commands like `check-mods list` (to view installed mods) and `check-mods ignore` allow you to manage your mod list without an internet connection.
-- ✨ **Instant Web GUI**: A robust cache-then-network architecture instantly loads your previously scanned mods while fetching fresh data in the background.
-- ✨ **Cross-Platform Compatibility**: File handling is strictly managed to ensure the app works flawlessly across different hard drives and operating systems.
-- ✨ **Fallback Links**: If a mod is missing from the Forge API, the app attempts to extract a fallback GitHub link directly from the mod's local files.
-- ✨ **Modular Architecture**: Core services are deeply decoupled to guarantee stability, testability, and UI independence.
+- **SPT & Self-Update Checking**: Notifies you when new SPT versions or Check Mods app versions are available
+- **Web Manager GUI**: A locally hosted web dashboard that caches previously scanned mods for local loading.
+- **Offline CLI Commands**: Terminal commands allowing you to view and manage your mod list without an internet connection.
+- **Security Analysis**: Statically extracts metadata without executing any underlying mod code.
+- **Parallel Scanning**: Checks mods concurrently while safely respecting Forge API network limits.
+- **Fallback Links**: Attempts to extract fallback GitHub links directly from local files if a mod is missing from the Forge API.
 
 ## Requirements
 
@@ -56,7 +50,7 @@ dotnet build
 
 ### Basic Usage
 
-The easiest way to launch the **Web Manager GUI** is to double-click the included `CheckModsExtended - Start Web Manager.bat` shortcut. This will automatically open the application in your default browser on `http://localhost:37194`.
+To launch the **Web Manager GUI**, double-click the included `CheckModsExtended - Start Web Manager.bat` shortcut. This will automatically open the application in your default browser on `http://localhost:37194`.
 
 Alternatively, you can start the Web Manager manually by passing the `gui` argument:
 
@@ -103,7 +97,7 @@ CheckModsExtended-win-x64.exe --no-prompt
 
 The application supports additional commands for specific tasks:
 
-- **List Local Mods**: Instantly prints a table of locally installed client and server mods without checking the internet for updates.
+- **List Local Mods**: Prints a table of locally installed client and server mods without checking the internet for updates.
   ```bash
   CheckModsExtended-win-x64.exe list [SptPath]
   ```
@@ -130,7 +124,7 @@ The application supports additional commands for specific tasks:
   CheckModsExtended-win-x64.exe clean
   ```
 
-- **Diagnostics**: Zip and export the application's log files from AppData for easy sharing.
+- **Diagnostics**: Zip and export the application's log files from AppData for sharing.
   ```bash
   CheckModsExtended-win-x64.exe diag
   ```
