@@ -402,17 +402,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const tableLoader = document.getElementById('table-loading-indicator');
         if (tableLoader) tableLoader.style.display = 'block';
 
+        const cacheIndicator = document.getElementById('cache-indicator');
+        const cacheText = document.getElementById('cache-indicator-text');
+        const cacheIcon = document.getElementById('cache-indicator-icon');
+        if (cacheIndicator) {
+            cacheIndicator.style.display = 'inline-block';
+            cacheIndicator.style.backgroundColor = 'var(--status-warning)';
+            cacheIndicator.style.borderColor = 'var(--status-warning)';
+            cacheIndicator.classList.add('pulsing-cache');
+            
+            if (cacheIcon) {
+                cacheIcon.classList.add('spin-svg');
+                cacheIcon.innerHTML = '<line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line>';
+            }
+            if (cacheText) cacheText.textContent = 'CACHED (UPDATING)';
+        }
+
         try {
             const results = await fetchScan();
             state.mods = results.mods || [];
-            
             state.meta.lastScan = Date.now();
-            updateLastScanTime();
-            
-            const cacheIndicator = document.getElementById('cache-indicator');
-            if (cacheIndicator) {
-                cacheIndicator.style.display = 'none';
-            }
             
             logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
             render();
@@ -421,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (tableLoader) tableLoader.style.display = 'none';
             state.ui.scanning = false;
+            updateLastScanTime();
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
         }
@@ -454,7 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
             state.mods = results.mods || [];
             
             state.meta.lastScan = Date.now();
-            updateLastScanTime();
             
             logToConsole(`> SCAN COMPLETE. ${state.mods.length} entities analyzed.`, 'success');
             render();
@@ -465,6 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             stopLoaderAnimation();
             state.ui.scanning = false;
+            updateLastScanTime();
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
         }

@@ -62,7 +62,6 @@ export function handleCopyLog() {
 export function updateLastScanTime() {
     if (!state.meta.lastScan) return;
     const lastScanEl = document.getElementById('last-scan-time');
-    if (!lastScanEl) return;
     
     const seconds = Math.floor((Date.now() - state.meta.lastScan) / 1000);
     let text = 'Just now';
@@ -72,7 +71,27 @@ export function updateLastScanTime() {
     } else if (seconds > 10) {
         text = `${seconds}s ago`;
     }
-    lastScanEl.textContent = `Last scanned: ${text}`;
+    
+    if (lastScanEl) {
+        lastScanEl.textContent = `Last scanned: ${text}`;
+    }
+    
+    const cacheIndicator = document.getElementById('cache-indicator');
+    const cacheText = document.getElementById('cache-indicator-text');
+    if (cacheIndicator && cacheText && !state.ui.scanning && state.meta.lastScan > 0) {
+        cacheIndicator.style.display = 'inline-block';
+        cacheIndicator.style.backgroundColor = 'var(--status-success)';
+        cacheIndicator.style.borderColor = 'var(--status-success)';
+        cacheIndicator.classList.remove('pulsing-cache');
+        
+        const icon = document.getElementById('cache-indicator-icon');
+        if (icon) {
+            icon.classList.remove('spin-svg');
+            icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+        }
+        
+        cacheText.textContent = `UPDATED ${text.toUpperCase()}`;
+    }
 }
 
 let loaderState = { active: false, interval: null };
