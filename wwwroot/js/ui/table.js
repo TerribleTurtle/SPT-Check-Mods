@@ -67,12 +67,12 @@ export function renderTable(filteredMods, sort, ui) {
         if (mod.isIgnored) statusClass = 'status-unknown';
         else if (mod.status === 'UpToDate') statusClass = 'status-ok';
         else if (mod.status === 'NewerInstalled') statusClass = 'status-newer';
-        else if (mod.status === 'UpdateAvailable') statusClass = 'status-warn';
-        else if (['UpdateBlocked', 'Incompatible', 'Error', 'NoVersionsFound'].includes(mod.status)) statusClass = 'status-error';
+        else if (mod.status === 'UpdateAvailable') statusClass = 'status-update';
+        else if (['UpdateBlocked', 'Incompatible', 'Error', 'NoVersionsFound'].includes(mod.status)) statusClass = 'status-blocked';
 
         const escapedName = escapeHtml(mod.name || 'Unknown');
         const escapedAuthor = escapeHtml(mod.author || 'Unknown');
-        const duplicateHtml = mod.isDuplicate ? '<span class="status-badge" class="badge badge-warning ml-2">DUPLICATE</span>' : '';
+        const duplicateHtml = mod.isDuplicate ? '<span class="status-badge badge badge-warning ml-2">DUPLICATE</span>' : '';
         const warningHtml = mod.hasWarnings ? '<span title="Mod has warnings. Check details pane." class="text-warning ml-1 text-sm">⚠️</span>' : '';
         let typeLabel = '';
         if (mod.isPaired) {
@@ -92,20 +92,20 @@ export function renderTable(filteredMods, sort, ui) {
             </td>
             <td data-label="Status">
                 <div class="flex items-center gap-md">
-                    <div class="status-block ${statusClass}" title="${mod.status}" class="status-dot status-"></div>
+                    <div class="status-dot ${statusClass}" title="${mod.status}"></div>
                     ${statusPill}
                 </div>
             </td>
             <td data-label="Mod Name">
                 <div class="mod-card-primary">
-                    <div class="mod-card-title" class="font-semibold">${escapedName}${warningHtml}${duplicateHtml}</div>
+                    <div class="mod-card-title font-semibold">${escapedName}${warningHtml}${duplicateHtml}</div>
                     <div class="mod-card-meta">by ${escapedAuthor}</div>
                 </div>
             </td>
             <td data-label="Type">
                 ${typeLabel}
             </td>
-            <td data-label="Version" class="col-version" class="text-right">
+            <td data-label="Version" class="col-version text-right">
                 ${actionHtml}
             </td>
         `;

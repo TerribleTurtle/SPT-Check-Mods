@@ -196,6 +196,14 @@
 .ml-1 { margin-left: 5px; }
 
 /* Even more utils */
+.w-full { width: 100%; }
+.w-40px { width: 40px; }
+.text-left { text-align: left; }
+.relative { position: relative; }
+.mr-1 { margin-right: 4px; }
+.align-text-bottom { vertical-align: text-bottom; }
+.ml-auto { margin-left: auto; }
+.font-brand { font-family: var(--font-brand); }
 .mb-2 { margin-bottom: 10px; }
 .mt-2 { margin-top: 10px; }
 .ml-5 { margin-left: 20px; }

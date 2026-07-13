@@ -1,5 +1,5 @@
 /* Interactive Elements Standard Touch Targets */
-button, .btn-secondary, .btn-primary, .chip, .theme-toggle, .console-toggle, .btn-close-detail, .sort-btn, .row-checkbox, .console-copy-btn, input, select {
+button, .btn-secondary, .btn-primary, .chip, .theme-toggle, .console-toggle, .btn-close-detail, .sort-btn, input[type="text"], select {
     min-height: 44px;
     min-width: 44px;
 }
@@ -336,6 +336,7 @@ a.btn-secondary {
 .badge-error { color: var(--status-error); background: var(--status-error-bg); border-color: var(--status-error); }
 .badge-success { color: var(--status-success); background: var(--status-success-bg); border-color: var(--status-success); }
 .badge-info { color: var(--status-info); background: var(--status-info-bg); border-color: var(--status-info); }
+.badge-neutral { color: var(--status-neutral); background: var(--status-neutral-bg); border-color: var(--status-neutral); }
 
 /* Status Dots */
 .status-dot {

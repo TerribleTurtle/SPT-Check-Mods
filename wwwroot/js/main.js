@@ -424,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setScanning(true);
         btnScan.disabled = true;
         btnScan.textContent = '[ SCANNING... ]';
+        btnScan.classList.add('is-loading');
         
         logToConsole('> INITIATING BACKGROUND SCAN...', 'warn');
         
@@ -462,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLastScanTime();
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
+            btnScan.classList.remove('is-loading');
         }
     }
 
@@ -471,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setScanning(true);
         btnScan.disabled = true;
         btnScan.textContent = '[ SCANNING... ]';
+        btnScan.classList.add('is-loading');
         
         modsList.innerHTML = `
             <tr><td colspan="5" class="p-0 border-none h-300">
@@ -506,6 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateLastScanTime();
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
+            btnScan.classList.remove('is-loading');
         }
     }
 

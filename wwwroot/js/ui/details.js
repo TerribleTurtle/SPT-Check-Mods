@@ -76,7 +76,7 @@ export function renderDetailRow(mod) {
         mod.addedDependencies.forEach(dep => {
             let badge = '';
             if (dep.installState === 'NotInstalled') badge = `<span class="badge badge-error" title="Missing Dependency">MISSING</span>`;
-            else if (dep.installState === 'InstalledOutdated') badge = `<span class="badge badge-warn" title="Outdated Dependency">OUTDATED</span>`;
+            else if (dep.installState === 'InstalledOutdated') badge = `<span class="badge badge-warning" title="Outdated Dependency">OUTDATED</span>`;
             else badge = `<span class="badge badge-neutral" title="Satisfied Dependency">SATISFIED</span>`;
             
             let link = dep.downloadLink ? `<a href="${escapeHtml(dep.downloadLink)}" target="_blank" class="dep-link">${escapeHtml(dep.name)}</a>` : escapeHtml(dep.name);
