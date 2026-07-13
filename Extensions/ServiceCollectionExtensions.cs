@@ -130,6 +130,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IUpdateCheckService, UpdateCheckService>();
         services.AddTransient<IUpdateOrchestrationService, UpdateOrchestrationService>();
 
+        services.AddSingleton<IScanCacheService, ScanCacheService>();
         services.AddSingleton<IIgnoredUpdateStore, IgnoredUpdateStore>();
         services.AddSingleton<IPluginScanCache, PluginScanCache>();
         services.AddSingleton<IModCheckReporter, SpectreModCheckReporter>();
@@ -271,8 +272,10 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowStep, ApplyIgnoredUpdatesStep>();
         services.AddTransient<IWorkflowStep, CheckModVersionCompatibilityStep>();
         services.AddTransient<IWorkflowStep, CheckModDependenciesStep>();
+        services.AddTransient<IWorkflowStep, CacheResultsStep>();
         services.AddTransient<IWorkflowStep, DisplayResultsStep>();
 
         return services;
     }
 }
+

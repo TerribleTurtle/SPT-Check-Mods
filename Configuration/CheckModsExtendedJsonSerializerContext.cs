@@ -35,4 +35,6 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ExportModDto))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.OpenSystemRequest))]
 [JsonSerializable(typeof(IReadOnlyList<CheckModsExtended.Models.IgnoredUpdate>))]
-internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }
+[JsonSerializable(typeof(CheckModsExtended.Models.ScanCacheRecord))]
+    internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }
+

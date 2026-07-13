@@ -1,6 +1,10 @@
+using System;
+using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using CheckModsExtended.Models.Pipeline;
 
 namespace CheckModsExtended.Services.Web;
 
@@ -32,7 +36,7 @@ public static class WebEndpoints
             {
                 SemanticVersioning.Version? sptVer = null;
                 try { 
-                    var path = args.Length > 0 ? args[0] : System.Environment.CurrentDirectory;
+                    var path = args.Length > 0 ? args[0] : Environment.CurrentDirectory;
                     sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token); 
                 } catch { }
                 
@@ -57,79 +61,8 @@ public static class WebEndpoints
         api.MapPost("/scan", async (CheckModsExtended.Services.Interfaces.IUpdateWorkflowOrchestrator orchestrator, CancellationToken token) => 
         {
             var context = await orchestrator.RunPipelineAsync(args, token);
-            
-            var response = context.Mods.Select(m => new ModDto(
-                Id: m.Api.ApiModId,
-                Name: m.DisplayName,
-                Author: m.DisplayAuthor,
-                LocalVersion: m.Local.LocalVersion,
-                LatestVersion: m.Update.LatestVersion ?? "Unknown",
-                Status: m.Update.UpdateStatus.ToString(),
-                IsServerMod: m.Local.IsServerMod,
-                ModUrl: m.Api.ApiUrl,
-                DownloadUrl: m.Update.DownloadLink,
-                IncompatibilityReason: m.Update.IncompatibilityReason,
-                CompatibleVersion: m.Update.CompatibleVersionString,
-                BlockReason: m.Update.BlockReason,
-                BlockingMods: m.Update.BlockingMods?.Select(b => new BlockingModDto(
-                    ModId: b.ModId,
-                    Name: b.Name,
-                    Constraint: b.Constraint
-                )).ToList(),
-                AddedDependencies: m.Update.UpdateDependencyChanges?.Added.Select(d => new DependencyChangeDto(
-                    ModId: d.ModId,
-                    Slug: d.Slug ?? string.Empty,
-                    Name: d.Name,
-                    RecommendedVersion: d.RecommendedVersion,
-                    InstalledVersion: d.InstalledVersion,
-                    InstallState: d.InstallState.ToString(),
-                    Conflict: d.Conflict,
-                    DownloadLink: d.DownloadLink
-                )).ToList(),
-                RemovedDependencies: m.Update.UpdateDependencyChanges?.Removed.Select(d => new DependencyChangeDto(
-                    ModId: d.ModId,
-                    Slug: d.Slug ?? string.Empty,
-                    Name: d.Name,
-                    RecommendedVersion: d.RecommendedVersion,
-                    InstalledVersion: d.InstalledVersion,
-                    InstallState: d.InstallState.ToString(),
-                    Conflict: d.Conflict,
-                    DownloadLink: d.DownloadLink
-                )).ToList(),
-                SourceCodeUrl: m.Api.ApiSourceCodeUrl,
-                LocalSptVersion: m.Local.LocalSptVersion,
-                HasWarnings: m.HasWarnings,
-                IsDuplicate: m.IsDuplicate,
-                LoadWarnings: m.LoadWarnings.Count > 0 ? m.LoadWarnings.ToList() : null,
-                IsIgnored: m.Update.UpdateSuppressed,
-                IsPaired: m.Local.PairedComponentPath != null,
-                LocalDirectory: m.Local.FilePath != null ? System.IO.Path.GetDirectoryName(m.Local.FilePath) : null
-            )).ToList();
-            
-            MisplacedModReportDto? misplacedReportDto = null;
-            if (context.MisplacedReport != null && context.MisplacedReport.Any)
-            {
-                misplacedReportDto = new MisplacedModReportDto(
-                    WrongFolder: context.MisplacedReport.WrongFolder.Select(m => new MisplacedModDto(
-                        Name: m.Name,
-                        Version: m.Version,
-                        FilePath: m.FilePath,
-                        IsServerMod: m.IsServerMod
-                    )).ToList(),
-                    CrossInstalled: context.MisplacedReport.CrossInstalled.Select(d => new CrossInstalledDirectoryDto(
-                        Directory: d.Directory,
-                        Mods: d.Mods.Select(m => new MisplacedModDto(
-                            Name: m.Name,
-                            Version: m.Version,
-                            FilePath: m.FilePath,
-                            IsServerMod: m.IsServerMod
-                        )).ToList(),
-                        Ambiguous: d.Ambiguous
-                    )).ToList()
-                );
-            }
-            
-            return Results.Ok(new ScanResponse(response, misplacedReportDto, context.SptVersion?.ToString()));
+            var response = ScanResponseMapper.Map(context);
+            return Results.Ok(response);
         });
         
         api.MapPost("/ignore", async (CheckModsExtended.Services.Interfaces.IIgnoredUpdateStore ignoreStore, HttpRequest request, CancellationToken token) => 
