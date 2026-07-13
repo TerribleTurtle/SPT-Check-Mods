@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.4] - 2026-07-13
+
+### Added
+- **Instant Cache-then-Network Loading**: Added a persistent disk cache that stores scan results locally. The Web GUI and CLI now load cached data instantly on startup while seamlessly triggering a fresh scan in the background, eliminating long cold-start load times.
+- **End-of-Run Routing**: The CLI now prompts you after a scan finishes, allowing you to instantly launch the Web GUI or trigger a rescan without having to close and reopen the application.
+- **Strict Error Handling**: Enforced strict API response destructuring and specific exception filters across the new Web Endpoints and GitHub Release client to prevent exceptions from being swallowed silently.
+
 ## [2.0.3] - 2026-07-12
 
 ### Added

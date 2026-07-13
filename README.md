@@ -26,6 +26,7 @@ This project is a fork of the original [SPT Check Mods](https://github.com/refri
 - ✨ **Parallel Scanning**: The app checks your mods concurrently while respecting the Forge API's network limits.
 - ✨ **Network Resilience**: Displays explicit warnings if the network drops or if a mod has an invalid version number.
 - ✨ **Offline Commands**: Terminal commands like `check-mods list` (to view installed mods) and `check-mods ignore` allow you to manage your mod list without an internet connection.
+- ✨ **Instant Web GUI**: A robust cache-then-network architecture instantly loads your previously scanned mods while fetching fresh data in the background.
 - ✨ **Cross-Platform Compatibility**: File handling is strictly managed to ensure the app works flawlessly across different hard drives and operating systems.
 - ✨ **Fallback Links**: If a mod is missing from the Forge API, the app attempts to extract a fallback GitHub link directly from the mod's local files.
 - ✨ **Modular Architecture**: Core services are deeply decoupled to guarantee stability, testability, and UI independence.
