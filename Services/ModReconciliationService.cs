@@ -119,6 +119,12 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
         };
     }
 
+    /// <summary>
+    /// Generates matchable names for a mod using normalization heuristics.
+    /// Heuristics applied:
+    /// - Normalizes the local name by removing common suffixes.
+    /// - Extracts a fallback name from the mod GUID if available.
+    /// </summary>
     private static IEnumerable<string> GetMatchableNames(Mod mod)
     {
         var normName = ModNameNormalizer.Normalize(mod.Local.LocalName, removeComponentSuffixes: true);
@@ -140,6 +146,10 @@ public sealed class ModReconciliationService(ILogger<ModReconciliationService> l
 
     /// <summary>
     /// Selects the best mod from a server/client pair based on version and completeness.
+    /// Heuristics applied:
+    /// - Fall back to server mod if client mod version is invalid or equal.
+    /// - Fall back to client mod if server mod version is invalid.
+    /// - Pick the newer version if both are valid and differ.
     /// </summary>
     private static (Mod SelectedMod, List<string> Notes) SelectBestMod(Mod serverMod, Mod clientMod)
     {

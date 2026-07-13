@@ -15,9 +15,6 @@ public static class DependencyGraphBuilder
     /// <summary>
     /// Builds a dependency subtree from the API dependency structure.
     /// </summary>
-    /// <summary>
-    /// Builds a dependency subtree from the API dependency structure.
-    /// </summary>
     /// <param name="dependency">The API dependency to build the subtree for.</param>
     /// <param name="modByGuid">A dictionary of installed mods keyed by their GUID.</param>
     /// <param name="modById">A dictionary of installed mods keyed by their ModId.</param>
@@ -120,9 +117,6 @@ public static class DependencyGraphBuilder
     /// <summary>
     /// Creates a DependencyNode from dependency info and optional installed mod.
     /// </summary>
-    /// <summary>
-    /// Creates a DependencyNode from dependency info and optional installed mod.
-    /// </summary>
     /// <param name="dependency">The dependency info from the API.</param>
     /// <param name="installedMod">The optionally found local installed mod matching this dependency.</param>
     /// <param name="isInstalled">A flag indicating whether the dependency is already installed.</param>
@@ -163,10 +157,6 @@ public static class DependencyGraphBuilder
     /// Diffs the installed and proposed dependency trees (recursively flattened by GUID) and builds the resulting set
     /// of added and removed dependencies, each annotated with its install state relative to what's installed.
     /// </summary>
-    /// <summary>
-    /// Diffs the installed and proposed dependency trees (recursively flattened by GUID) and builds the resulting set
-    /// of added and removed dependencies, each annotated with its install state relative to what's installed.
-    /// </summary>
     /// <param name="installedDeps">The currently installed dependencies.</param>
     /// <param name="targetDeps">The target dependencies required by the update.</param>
     /// <param name="modByGuid">A dictionary of installed mods keyed by their GUID.</param>
@@ -203,10 +193,6 @@ public static class DependencyGraphBuilder
     /// Recursively flattens a dependency tree into a GUID-keyed map. Blank GUIDs are skipped and each GUID is visited
     /// once.
     /// </summary>
-    /// <summary>
-    /// Recursively flattens a dependency tree into a GUID-keyed map. Blank GUIDs are skipped and each GUID is visited
-    /// once.
-    /// </summary>
     /// <param name="deps">The list of dependencies to flatten.</param>
     /// <returns>A dictionary of dependencies keyed by GUID.</returns>
     public static Dictionary<string, ModDependency> FlattenDependencies(List<ModDependency> deps)
@@ -217,7 +203,7 @@ public static class DependencyGraphBuilder
     }
 
     /// <summary>
-    /// Recursively collects dependencies into a map. Magic logic: skips dependencies with a blank GUID,
+    /// Recursively collects dependencies into a map. Implementation detail: skips dependencies with a blank GUID,
     /// and avoids duplicates by using TryAdd (so the first encountered dependency for a GUID is kept).
     /// </summary>
     /// <param name="deps">The list of dependencies to collect.</param>
@@ -238,10 +224,6 @@ public static class DependencyGraphBuilder
         }
     }
 
-    /// <summary>
-    /// Builds a <see cref="DependencyChange"/> for a dependency, resolving whether it is installed and, if so, whether
-    /// its installed version looks older than the latest Forge-compatible version.
-    /// </summary>
     /// <summary>
     /// Builds a <see cref="DependencyChange"/> for a dependency, resolving whether it is installed and, if so, whether
     /// its installed version looks older than the latest Forge-compatible version.
@@ -321,7 +303,7 @@ public static class DependencyGraphBuilder
 
     /// <summary>
     /// Compares two version strings to determine if the current version is older than the recommended version.
-    /// Magic logic: Uses ParseOrDefault() which falls back to "0.0.0" if SemVer parsing fails, ensuring that
+    /// Implementation detail: Uses ParseOrDefault() which falls back to "0.0.0" if SemVer parsing fails, ensuring that
     /// unparseable versions are treated as extremely old rather than causing crashes.
     /// </summary>
     /// <param name="currentVersion">The currently installed version string.</param>
