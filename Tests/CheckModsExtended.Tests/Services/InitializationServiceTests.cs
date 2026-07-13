@@ -32,8 +32,7 @@ public sealed class InitializationServiceTests
         await _sut.RemoveLegacyApiKeyFileAsync();
 
         // Assert
-        Assert.Empty(_logger.Infos);
-        Assert.Empty(_logger.Warnings);
+        Assert.Empty(_logger.LoggedMessages);
     }
 
     [Fact]

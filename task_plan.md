@@ -4,7 +4,7 @@
 Redesign the Check Mods Extended web UI into a tokenized, responsive interface and enrich backend data endpoints to provide a "3-second health check" scanability.
 
 ## Current Stage
-Phase 3
+Phase 9
 
 ## Stages
 ### Phase 2: Backend Data Enrichment
@@ -70,6 +70,24 @@ Phase 3
 - [x] Step 8.2 — Subagent D (Network & Error Handling Expert)
   - [x] Write tests for core network clients (`ForgeApiClient`, `ModSearchClient`, `ModUpdateClient`).
   - [x] Implement missing filesystem error paths (`UnauthorizedAccessException` / `IOException`) in `ModScannerServiceTests` and `SptInstallationServiceTests`.
+- **Status:** completed
+
+### Phase 9: Documentation Health & Drift Remediation (Parallel Subagents)
+- [ ] Step 9.1 — Subagent A (Web UI & Global Docs Fixer)
+  - [ ] Fix `README.md` drift (`.bat` file names, bash formatting, document `CheckMods-CLI.sh`).
+  - [ ] Add complete JSDoc annotations to all `wwwroot/js/*.js` modules (documenting API return shapes and UI heuristic "magic logic").
+- [ ] Step 9.2 — Subagent B (CLI & Orchestration Fixer)
+  - [ ] Rewrite `Program.cs` argument parser documentation.
+  - [ ] Document process inception (`CheckModsCommand`) and implicit headless side-effects (`CheckModsInterceptor`).
+  - [ ] Add missing XML docs (`<summary>`, `<param>`, `<returns>`) to all Command classes.
+- [ ] Step 9.3 — Subagent C (Backend Services Fixer)
+  - [ ] Fix missing `<param>` tags in `IUpdateOrchestrationService` and remove duplicate summaries in `DependencyGraphBuilder`.
+  - [ ] Document reconciliation heuristics in `ModReconciliationService`.
+  - [ ] Add `<example>` blocks demonstrating `OneOf` destructuring for all typed API clients (`IForgeApiClient`, `IModSearchClient`, etc.).
+- [ ] Step 9.4 — Subagent D (Models & Config Fixer)
+  - [ ] Synthesize `appsettings.example.json` from the `Configuration/` mappings.
+  - [ ] Fix `<returns>` tags on `SemVer.TryParse`, `ModNameNormalizer`, and `QueryBuilder`.
+  - [ ] Explain the download link fallback heuristics in `ModExtensions`.
 - **Status:** completed
 
 ## Decisions Made
