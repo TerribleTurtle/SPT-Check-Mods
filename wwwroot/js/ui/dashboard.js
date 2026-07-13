@@ -29,11 +29,11 @@ export async function renderIgnoreDashboard() {
         
         let html = '';
         if (!ignores || ignores.length === 0) {
-            html += '<p style="color: var(--text-muted); font-size: 0.9rem;">No mods are currently ignored.</p>';
+            html += '<p class="text-muted text-sm">No mods are currently ignored.</p>';
         } else {
-            html += '<ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">';
+            html += '<ul class="dashboard-list">';
             ignores.forEach(ig => {
-                html += `<li style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-default);">
+                html += `<li class="dashboard-list-item">
                     <span><strong>${escapeHtml(ig.name || ig.id)}</strong> (v${escapeHtml(ig.localVersion)})</span>
                     <button class="btn-secondary action-unignore" data-id="${escapeHtml(ig.id)}">Remove</button>
                 </li>`;
@@ -49,7 +49,7 @@ export async function renderIgnoreDashboard() {
     } catch (e) {
         const modalBody = document.getElementById('ignore-modal-body');
         if (modalBody) {
-            modalBody.innerHTML = `<div style="color: var(--status-error); margin-top: 20px;">Error loading ignores: ${e.message}</div>`;
+            modalBody.innerHTML = `<div class="text-error mt-20">Error loading ignores: ${e.message}</div>`;
         }
     }
 }
@@ -87,15 +87,15 @@ export async function showOverview() {
     
     let summaryHtml = '';
     if (updateMods.length === 0 && blockedMods.length === 0 && incompatMods.length === 0) {
-        summaryHtml = `<div style="flex: 1; background: var(--status-success-bg); border: 1px solid var(--status-success); color: var(--status-success); padding: 15px; border-radius: var(--radius-md);">
-            <h3 style="margin-bottom: 10px;">All systems nominal</h3>
+        summaryHtml = `<div class="dashboard-summary-box dashboard-summary-success">
+            <h3 class="mb-2">All systems nominal</h3>
             <p>Your workspace is fully up to date with ${activeCount} active mods installed.</p>
         </div>`;
     } else {
-        summaryHtml = `<div style="flex: 1; background: var(--status-warning-bg); border: 1px solid var(--status-warning); color: var(--text-primary); padding: 15px; border-radius: var(--radius-md);">
-            <h3 style="color: var(--status-warning); margin-bottom: 10px;">Action Required</h3>
+        summaryHtml = `<div class="dashboard-summary-box dashboard-summary-warning">
+            <h3 class="text-warning mb-2">Action Required</h3>
             <p>Out of ${activeCount} active mods:</p>
-            <ul style="margin-top:10px; margin-left: 20px;">
+            <ul class="mt-2 ml-5">
                 ${updateMods.length > 0 ? `<li><strong>${updateMods.length}</strong> updates available</li>` : ''}
                 ${blockedMods.length > 0 ? `<li><strong>${blockedMods.length}</strong> updates blocked</li>` : ''}
                 ${incompatMods.length > 0 ? `<li><strong>${incompatMods.length}</strong> incompatible mods</li>` : ''}
@@ -115,9 +115,9 @@ export async function showOverview() {
     }
 
     const bulkToolbar = `
-        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-            <h4 style="color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase; font-size: 0.8rem;">Workspace Actions</h4>
-            <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        <div class="flex flex-col justify-center flex-1">
+            <h4 class="text-muted mb-2 uppercase text-sm">Workspace Actions</h4>
+            <div class="grid grid-cols-1 gap-sm">
                 <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
                 <button id="btn-download-updates" class="btn-primary" ${downloadCount === 0 ? 'disabled' : ''} ${downloadTooltip}>
                     Download Updates ${downloadCount > 0 ? `(${downloadCount})` : ''}

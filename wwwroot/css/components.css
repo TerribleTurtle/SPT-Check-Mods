@@ -3,12 +3,12 @@ button {
     font-family: var(--font-ui);
     font-weight: 600;
     font-size: 16px;
-    padding: 8px 16px;
+    padding: var(--space-sm) var(--space-md);
     cursor: pointer;
     border: 1px solid var(--border-default);
     background: transparent;
     color: var(--text-primary);
-    transition: all 50ms linear;
+    transition: all var(--transition-fast);
     letter-spacing: 1px;
 }
 
@@ -97,12 +97,12 @@ a.btn-secondary {
     font-family: var(--font-ui);
     font-weight: 600;
     font-size: 12px;
-    padding: 4px 8px;
+    padding: var(--space-xs) var(--space-sm);
     cursor: pointer;
     border: 1px solid var(--border-default);
     background: transparent;
     color: var(--text-primary);
-    transition: all 50ms linear;
+    transition: all var(--transition-fast);
     letter-spacing: 1px;
 }
 .btn-secondary:hover {
@@ -319,3 +319,41 @@ a.btn-secondary {
     padding: var(--space-md);
     overflow-y: auto;
 }
+
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 2px 8px; border-radius: var(--radius-sm);
+  font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600;
+  border: 1px solid var(--border-default);
+}
+.badge-warning { color: var(--status-warning); background: var(--status-warning-bg); border-color: var(--status-warning); }
+.badge-error { color: var(--status-error); background: var(--status-error-bg); border-color: var(--status-error); }
+.badge-success { color: var(--status-success); background: var(--status-success-bg); border-color: var(--status-success); }
+.badge-info { color: var(--status-info); background: var(--status-info-bg); border-color: var(--status-info); }
+
+/* Status Dots */
+.status-dot {
+    border-radius: 50%;
+    width: 12px; height: 12px; min-width: 12px;
+}
+.status-dot.status-ok { box-shadow: 0 0 5px var(--status-success); }
+.status-dot.status-update { box-shadow: 0 0 5px var(--status-warning); }
+.status-dot.status-blocked { box-shadow: 0 0 5px var(--status-error); }
+.status-dot.status-incompat { box-shadow: 0 0 5px var(--status-error); }
+.status-dot.status-newer { box-shadow: 0 0 5px var(--status-info); }
+.status-dot.status-unknown { box-shadow: 0 0 5px var(--status-neutral); }
+
+/* Dashboard List */
+.dashboard-list {
+    list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm);
+}
+.dashboard-list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--bg-elevated); padding: var(--space-md);
+    border-radius: var(--radius-sm); border: 1px solid var(--border-default);
+}
+.dashboard-summary-box {
+    flex: 1; padding: 15px; border-radius: var(--radius-md); border: 1px solid;
+}
+.dashboard-summary-success { background: var(--status-success-bg); border-color: var(--status-success); color: var(--status-success); }
+.dashboard-summary-warning { background: var(--status-warning-bg); border-color: var(--status-warning); color: var(--text-primary); }

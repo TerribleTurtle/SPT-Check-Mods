@@ -72,15 +72,15 @@ export function renderTable(filteredMods, sort, ui) {
 
         const escapedName = escapeHtml(mod.name || 'Unknown');
         const escapedAuthor = escapeHtml(mod.author || 'Unknown');
-        const duplicateHtml = mod.isDuplicate ? '<span class="status-badge" style="background-color: var(--status-warning); color: var(--text-dark); margin-left: 8px; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; vertical-align: middle;">DUPLICATE</span>' : '';
-        const warningHtml = mod.hasWarnings ? '<span title="Mod has warnings. Check details pane." style="color: var(--status-warning); margin-left: 5px; font-size: 0.9rem;">⚠️</span>' : '';
+        const duplicateHtml = mod.isDuplicate ? '<span class="status-badge" class="badge badge-warning ml-2">DUPLICATE</span>' : '';
+        const warningHtml = mod.hasWarnings ? '<span title="Mod has warnings. Check details pane." class="text-warning ml-1 text-sm">⚠️</span>' : '';
         let typeLabel = '';
         if (mod.isPaired) {
-            typeLabel = '<span style="color: var(--status-success); font-weight: 600;" title="Server Mod">Server</span> <span style="opacity:0.5; margin:0 2px;">&amp;</span> <span style="color: var(--status-info); font-weight: 600;" title="Client Mod">Client</span>';
+            typeLabel = '<span class="text-success font-semibold" title="Server Mod">Server</span> <span class="opacity-50 mx-1">&amp;</span> <span class="text-info font-semibold" title="Client Mod">Client</span>';
         } else if (mod.isServerMod) {
-            typeLabel = '<span style="color: var(--status-success); font-weight: 600;" title="Server Mod">Server</span>';
+            typeLabel = '<span class="text-success font-semibold" title="Server Mod">Server</span>';
         } else {
-            typeLabel = '<span style="color: var(--status-info); font-weight: 600;" title="Client Mod">Client</span>';
+            typeLabel = '<span class="text-info font-semibold" title="Client Mod">Client</span>';
         }
         
         const actionHtml = renderVersionCell(mod);
@@ -91,21 +91,21 @@ export function renderTable(filteredMods, sort, ui) {
                 <input type="checkbox" class="row-checkbox action-select" value="${escapeHtml(mod.id)}" aria-label="Select mod" ${ui.selectedIds.has(String(mod.id)) ? 'checked' : ''}>
             </td>
             <td data-label="Status">
-                <div style="display:flex; align-items:center; gap:var(--space-md);">
-                    <div class="status-block ${statusClass}" title="${mod.status}" style="border-radius: 50%; box-shadow: 0 0 5px var(--status-${statusClass.split('-')[1]}); width: 12px; height: 12px; min-width: 12px;"></div>
+                <div class="flex items-center gap-md">
+                    <div class="status-block ${statusClass}" title="${mod.status}" class="status-dot status-"></div>
                     ${statusPill}
                 </div>
             </td>
             <td data-label="Mod Name">
                 <div class="mod-card-primary">
-                    <div class="mod-card-title" style="font-weight: 600;">${escapedName}${warningHtml}${duplicateHtml}</div>
+                    <div class="mod-card-title" class="font-semibold">${escapedName}${warningHtml}${duplicateHtml}</div>
                     <div class="mod-card-meta">by ${escapedAuthor}</div>
                 </div>
             </td>
             <td data-label="Type">
                 ${typeLabel}
             </td>
-            <td data-label="Version" class="col-version" style="text-align: right;">
+            <td data-label="Version" class="col-version" class="text-right">
                 ${actionHtml}
             </td>
         `;
