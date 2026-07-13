@@ -8,6 +8,9 @@ using Spectre.Console.Cli;
 
 namespace CheckModsExtended.Commands;
 
+/// <summary>
+/// Command to list all currently ignored updates.
+/// </summary>
 public sealed class IgnoreListCommand : AsyncCommand<ListCommandSettings>
 {
     private readonly IIgnoredUpdateStore _store;
@@ -19,6 +22,13 @@ public sealed class IgnoreListCommand : AsyncCommand<ListCommandSettings>
         _reporter = reporter;
     }
 
+    /// <summary>
+    /// Executes the ignore list command asynchronously.
+    /// </summary>
+    /// <param name="context">The command context.</param>
+    /// <param name="settings">The command settings for listing, filtering, and sorting.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous execution operation. The task result contains the exit code.</returns>
     protected override async Task<int> ExecuteAsync(
         CommandContext context,
         ListCommandSettings settings,

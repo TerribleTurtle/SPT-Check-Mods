@@ -23,6 +23,9 @@ public sealed class CheckModsInterceptor : ICommandInterceptor
             _runtimeConfig.IsVerbose = globalSettings.Verbose;
             _runtimeConfig.Format = globalSettings.Format;
 
+            // Implicit headless mode side-effect:
+            // When outputting machine-readable formats (e.g., json, markdown), we implicitly
+            // enforce headless mode to prevent interactive prompts from polluting the structured output stream.
             if (!_runtimeConfig.Format.Equals("table", System.StringComparison.OrdinalIgnoreCase))
             {
                 _runtimeConfig.IsHeadless = true;
