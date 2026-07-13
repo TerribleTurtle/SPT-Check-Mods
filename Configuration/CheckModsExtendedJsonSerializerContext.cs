@@ -8,7 +8,8 @@ namespace CheckModsExtended.Configuration;
 [JsonSourceGenerationOptions(
     WriteIndented = false,
     PropertyNameCaseInsensitive = true,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase
 )]
 [JsonSerializable(typeof(IgnoredUpdatesFile))]
 [JsonSerializable(typeof(SptVersionApiResponse))]

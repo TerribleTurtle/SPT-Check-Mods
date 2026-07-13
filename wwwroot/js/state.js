@@ -83,6 +83,12 @@ export function applySort(mods, sort) {
         
         if (valA < valB) return sort.direction === 'asc' ? -1 : 1;
         if (valA > valB) return sort.direction === 'asc' ? 1 : -1;
+        
+        const nameA = a.name ? a.name.toLowerCase() : '';
+        const nameB = b.name ? b.name.toLowerCase() : '';
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+
         return 0;
     });
 }
