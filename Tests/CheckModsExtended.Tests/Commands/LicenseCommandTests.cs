@@ -15,9 +15,7 @@ public class LicenseCommandTests
         var command = new LicenseCommand();
         var settings = new LicenseCommand.Settings();
         // Act
-        var method = typeof(LicenseCommand).GetMethod("ExecuteAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var task = (Task<int>)method!.Invoke(command, new object[] { null!, settings, CancellationToken.None })!;
-        var result = await task;
+        var result = await LicenseCommand.ExecuteInternalAsync(null!, settings, CancellationToken.None);
 
         // Assert
         // The resource might or might not be embedded in the test runner context,

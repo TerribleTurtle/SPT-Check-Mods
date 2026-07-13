@@ -33,6 +33,15 @@ public sealed class DiagCommand : AsyncCommand<GlobalSettings>
         CancellationToken cancellationToken
     )
     {
+        return ExecuteInternalAsync(context, settings, cancellationToken);
+    }
+
+    internal Task<int> ExecuteInternalAsync(
+        CommandContext context,
+        GlobalSettings settings,
+        CancellationToken cancellationToken
+    )
+    {
         var logsDir = Path.Combine(_appPaths.AppDataDirectory, "logs");
         if (!Directory.Exists(logsDir))
         {

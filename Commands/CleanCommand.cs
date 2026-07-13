@@ -32,6 +32,15 @@ public sealed class CleanCommand : AsyncCommand<GlobalSettings>
         CancellationToken cancellationToken
     )
     {
+        return ExecuteInternalAsync(context, settings, cancellationToken);
+    }
+
+    internal Task<int> ExecuteInternalAsync(
+        CommandContext context,
+        GlobalSettings settings,
+        CancellationToken cancellationToken
+    )
+    {
         if (Directory.Exists(_appPaths.AppDataDirectory))
         {
             Directory.Delete(_appPaths.AppDataDirectory, true);

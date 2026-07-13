@@ -1,9 +1,13 @@
 using System.Collections.Generic;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.UI;
+using Spectre.Console;
+using Spectre.Console.Testing;
 using Xunit;
 
 namespace CheckModsExtended.Tests.Services.UI;
+
+[Collection("ConsoleTests")]
 
 public class MiscTableUiRendererTests
 {
@@ -18,6 +22,9 @@ public class MiscTableUiRendererTests
     public void IgnoredUpdatesList_AppliesFiltersAndSorts_WithoutThrowing()
     {
         // Arrange
+        var console = new TestConsole();
+        AnsiConsole.Console = console;
+        
         var ignores = new List<IgnoredUpdate>
         {
             new IgnoredUpdate(1, "1.0", "2.0", "Mod A", null, IgnoreSource.User),
@@ -32,16 +39,22 @@ public class MiscTableUiRendererTests
             Limit = 1,
         };
 
-        // Act & Assert
-        // We just verify it doesn't throw since it renders to the static AnsiConsole
-        var exception = Record.Exception(() => _renderer.IgnoredUpdatesList(ignores, options));
-        Assert.Null(exception);
+        // Act
+        _renderer.IgnoredUpdatesList(ignores, options);
+
+        // Assert
+        var output = console.Output;
+        Assert.Contains("Ignored Updates", output);
+        Assert.Contains("Mod B", output);
     }
 
     [Fact]
     public void InstalledModsList_AppliesFiltersAndSorts_WithoutThrowing()
     {
         // Arrange
+        var console = new TestConsole();
+        AnsiConsole.Console = console;
+        
         var serverMods = new List<Mod>
         {
             new Mod
@@ -85,8 +98,12 @@ public class MiscTableUiRendererTests
             Status = "NoMatch",
         };
 
-        // Act & Assert
-        var exception = Record.Exception(() => _renderer.InstalledModsList(serverMods, clientMods, options));
-        Assert.Null(exception);
+        // Act
+        _renderer.InstalledModsList(serverMods, clientMods, options);
+
+        // Assert
+        var output = console.Output;
+        Assert.Contains("Installed Mods", output);
+        Assert.Contains("Client Mod B", output);
     }
 }

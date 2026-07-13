@@ -21,6 +21,15 @@ public sealed class LicenseCommand : AsyncCommand<LicenseCommand.Settings>
         CancellationToken cancellationToken
     )
     {
+        return ExecuteInternalAsync(context, settings, cancellationToken);
+    }
+
+    internal static Task<int> ExecuteInternalAsync(
+        CommandContext context,
+        Settings settings,
+        CancellationToken cancellationToken
+    )
+    {
         var assembly = Assembly.GetExecutingAssembly();
         var resourceName = "CheckModsExtended.LICENSE";
 

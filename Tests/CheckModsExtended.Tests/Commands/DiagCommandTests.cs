@@ -27,9 +27,7 @@ public class DiagCommandTests
         var command = new DiagCommand(options);
         var settings = new GlobalSettings();
         // Act
-        var method = typeof(DiagCommand).GetMethod("ExecuteAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var task = (Task<int>)method!.Invoke(command, new object[] { null!, settings, CancellationToken.None })!;
-        var result = await task;
+        var result = await command.ExecuteInternalAsync(null!, settings, CancellationToken.None);
 
         // Assert
         Assert.Equal(0, result);
