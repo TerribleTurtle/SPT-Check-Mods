@@ -471,9 +471,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnScan.textContent = '[ SCANNING... ]';
         
         modsList.innerHTML = `
-            <tr><td colspan="5" style="padding: 0; border: none; height: 300px;">
+            <tr><td colspan="5" class="p-0 border-none h-300">
                 <div class="scan-loader-container">
-                    <div class="loader-spinner" style="display: none;"></div>
+                    <div class="loader-spinner hidden"></div>
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill"></div>
                     </div>

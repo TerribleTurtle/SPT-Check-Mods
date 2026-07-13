@@ -26,7 +26,7 @@ export function renderBulkBar(selectedIds) {
 export async function renderIgnoreDashboard() {
     const modalBody = document.getElementById('ignore-modal-body');
     if (modalBody) {
-        modalBody.innerHTML = `<div style="display:flex; justify-content:center; padding: 20px;"><div class="loader-spinner" style="display:block; width: 24px; height: 24px; border: 2px solid var(--text-muted); border-right-color: transparent; border-radius: 50%; animation: spin 0.75s linear infinite;"></div><span style="margin-left: 10px; color: var(--text-muted);">Loading ignored mods...</span></div>`;
+        modalBody.innerHTML = `<div class="flex justify-center p-20"><div class="loader-spinner spinner-sm"></div><span class="ml-2 text-muted">Loading ignored mods...</span></div>`;
     }
     try {
         const ignores = await fetchIgnores();

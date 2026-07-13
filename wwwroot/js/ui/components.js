@@ -14,7 +14,7 @@ export function renderEmptyState(message, type = 'info', isFilterEmpty = false) 
     modsList.innerHTML = `
         <tr>
             <td colspan="5">
-                <div class="empty-state" style="color: ${type === 'error' ? 'var(--status-error)' : 'inherit'};">
+                <div class="empty-state ${type === 'error' ? 'text-error' : ''}">
                     ${escapeHtml(message)}
                     ${isFilterEmpty ? '<br><br><button class="btn-secondary" id="btn-clear-filters">Clear Filters</button>' : ''}
                 </div>

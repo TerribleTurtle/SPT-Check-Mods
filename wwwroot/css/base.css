@@ -7,6 +7,11 @@
   --font-brand: 'Rajdhani', 'Chakra Petch', sans-serif;
   --transition-fast: 100ms ease;
   --transition-normal: 200ms ease;
+  --space-2xs: 2px;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-lg: 1.125rem;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   
   /* Default Theme (Dark) Fallbacks */
   --bg-base:     #0F1114;
