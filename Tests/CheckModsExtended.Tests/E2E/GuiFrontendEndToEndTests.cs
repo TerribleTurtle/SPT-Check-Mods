@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Services.Web;
 using CheckModsExtended.Tests.Fakes;
@@ -158,9 +160,33 @@ public sealed class GuiFrontendEndToEndTests
 
             var webArgs = new[] { sptRoot };
 
+            var fakeCacheService = new FakeScanCacheService();
+            await fakeCacheService.SaveCacheAsync(new ScanCacheRecord(
+                DateTimeOffset.UtcNow,
+                new ScanResponse(
+                    new List<ModDto>
+                    {
+                        new ModDto(
+                            1,
+                            "FakeMod",
+                            "FakeAuthor",
+                            "1.0.0",
+                            "1.0.0",
+                            "ok",
+                            false,
+                            null,
+                            null
+                        )
+                    },
+                    null,
+                    "3.8.0"
+                )
+            ));
+
             var runTask = WebManagerHost.RunAsync(webArgs, cts.Token, services =>
             {
                 services.AddSingleton<IBrowserLauncher>(launcher);
+                services.AddSingleton<IScanCacheService>(fakeCacheService);
             });
 
             // 4. Wait for the URL
@@ -183,8 +209,15 @@ public sealed class GuiFrontendEndToEndTests
             var title = await page.TitleAsync();
             Assert.Contains("CheckModsExtended // MANAGER", title);
 
-            // Click scan just in case it doesn't auto-scan
-            await page.ClickAsync("#btn-scan");
+            // Wait for the CACHED badge
+            var cacheIndicator = page.Locator("#cache-indicator");
+            await cacheIndicator.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+            var cacheText = await cacheIndicator.InnerTextAsync();
+            Assert.Contains("CACHED", cacheText);
+
+            // Wait for the toast to indicate auto-scan finished
+            var toastContainer = page.Locator("#toast-container");
+            await toastContainer.Filter(new LocatorFilterOptions { HasText = "Scan complete." }).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
             // Wait for the table to populate with the FakeMod
             var modRow = page.Locator("text='FakeMod'");

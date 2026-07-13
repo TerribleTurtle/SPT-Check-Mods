@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cacheIndicator = document.getElementById('cache-indicator');
                 if (cacheIndicator) {
                     cacheIndicator.style.display = 'inline-block';
+                    cacheIndicator.classList.remove('hidden');
                 }
                 
                 render();
@@ -434,6 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cacheIcon = document.getElementById('cache-indicator-icon');
         if (cacheIndicator) {
             cacheIndicator.style.display = 'inline-block';
+                    cacheIndicator.classList.remove('hidden');
             cacheIndicator.style.backgroundColor = 'var(--status-warning)';
             cacheIndicator.style.borderColor = 'var(--status-warning)';
             cacheIndicator.classList.add('pulsing-cache');
