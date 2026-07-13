@@ -40,7 +40,7 @@
 
         <main class="dashboard" id="main-content">
             <!-- Workspace Overview -->
-            <div id="workspace-overview" class="workspace-overview" class="hidden">
+            <div id="workspace-overview" class="workspace-overview hidden">
                 <!-- Populated by JS -->
             </div>
             
@@ -68,9 +68,9 @@
             <div class="master-detail-container">
                 <!-- Master List -->
                 <div class="master-list">
-                    <div class="table-container" class="relative">
-                        <div id="table-loading-indicator" class="table-loading-bar" class="hidden"></div>
-                        <table class="mod-table" class="w-full">
+                    <div class="table-container relative">
+                        <div id="table-loading-indicator" class="table-loading-bar hidden"></div>
+                        <table class="mod-table w-full">
                             <thead>
                                 <tr>
                                     <th class="text-left w-40px">
@@ -79,7 +79,7 @@
                                     <th data-sortable="status" aria-sort="none" class="text-left">Status</th>
                                     <th data-sortable="name" aria-sort="none" class="text-left">Mod Name</th>
                                     <th data-sortable="type" aria-sort="none" class="text-left">Type</th>
-                                    <th data-sortable="version" aria-sort="none" class="col-version" class="text-right">Version</th>
+                                    <th data-sortable="version" aria-sort="none" class="col-version text-right">Version</th>
                                 </tr>
                             </thead>
                             <tbody id="mods-list">
@@ -110,8 +110,8 @@
             <div id="bulk-bar" class="bulk-bar bulk-bar-hidden">
                 <span id="bulk-count">0 selected</span>
                 <button id="btn-bulk-open" class="btn-primary">Update Selected</button>
-                <button id="btn-bulk-ignore" class="btn-secondary" class="text-warning">Ignore All</button>
-                <button id="btn-bulk-clear" class="btn-secondary" class="ml-auto">Clear</button>
+                <button id="btn-bulk-ignore" class="btn-secondary text-warning">Ignore All</button>
+                <button id="btn-bulk-clear" class="btn-secondary ml-auto">Clear</button>
             </div>
         </main>
 

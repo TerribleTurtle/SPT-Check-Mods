@@ -127,3 +127,21 @@ export function applySort(mods, sort) {
         return 0;
     });
 }
+
+export function setMods(mods) { state.mods = mods; }
+export function setFilteredMods(filteredMods) { state.filteredMods = filteredMods; }
+export function setSearchFilter(search) { state.filters.search = search; }
+export function setStatusFilter(status) { state.filters.status = status; }
+export function setSort(column, direction) { state.sort.column = column; state.sort.direction = direction; }
+export function setSortColumn(column) { state.sort.column = column; }
+export function setSortDirection(direction) { state.sort.direction = direction; }
+export function setScanning(scanning) { state.ui.scanning = scanning; }
+export function setConsoleCollapsed(collapsed) { state.ui.consoleCollapsed = collapsed; }
+export function setLastFocus(lastFocus) { state.ui.lastFocus = lastFocus; }
+export function setLastScan(lastScan) { state.meta.lastScan = lastScan; }
+export function setAppVersion(appVersion) { state.meta.appVersion = appVersion; }
+export function setSptVersion(sptVersion) { state.meta.sptVersion = sptVersion; }
+export function setThemeMeta(theme) { state.meta.theme = theme; }
+export function clearSelectedIds() { state.ui.selectedIds.clear(); }
+export function addSelectedId(id) { state.ui.selectedIds.add(String(id)); }
+export function removeSelectedId(id) { state.ui.selectedIds.delete(String(id)); }

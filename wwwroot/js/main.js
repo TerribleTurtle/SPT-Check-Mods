@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { state , setMods, setFilteredMods, setSearchFilter, setStatusFilter, setSortColumn, setSortDirection, setScanning, setConsoleCollapsed, setLastFocus, setLastScan, setAppVersion, setSptVersion, setThemeMeta, clearSelectedIds, addSelectedId, removeSelectedId } from './state.js';;
 import { fetchStatus, fetchScan, fetchCache, ignoreMod, unignoreMod, systemOpen } from './api.js';
 import { logToConsole } from './utils.js';
 import { setTheme, setFilter, render } from './ui/table.js';
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Restore filter status
         const savedFilterStatus = localStorage.getItem('cme-filter-status');
         if (savedFilterStatus) {
-            state.filters.status = savedFilterStatus;
+            setStatusFilter(savedFilterStatus);
             document.querySelectorAll('.chip').forEach(c => {
                 if (c.dataset.filter === savedFilterStatus) c.classList.add('active');
                 else c.classList.remove('active');
@@ -51,19 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch initial status
         fetchStatus().then(data => {
             if (data && data.version) {
-                state.meta.appVersion = data.version;
+                setAppVersion(data.version);
                 appVersionEl.textContent = `v${data.version}`;
             }
             if (data && data.sptVersion) {
-                state.meta.sptVersion = data.sptVersion;
+                setSptVersion(data.sptVersion);
                 sptVersionEl.textContent = `SPT v${data.sptVersion}`;
                 sptVersionEl.hidden = false;
             }
         }).finally(async () => {
             const cacheData = await fetchCache();
             if (cacheData && cacheData.response) {
-                state.mods = cacheData.response.mods || [];
-                state.meta.lastScan = new Date(cacheData.cachedAtUtc).getTime();
+                setMods(cacheData.response.mods || []);
+                setLastScan(new Date(cacheData.cachedAtUtc).getTime());
                 
                 const cacheIndicator = document.getElementById('cache-indicator');
                 if (cacheIndicator) {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCloseDetail.addEventListener('click', () => {
             const selectedRow = document.querySelector('#mods-list tr.selected');
             document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
-            state.ui.selectedIds.clear();
+            clearSelectedIds();
             showOverview();
             if (selectedRow) {
                 const checkbox = selectedRow.querySelector('.row-checkbox');
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ignoreModal.classList.add('hidden');
                     if (state.ui.lastFocus) {
                         state.ui.lastFocus.focus();
-                        state.ui.lastFocus = null;
+                        setLastFocus(null);
                     }
                 }
             });
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ignoreModal.classList.add('hidden');
                     if (state.ui.lastFocus) {
                         state.ui.lastFocus.focus();
-                        state.ui.lastFocus = null;
+                        setLastFocus(null);
                     }
                 }
             });
@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const savedSortCol = localStorage.getItem('cme-sort-column');
         const savedSortDir = localStorage.getItem('cme-sort-direction');
-        if (savedSortCol) state.sort.column = savedSortCol;
-        if (savedSortDir) state.sort.direction = savedSortDir;
+        if (savedSortCol) setSortColumn(savedSortCol);
+        if (savedSortDir) setSortDirection(savedSortDir);
 
         const searchInput = document.getElementById('search-input');
         let searchTimeout;
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
-                    state.filters.search = e.target.value.toLowerCase();
+                    setSearchFilter(e.target.value.toLowerCase());
                     render();
                 }, 250);
             });
@@ -155,17 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const col = e.currentTarget.dataset.sortable;
                 if (state.sort.column === col) {
                     if (state.sort.direction === 'asc') {
-                        state.sort.direction = 'desc';
+                        setSortDirection('desc');
                     } else if (state.sort.direction === 'desc' && col === 'type') {
-                        state.sort.direction = 'paired';
+                        setSortDirection('paired');
                     } else {
                         // Clear to default 'status' asc, UNLESS we clicked 'status', then clear to 'name' asc
-                        state.sort.column = col === 'status' ? 'name' : 'status';
-                        state.sort.direction = 'asc';
+                        setSortColumn(col === 'status' ? 'name' : 'status');
+                        setSortDirection('asc');
                     }
                 } else {
-                    state.sort.column = col;
-                    state.sort.direction = 'asc';
+                    setSortColumn(col);
+                    setSortDirection('asc');
                 }
                 localStorage.setItem('cme-sort-column', state.sort.column);
                 localStorage.setItem('cme-sort-direction', state.sort.direction);
@@ -177,9 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectAll) {
             selectAll.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    state.filteredMods.forEach(m => state.ui.selectedIds.add(String(m.id)));
+                    state.filteredMods.forEach(m => addSelectedId(m.id));
                 } else {
-                    state.filteredMods.forEach(m => state.ui.selectedIds.delete(String(m.id)));
+                    state.filteredMods.forEach(m => removeSelectedId(m.id));
                 }
                 render();
             });
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 btnBulkIgnore.disabled = false;
                 btnBulkIgnore.classList.remove('is-loading');
-                state.ui.selectedIds.clear();
+                clearSelectedIds();
                 handleScan();
             });
         }
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnBulkClear = document.getElementById('btn-bulk-clear');
         if (btnBulkClear) {
             btnBulkClear.addEventListener('click', () => {
-                state.ui.selectedIds.clear();
+                clearSelectedIds();
                 render();
             });
         }
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ignoreModal.classList.add('hidden');
                 if (state.ui.lastFocus) {
                     state.ui.lastFocus.focus();
-                    state.ui.lastFocus = null;
+                    setLastFocus(null);
                 }
                 return;
             }
@@ -332,8 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (checkbox) {
             if (checkbox.id === 'select-all') return;
             const id = checkbox.value;
-            if (checkbox.checked) state.ui.selectedIds.add(id);
-            else state.ui.selectedIds.delete(id);
+            if (checkbox.checked) addSelectedId(id);
+            else removeSelectedId(id);
             const tr = checkbox.closest('tr');
             if (tr) {
                 if (checkbox.checked) tr.classList.add('selected');
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function handleBackgroundScan() {
         if (state.ui.scanning) return;
-        state.ui.scanning = true;
+        setScanning(true);
         btnScan.disabled = true;
         btnScan.textContent = '[ SCANNING... ]';
         
@@ -447,8 +447,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const results = await fetchScan();
-            state.mods = results.mods || [];
-            state.meta.lastScan = Date.now();
+            setMods(results.mods || []);
+            setLastScan(Date.now());
             
             showToast(`Scan complete. ${state.mods.length} entities analyzed.`, 'success');
             render();
@@ -456,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast(`Scan failed: ${error.message}`, 'error');
         } finally {
             if (tableLoader) tableLoader.style.display = 'none';
-            state.ui.scanning = false;
+            setScanning(false);
             updateLastScanTime();
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleScan() {
         if (state.ui.scanning) return;
         
-        state.ui.scanning = true;
+        setScanning(true);
         btnScan.disabled = true;
         btnScan.textContent = '[ SCANNING... ]';
         
@@ -488,9 +488,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const results = await fetchScan();
-            state.mods = results.mods || [];
+            setMods(results.mods || []);
             
-            state.meta.lastScan = Date.now();
+            setLastScan(Date.now());
             
             showToast(`Scan complete. ${state.mods.length} entities analyzed.`, 'success');
             render();
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderEmptyState(`Scan failed: ${error.message}`, 'error');
         } finally {
             stopLoaderAnimation();
-            state.ui.scanning = false;
+            setScanning(false);
             updateLastScanTime();
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
