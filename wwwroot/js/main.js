@@ -148,8 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (state.sort.direction === 'asc') {
                         state.sort.direction = 'desc';
                     } else {
-                        // Clear to default sort
-                        state.sort.column = 'status';
+                        // 3rd click: Clear to default 'status' asc, UNLESS we clicked 'status', then clear to 'name' asc
+                        state.sort.column = col === 'status' ? 'name' : 'status';
                         state.sort.direction = 'asc';
                     }
                 } else {
@@ -398,6 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnScan.textContent = '[ SCANNING... ]';
         
         logToConsole('> INITIATING BACKGROUND SCAN...', 'warn');
+        
+        const tableLoader = document.getElementById('table-loading-indicator');
+        if (tableLoader) tableLoader.style.display = 'block';
 
         try {
             const results = await fetchScan();
@@ -416,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             logToConsole(`> SCAN FAILED: ${error.message}`, 'error');
         } finally {
+            if (tableLoader) tableLoader.style.display = 'none';
             state.ui.scanning = false;
             btnScan.disabled = false;
             btnScan.textContent = '[ SCAN LOCAL MODS ]';
