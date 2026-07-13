@@ -20,10 +20,15 @@ public static class WebEndpoints
     private static readonly SemaphoreSlim _statusLock = new(1, 1);
     private static string[] _args = Array.Empty<string>();
 
+    /// <summary>
+    /// Maps the Web Manager endpoints to the provided application.
+    /// </summary>
+    /// <param name="app">The web application.</param>
+    /// <param name="args">Command line arguments.</param>
     public static void MapEndpoints(WebApplication app, string[] args)
     {
         _args = args;
-        var api = app.MapGroup("/api");
+        RouteGroupBuilder api = app.MapGroup("/api");
 
         api.MapGet("/status", GetStatusAsync);
         api.MapGet("/cache", GetCacheAsync);
@@ -43,14 +48,14 @@ public static class WebEndpoints
         await _statusLock.WaitAsync(token);
         try
         {
-            var path = _args.Length > 0 ? _args[0] : Environment.CurrentDirectory;
-            var sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token);
+            string path = _args.Length > 0 ? _args[0] : Environment.CurrentDirectory;
+            SemanticVersioning.Version? sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token);
 
             bool updateAvailable = false;
             string? latestAppVersion = null;
             if (sptVer != null)
             {
-                var updateInfo = await updateCheck.CheckAsync(sptVer, token);
+                CheckModsExtendedUpdateResult updateInfo = await updateCheck.CheckAsync(sptVer, token);
                 updateAvailable = updateInfo.Status == CheckModsExtendedUpdateStatus.UpdateAvailable;
                 latestAppVersion = updateInfo.LatestVersion;
             }
@@ -71,7 +76,7 @@ public static class WebEndpoints
     {
         try
         {
-            var cache = await cacheService.LoadCacheAsync(token);
+            ScanCacheRecord? cache = await cacheService.LoadCacheAsync(token);
             if (cache != null)
             {
                 return Results.Ok(cache);
@@ -88,8 +93,8 @@ public static class WebEndpoints
     {
         try
         {
-            var context = await orchestrator.RunPipelineAsync(_args, token);
-            var response = ScanResponseMapper.Map(context);
+            UpdateWorkflowContext context = await orchestrator.RunPipelineAsync(_args, token);
+            ScanResponse response = ScanResponseMapper.Map(context);
             return Results.Ok(response);
         }
         catch (Exception ex)
@@ -102,7 +107,9 @@ public static class WebEndpoints
     {
         try
         {
-            var req = await request.ReadFromJsonAsync(CheckModsExtendedJsonSerializerContext.Default.IgnoreRequest, cancellationToken: token) as IgnoreRequest;
+            IgnoreRequest? req = await request.ReadFromJsonAsync(
+                CheckModsExtendedJsonSerializerContext.Default.IgnoreRequest, 
+                cancellationToken: token) as IgnoreRequest;
             if (req != null && req.Id > 0 && !string.IsNullOrEmpty(req.LocalVersion) && !string.IsNullOrEmpty(req.LatestVersion))
             {
                 await ignoreService.AddIgnoreAsync(req.Id, req.LocalVersion, req.LatestVersion, token);
@@ -120,7 +127,7 @@ public static class WebEndpoints
     {
         try
         {
-            var existing = await ignoreService.GetIgnoresAsync(token);
+            System.Collections.Generic.IReadOnlyList<IgnoredUpdate> existing = await ignoreService.GetIgnoresAsync(token);
             return Results.Ok(existing);
         }
         catch (Exception ex)
@@ -151,7 +158,7 @@ public static class WebEndpoints
             return Results.BadRequest(new ErrorResponse("Target is required"));
         }
 
-        var result = browserLauncher.TryOpenUrl(req.Target);
+        OneOf.OneOf<OneOf.Types.Success, ApiError> result = browserLauncher.TryOpenUrl(req.Target);
         return result.Match(
             success => Results.Ok(new MessageResponse("Opened target")),
             apiError => Results.BadRequest(new ErrorResponse(apiError.Message))

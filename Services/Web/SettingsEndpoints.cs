@@ -7,11 +7,19 @@ using CheckModsExtended.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using OneOf;
 
 namespace CheckModsExtended.Services.Web;
 
+/// <summary>
+/// Registers the REST API endpoints for settings management.
+/// </summary>
 public static class SettingsEndpoints
 {
+    /// <summary>
+    /// Maps the settings endpoints to the provided route group builder.
+    /// </summary>
+    /// <param name="api">The route group builder.</param>
     public static void MapSettingsEndpoints(RouteGroupBuilder api)
     {
         api.MapGet("/settings", GetSettingsAsync);
@@ -22,7 +30,7 @@ public static class SettingsEndpoints
     {
         try
         {
-            var settings = await settingsService.GetSettingsAsync(token);
+            string settings = await settingsService.GetSettingsAsync(token);
             return Results.Content(settings, "application/json");
         }
         catch (Exception ex)
@@ -35,10 +43,10 @@ public static class SettingsEndpoints
     {
         try
         {
-            using var reader = new StreamReader(request.Body);
-            var content = await reader.ReadToEndAsync(token);
+            using StreamReader reader = new StreamReader(request.Body);
+            string content = await reader.ReadToEndAsync(token);
             
-            var result = await settingsService.UpdateSettingsAsync(content, token);
+            OneOf<MessageResponse, ApiError> result = await settingsService.UpdateSettingsAsync(content, token);
 
             return result.Match(
                 success => Results.Ok(success),

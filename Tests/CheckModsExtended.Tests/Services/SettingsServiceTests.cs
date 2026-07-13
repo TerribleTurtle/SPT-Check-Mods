@@ -8,7 +8,7 @@ using Xunit;
 
 namespace CheckModsExtended.Tests.Services;
 
-public class SettingsServiceTests
+public sealed class SettingsServiceTests
 {
     private readonly FakeFileSystem _fileSystem;
     private readonly SettingsService _settingsService;
@@ -22,10 +22,10 @@ public class SettingsServiceTests
     [Fact]
     public async Task GetSettingsAsync_FallsBackToExample_IfAppSettingsIsMissing()
     {
-        var exampleJson = "{\"setting\": \"example\"}";
+        string exampleJson = "{\"setting\": \"example\"}";
         _fileSystem.Files["appsettings.example.json"] = System.Text.Encoding.UTF8.GetBytes(exampleJson);
 
-        var result = await _settingsService.GetSettingsAsync();
+        string result = await _settingsService.GetSettingsAsync();
 
         Assert.Equal(exampleJson, result);
     }
@@ -33,7 +33,7 @@ public class SettingsServiceTests
     [Fact]
     public async Task GetSettingsAsync_ReturnsEmptyObject_IfBothAreMissing()
     {
-        var result = await _settingsService.GetSettingsAsync();
+        string result = await _settingsService.GetSettingsAsync();
 
         Assert.Equal("{}", result);
     }
@@ -41,23 +41,23 @@ public class SettingsServiceTests
     [Fact]
     public async Task UpdateSettingsAsync_ReturnsSuccess_IfJsonIsValid()
     {
-        var validJson = "{\"setting\": \"new value\"}";
+        string validJson = "{\"setting\": \"new value\"}";
 
-        var result = await _settingsService.UpdateSettingsAsync(validJson);
+        OneOf.OneOf<MessageResponse, ApiError> result = await _settingsService.UpdateSettingsAsync(validJson);
 
         Assert.True(result.IsT0);
         Assert.NotNull(result.AsT0.Message);
         
-        var writtenContent = await _fileSystem.ReadAllTextAsync("appsettings.json");
+        string writtenContent = await _fileSystem.ReadAllTextAsync("appsettings.json");
         Assert.Equal(validJson, writtenContent);
     }
 
     [Fact]
     public async Task UpdateSettingsAsync_ReturnsApiError_IfJsonIsInvalid()
     {
-        var invalidJson = "{ invalid json";
+        string invalidJson = "{ invalid json";
 
-        var result = await _settingsService.UpdateSettingsAsync(invalidJson);
+        OneOf.OneOf<MessageResponse, ApiError> result = await _settingsService.UpdateSettingsAsync(invalidJson);
 
         Assert.True(result.IsT1);
         Assert.IsType<ApiError>(result.AsT1);
