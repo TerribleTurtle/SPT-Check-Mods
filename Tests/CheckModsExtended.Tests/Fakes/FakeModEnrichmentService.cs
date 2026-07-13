@@ -1,5 +1,6 @@
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Tests.Fakes;
 

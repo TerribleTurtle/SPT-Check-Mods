@@ -167,7 +167,7 @@ public sealed class CliEndToEndTests
         {
             server.Stop();
             server.Dispose();
-            Environment.SetEnvironmentVariable("ForgeApi__BaseUrl", null);
+            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", null);
 
             if (Directory.Exists(tempDir))
             {

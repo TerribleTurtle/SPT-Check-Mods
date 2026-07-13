@@ -3,6 +3,7 @@ using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Services;
 

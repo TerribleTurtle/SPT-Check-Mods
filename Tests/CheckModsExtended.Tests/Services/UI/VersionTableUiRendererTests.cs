@@ -6,6 +6,7 @@ using CheckModsExtended.Tests.Fixtures;
 using Spectre.Console;
 using Spectre.Console.Testing;
 using Xunit;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Tests.Services.UI;
 

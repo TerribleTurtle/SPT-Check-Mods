@@ -1,4 +1,5 @@
 using CheckModsExtended.Utils;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Tests.Utils;
 

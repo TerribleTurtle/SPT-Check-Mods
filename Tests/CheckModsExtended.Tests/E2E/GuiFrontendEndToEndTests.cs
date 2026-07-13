@@ -189,11 +189,11 @@ public sealed class GuiFrontendEndToEndTests
             
             // Wait for the table to populate with the FakeMod
             var modRow = page.Locator("text='FakeMod'");
-            await modRow.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+            await modRow.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
             
             // Wait for version 1.0.1 (from the mocked API) to appear
             var versionCell = page.Locator("text='v1.0.1'");
-            await versionCell.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 5000 });
+            await versionCell.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
             // Cleanup
             await browser.CloseAsync();
@@ -210,7 +210,7 @@ public sealed class GuiFrontendEndToEndTests
         {
             server.Stop();
             server.Dispose();
-            Environment.SetEnvironmentVariable("ForgeApi__BaseUrl", null);
+            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", null);
 
             if (Directory.Exists(tempDir))
             {

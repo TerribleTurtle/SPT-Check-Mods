@@ -3,6 +3,7 @@ using CheckModsExtended.Services;
 using CheckModsExtended.Tests.Fakes;
 using CheckModsExtended.Tests.Fixtures;
 using Microsoft.Extensions.Logging.Abstractions;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Tests;
 

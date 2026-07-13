@@ -1,5 +1,6 @@
 using CheckModsExtended.Models;
 using OneOf;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Utils;
 

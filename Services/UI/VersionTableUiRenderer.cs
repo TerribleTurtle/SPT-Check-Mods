@@ -5,6 +5,7 @@ using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using Spectre.Console;
 using SPTarkov.DI.Annotations;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Services.UI;
 

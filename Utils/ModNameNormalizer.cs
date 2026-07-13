@@ -1,3 +1,4 @@
+using Raffinert.FuzzySharp;
 using System.Collections.Immutable;
 
 namespace CheckModsExtended.Utils;
@@ -83,7 +84,7 @@ public static class ModNameNormalizer
             return 0;
         }
 
-        return FuzzySharp.Fuzz.Ratio(normalized1, normalized2);
+        return Fuzz.Ratio(normalized1, normalized2);
     }
 
     /// <summary>

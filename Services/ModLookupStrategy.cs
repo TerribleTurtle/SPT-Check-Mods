@@ -9,6 +9,7 @@ using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using SPTarkov.DI.Annotations;
 using Version = SemanticVersioning.Version;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Services;
 

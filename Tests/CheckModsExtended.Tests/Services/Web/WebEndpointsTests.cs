@@ -24,7 +24,7 @@ public class WebEndpointsTests
     public async Task Get_Cache_WithValidCache_ReturnsOk()
     {
         var cacheService = new FakeScanCacheService();
-        var cacheRecord = new ScanCacheRecord(System.DateTimeOffset.UtcNow, new ScanResponse(new List<ModDto>(), null, null));
+        var cacheRecord = new ScanCacheRecord(System.TimeProvider.System.GetUtcNow(), new ScanResponse(new List<ModDto>(), null, null));
         await cacheService.SaveCacheAsync(cacheRecord);
 
         var launcher = new TestBrowserLauncher();

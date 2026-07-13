@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
 using OneOf;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Services.Interfaces;
 

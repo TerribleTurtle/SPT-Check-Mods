@@ -3,6 +3,7 @@ using CheckModsExtended.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using OneOf;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Services.Decorators;
 

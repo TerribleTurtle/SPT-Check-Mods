@@ -54,6 +54,24 @@ Phase 3
   - [x] Frontend Bootstrapping & UI indicators (`main.js` & CSS) and verify manually
 - **Status:** completed
 
+### Phase 7: QA Audit & Flakiness Resolution (Parallel Subagents A & B)
+- [ ] Step 7.1 — Subagent A (Flakiness Terminator)
+  - [ ] Fix WireMock global environment variable leak (`ForgeApiOptions__BaseUrl` vs `ForgeApi__BaseUrl`) in E2E tests.
+  - [ ] Replace `DateTimeOffset.UtcNow` with `TimeProvider.System` in `ScanCacheServiceTests` and `WebEndpointsTests`.
+  - [ ] Remove Playwright hardcoded `Timeout = 5000` magic numbers.
+- [ ] Step 7.2 — Subagent B (API Boundary Enforcer)
+  - [ ] Refactor Command tests (`CleanCommandTests`, etc.) to remove `System.Reflection` (Implementation Leakage).
+  - [ ] Fix weak assertions (`Assert.Null(exception)`) in UI renderer tests to validate actual HTML output.
+- **Status:** not started
+
+### Phase 8: Closing the Coverage Gaps (Parallel Subagents C & D)
+- [ ] Step 8.1 — Subagent C (Pipeline Engineer)
+  - [ ] Write test suites for the 13 untested pipeline steps in `Services/Pipeline/Steps/`.
+- [ ] Step 8.2 — Subagent D (Network & Error Handling Expert)
+  - [ ] Write tests for core network clients (`ForgeApiClient`, `ModSearchClient`, `ModUpdateClient`).
+  - [ ] Implement missing filesystem error paths (`UnauthorizedAccessException` / `IOException`) in `ModScannerServiceTests` and `SptInstallationServiceTests`.
+- **Status:** not started
+
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|

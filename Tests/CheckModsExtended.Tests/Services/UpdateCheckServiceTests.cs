@@ -4,6 +4,7 @@ using CheckModsExtended.Services;
 using CheckModsExtended.Tests.Fakes;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Tests.Services;
 

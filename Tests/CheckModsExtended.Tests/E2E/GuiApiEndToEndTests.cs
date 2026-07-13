@@ -211,7 +211,7 @@ public sealed class GuiApiEndToEndTests
         {
             server.Stop();
             server.Dispose();
-            Environment.SetEnvironmentVariable("ForgeApi__BaseUrl", null);
+            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", null);
 
             if (Directory.Exists(tempDir))
             {

@@ -3,6 +3,7 @@ using CheckModsExtended.Services;
 using CheckModsExtended.Tests.Fakes;
 using Xunit;
 using Version = SemanticVersioning.Version;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Tests.Services;
 

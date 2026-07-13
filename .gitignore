@@ -154,3 +154,22 @@ fika_test.json
 findings.md
 progress.md
 .worktrees/
+
+# OS Artifacts
+.DS_Store
+Thumbs.db
+
+# Certs/Keys
+*.pem
+*.key
+*.pfx
+*.p12
+*.publishsettings
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Frontend
+node_modules/

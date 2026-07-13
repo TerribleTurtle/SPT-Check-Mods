@@ -39,7 +39,7 @@ public class ScanCacheServiceTests
     public async Task SaveAndLoadCacheAsync_WorksCorrectly()
     {
         var response = new ScanResponse(new List<ModDto>(), null, "3.8.0");
-        var record = new ScanCacheRecord(DateTimeOffset.UtcNow, response);
+        var record = new ScanCacheRecord(TimeProvider.System.GetUtcNow(), response);
 
         await _service.SaveCacheAsync(record);
         

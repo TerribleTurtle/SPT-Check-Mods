@@ -6,6 +6,7 @@ using CheckModsExtended.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf;
+using SemanticVersioning;
 
 namespace CheckModsExtended.Services;
 
