@@ -1,6 +1,7 @@
 .table-container {
     flex-grow: 1;
     overflow-y: auto;
+    overflow-x: auto;
     display: flex;
     flex-direction: column;
 }
@@ -68,7 +69,7 @@
 
 .mod-card:hover {
     background-color: var(--bg-elevated);
-    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .mod-card.selected {
