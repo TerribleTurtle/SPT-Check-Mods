@@ -39,7 +39,7 @@ public class SettingsService : ISettingsService
     {
         // Validate JSON before saving
         try { JsonDocument.Parse(jsonPayload); }
-        catch { return new ApiError("Invalid JSON payload"); }
+        catch (JsonException) { return new ApiError("Invalid JSON payload"); }
 
         await _fileSystem.WriteAllTextAsync("appsettings.json", jsonPayload, token);
         return new MessageResponse("Settings saved successfully. A restart may be required for some settings to take effect.");
