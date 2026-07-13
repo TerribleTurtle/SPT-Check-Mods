@@ -15,9 +15,10 @@
 /* Header */
 .app-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 30px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-md);
     border-bottom: 2px solid var(--border-default);
     background-color: var(--bg-surface);
 }
@@ -43,6 +44,7 @@
 /* Master-Detail Container */
 .master-detail-container {
     display: flex;
+    flex-direction: column;
     flex: 1;
     gap: var(--space-lg);
     overflow: hidden;
@@ -52,7 +54,7 @@
 
 /* Master List */
 .master-list {
-    flex: 1;
+    flex: 1 1 100%;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--border-default);
@@ -64,16 +66,14 @@
 
 .detail-pane {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 40%;
-    min-width: 350px;
-    z-index: 10;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 50;
     display: flex;
     flex-direction: column;
-    border-left: 1px solid var(--border-default);
-    background-color: var(--bg-surface);
+    background: var(--bg-overlay);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
     transition: opacity 350ms cubic-bezier(0.25, 1, 0.5, 1), transform 350ms cubic-bezier(0.25, 1, 0.5, 1);
@@ -137,34 +137,37 @@
 
 
 
-/* ───── Tablet ≤1024px ───── */
-@media (max-width: 1024px) {
-  .app-header { flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); }
-  .header-controls { width: 100%; display: flex; gap: var(--space-sm); }
-  .dashboard { padding: var(--space-md); }
+/* ───── Base: Mobile First Defaults ───── */
+.stat-box { flex: 1 1 100%; }
+.header-controls { width: 100%; display: flex; flex-direction: column; gap: var(--space-sm); }
+.filter-chips { flex-wrap: wrap; }
+.dashboard { padding: var(--space-md); }
+
+/* ───── Mobile > 480px ───── */
+@media (min-width: 481px) {
+  .header-controls { flex-direction: row; }
 }
 
-/* ───── Mobile ≤768px ───── */
-@media (max-width: 768px) {
-  .master-detail-container { flex-direction: column; position: relative; }
-  .master-list { flex: 1 1 100%; }
+/* ───── Tablet ≥768px ───── */
+@media (min-width: 768px) {
+  .master-detail-container { flex-direction: row; }
+  .master-list { flex: 1; }
   
   .detail-pane {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 50;
-      background: var(--bg-overlay);
-      backdrop-filter: blur(10px);
-      border: none;
-      border-radius: 0;
+      top: 0; right: 0; bottom: 0; left: auto;
+      width: 40%;
+      min-width: min(350px, 100vw);
+      z-index: 10;
+      background-color: var(--bg-surface);
+      backdrop-filter: none;
+      border-left: 1px solid var(--border-default);
   }
-  
-  button, .btn-secondary, .btn-primary { min-height: 44px; min-width: 44px; padding: var(--space-sm) var(--space-md); }
 }
 
-/* ───── Small Mobile ≤480px ───── */
-@media (max-width: 480px) {
-  .stat-box { flex: 1 1 100%; }
-  .header-controls { flex-direction: column; }
-  .filter-chips { flex-wrap: wrap; }
+/* ───── Desktop ≥1025px ───── */
+@media (min-width: 1025px) {
+  .app-header { flex-direction: row; justify-content: space-between; align-items: center; padding: 20px 30px; }
+  .header-controls { width: auto; }
+  .dashboard { padding: 20px; }
 }
