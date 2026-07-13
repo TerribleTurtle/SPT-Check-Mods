@@ -42,7 +42,15 @@ public sealed class Program
     /// <summary>
     /// Sets up dependency injection, runs the application, and handles any unhandled exceptions.
     /// </summary>
-    /// <param name="args">Command line arguments. The only argument is the SPT installation path.</param>
+    /// <param name="args">
+    /// Command line arguments. Parsed arguments include:
+    /// 'gui' - Launches the web UI.
+    /// 'cli' - Explicitly runs in CLI mode.
+    /// '-v', '--verbose' - Enables verbose logging.
+    /// '-d', '--debug' - Enables debug logging.
+    /// '--no-prompt', '-y' - Runs in headless mode without user prompts.
+    /// [SptPath] - Optional path to the SPT installation directory.
+    /// </param>
     [System.Diagnostics.CodeAnalysis.DynamicDependency(
         System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All,
         typeof(Commands.CheckModsCommand)

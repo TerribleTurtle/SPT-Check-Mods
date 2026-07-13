@@ -9,6 +9,9 @@ using Spectre.Console.Cli;
 
 namespace CheckModsExtended.Commands;
 
+/// <summary>
+/// Command to manually add a mod to the ignored updates list.
+/// </summary>
 public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
 {
     private readonly IIgnoredUpdateStore _store;
@@ -35,6 +38,13 @@ public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
         _reporter = reporter;
     }
 
+    /// <summary>
+    /// Executes the ignore add command asynchronously.
+    /// </summary>
+    /// <param name="context">The command context.</param>
+    /// <param name="settings">The command settings.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous execution operation. The task result contains the exit code.</returns>
     protected override async Task<int> ExecuteAsync(
         CommandContext context,
         Settings settings,

@@ -87,6 +87,9 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
 
                 if (endOfRunChoice == EndOfRunChoice.LaunchWebGui)
                 {
+                    // "Process inception": The CLI restarts its own executable but passes the "gui" argument.
+                    // This creates a detached child process running the web dashboard, allowing the current
+                    // CLI process to exit cleanly without keeping the terminal blocked.
                     var processPath = System.Environment.ProcessPath;
                     if (processPath != null)
                     {
