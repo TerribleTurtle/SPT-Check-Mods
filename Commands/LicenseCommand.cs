@@ -13,8 +13,18 @@ namespace CheckModsExtended.Commands;
 /// </summary>
 public sealed class LicenseCommand : AsyncCommand<LicenseCommand.Settings>
 {
+    /// <summary>
+    /// Settings for the license command.
+    /// </summary>
     public sealed class Settings : GlobalSettings { }
 
+    /// <summary>
+    /// Executes the license command asynchronously.
+    /// </summary>
+    /// <param name="context">The command context.</param>
+    /// <param name="settings">The command settings.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous execution operation. The task result contains the exit code.</returns>
     protected override Task<int> ExecuteAsync(
         CommandContext context,
         Settings settings,
@@ -24,6 +34,13 @@ public sealed class LicenseCommand : AsyncCommand<LicenseCommand.Settings>
         return ExecuteInternalAsync(context, settings, cancellationToken);
     }
 
+    /// <summary>
+    /// Internal execution logic for the license command.
+    /// </summary>
+    /// <param name="context">The command context.</param>
+    /// <param name="settings">The command settings.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous execution operation. The task result contains the exit code.</returns>
     internal static Task<int> ExecuteInternalAsync(
         CommandContext context,
         Settings settings,

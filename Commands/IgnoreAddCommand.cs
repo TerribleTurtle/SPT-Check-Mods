@@ -17,6 +17,9 @@ public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
     private readonly IIgnoreService _ignoreService;
     private readonly IModCheckReporter _reporter;
 
+    /// <summary>
+    /// Settings for the ignore add command.
+    /// </summary>
     public sealed class Settings : GlobalSettings
     {
         [CommandArgument(0, "<ApiModId>")]
@@ -32,6 +35,11 @@ public sealed class IgnoreAddCommand : AsyncCommand<IgnoreAddCommand.Settings>
         public string LatestVersion { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IgnoreAddCommand"/> class.
+    /// </summary>
+    /// <param name="ignoreService">The ignore service.</param>
+    /// <param name="reporter">The reporter.</param>
     public IgnoreAddCommand(IIgnoreService ignoreService, IModCheckReporter reporter)
     {
         _ignoreService = ignoreService;

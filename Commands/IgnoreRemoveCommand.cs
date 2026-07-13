@@ -16,6 +16,9 @@ public sealed class IgnoreRemoveCommand : AsyncCommand<IgnoreRemoveCommand.Setti
     private readonly IIgnoreService _ignoreService;
     private readonly IModCheckReporter _reporter;
 
+    /// <summary>
+    /// Settings for the ignore remove command.
+    /// </summary>
     public sealed class Settings : GlobalSettings
     {
         [CommandArgument(0, "<ApiModId>")]
@@ -23,6 +26,11 @@ public sealed class IgnoreRemoveCommand : AsyncCommand<IgnoreRemoveCommand.Setti
         public int ApiModId { get; set; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IgnoreRemoveCommand"/> class.
+    /// </summary>
+    /// <param name="ignoreService">The ignore service.</param>
+    /// <param name="reporter">The reporter.</param>
     public IgnoreRemoveCommand(IIgnoreService ignoreService, IModCheckReporter reporter)
     {
         _ignoreService = ignoreService;

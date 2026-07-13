@@ -40,17 +40,31 @@ public sealed class Program
     }
 
     /// <summary>
-    /// Sets up dependency injection, runs the application, and handles any unhandled exceptions.
+    /// Sets up dependency injection, determines the execution mode (CLI or Web GUI),
+    /// runs the application, and handles any unhandled exceptions globally.
     /// </summary>
     /// <param name="args">
-    /// Command line arguments. Parsed arguments include:
-    /// 'gui' - Launches the web UI.
-    /// 'cli' - Explicitly runs in CLI mode.
-    /// '-v', '--verbose' - Enables verbose logging.
-    /// '-d', '--debug' - Enables debug logging.
-    /// '--no-prompt', '-y' - Runs in headless mode without user prompts.
-    /// [SptPath] - Optional path to the SPT installation directory.
+    /// Command line arguments passed to the application. 
+    /// 
+    /// Global Options:
+    ///   -v, --verbose           Enables verbose logging output.
+    ///   -d, --debug             Enables debug logging output, including full stack traces.
+    ///   -y, --no-prompt         Runs in headless mode, skipping interactive prompts and inferring defaults.
+    ///   -f, --format <TYPE>     Sets the output format (table, json, csv). Defaults to table.
+    /// 
+    /// Execution Modes:
+    ///   gui [args]              Launches the local web UI dashboard. If specified, this must be the first argument.
+    ///   cli [args]              Explicitly runs the application in CLI mode.
+    /// 
+    /// Commands:
+    ///   [SptPath]               (Default Command) Checks for mod updates in the specified SPT path (or current directory).
+    ///   list [SptPath]          Lists locally installed mods without checking for updates.
+    ///   license                 Displays the application license.
+    ///   clean                   Clears the application data directory (configuration overrides, ignored updates, logs).
+    ///   diag                    Zips and exports the application's log files for easy sharing.
+    ///   ignore                  Manages the ignored updates list (subcommands: list, add, remove).
     /// </param>
+    /// <returns>An exit code representing the execution result (<see cref="ExitCodes"/>).</returns>
     [System.Diagnostics.CodeAnalysis.DynamicDependency(
         System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All,
         typeof(Commands.CheckModsCommand)

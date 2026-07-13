@@ -16,6 +16,9 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
     private readonly IModScannerService _scannerService;
     private readonly IModCheckReporter _reporter;
 
+    /// <summary>
+    /// Settings for the list command.
+    /// </summary>
     public sealed class Settings : ListCommandSettings
     {
         [CommandArgument(0, "[SptPath]")]
@@ -23,6 +26,12 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
         public string? SptPath { get; set; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ListModsCommand"/> class.
+    /// </summary>
+    /// <param name="initializationService">The initialization service.</param>
+    /// <param name="scannerService">The mod scanner service.</param>
+    /// <param name="reporter">The mod check reporter.</param>
     public ListModsCommand(
         IInitializationService initializationService,
         IModScannerService scannerService,
@@ -34,6 +43,13 @@ public sealed class ListModsCommand : AsyncCommand<ListModsCommand.Settings>
         _reporter = reporter;
     }
 
+    /// <summary>
+    /// Executes the list mods command asynchronously.
+    /// </summary>
+    /// <param name="context">The command context.</param>
+    /// <param name="settings">The command settings.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous execution operation. The task result contains the exit code.</returns>
     protected override async Task<int> ExecuteAsync(
         CommandContext context,
         Settings settings,

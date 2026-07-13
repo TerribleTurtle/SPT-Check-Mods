@@ -32,6 +32,17 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
         public string? SptPath { get; set; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CheckModsCommand"/> class.
+    /// </summary>
+    /// <param name="orchestrator">The orchestrator for the update workflow.</param>
+    /// <param name="ignoredUpdateWorkflow">The workflow for managing ignored updates.</param>
+    /// <param name="userPromptService">The service for interacting with the user.</param>
+    /// <param name="processRunner">The service for running external processes.</param>
+    /// <param name="pluginScanCache">The cache for plugin scanning.</param>
+    /// <param name="cacheManager">The manager for application caching.</param>
+    /// <param name="scanCacheService">The service for managing scan caches.</param>
+    /// <param name="reporter">The reporter for presenting mod check results.</param>
     public CheckModsCommand(
         IUpdateWorkflowOrchestrator orchestrator,
         IIgnoredUpdateWorkflow ignoredUpdateWorkflow,
@@ -52,6 +63,17 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
         _reporter = reporter;
     }
 
+    /// <summary>
+    /// Executes the main check mods command asynchronously.
+    /// Handles caching, running the update pipeline, and process inception for the Web GUI.
+    /// Process Inception details: If the user chooses to open the GUI at the end of the run,
+    /// the CLI restarts its own executable but passes the "gui" argument. This creates a detached
+    /// child process running the web dashboard, allowing the current CLI process to exit cleanly.
+    /// </summary>
+    /// <param name="context">The command context.</param>
+    /// <param name="settings">The command settings.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous execution operation. The task result contains the exit code.</returns>
     protected override async Task<int> ExecuteAsync(
         CommandContext context,
         Settings settings,

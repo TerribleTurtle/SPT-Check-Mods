@@ -16,6 +16,11 @@ public sealed class IgnoreListCommand : AsyncCommand<ListCommandSettings>
     private readonly IIgnoredUpdateStore _store;
     private readonly IModCheckReporter _reporter;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IgnoreListCommand"/> class.
+    /// </summary>
+    /// <param name="store">The ignored update store.</param>
+    /// <param name="reporter">The reporter.</param>
     public IgnoreListCommand(IIgnoredUpdateStore store, IModCheckReporter reporter)
     {
         _store = store;
