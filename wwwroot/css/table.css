@@ -92,7 +92,8 @@
 
 .mod-card-meta {
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    opacity: 0.85;
     display: flex;
     align-items: center;
     gap: var(--space-sm);
