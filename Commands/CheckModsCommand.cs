@@ -83,7 +83,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
         IReadOnlyList<Mod>? currentMods = null;
 
         var cache = await _scanCacheService.LoadCacheAsync(cancellationToken);
-        if (cache != null && _userPromptService.PromptLoadFromCache(cache.CachedAtUtc))
+        if (cache?.Response?.Mods != null && cache.Response.Mods.Count > 0 && _userPromptService.PromptLoadFromCache(cache.CachedAtUtc))
         {
             _reporter.CachedVersionTable(cache.Response.Mods);
             currentMods = cache.Response.Mods.Select(m => m.ToDomain()).ToList();
