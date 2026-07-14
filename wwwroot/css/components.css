@@ -54,6 +54,24 @@ button:focus-visible, a:focus-visible {
     outline-offset: 2px;
 }
 
+#btn-download-updates, .action-system-open {
+    border-color: var(--status-success);
+    color: var(--status-success);
+}
+#btn-download-updates:hover, .action-system-open:hover {
+    background-color: var(--status-success);
+    color: var(--text-on-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--status-success-bg);
+}
+#btn-download-updates:disabled, .action-system-open:disabled {
+    border-color: var(--border-default);
+    color: var(--text-muted);
+    background-color: transparent;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
 .skip-link {
     position: absolute;
     top: -100px;
@@ -243,7 +261,7 @@ a.btn-secondary {
 .status-pill-blocked  { color: var(--status-error);   background: var(--status-error-bg); }
 .status-pill-incompat { color: var(--status-error);   background: var(--status-error-bg); }
 .status-pill-newer    { color: var(--status-info);    background: var(--status-info-bg); }
-.status-pill-unknown  { color: var(--status-neutral); background: var(--status-neutral-bg); }
+.status-pill-unknown  { color: var(--text-muted); background: transparent; border: 1px dashed var(--border-default); }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: var(--space-sm); padding: var(--space-md); align-items: center; }
 .search-wrapper { position: relative; flex: 1; min-width: 200px; }
@@ -336,7 +354,7 @@ a.btn-secondary {
 .badge-error { color: var(--status-error); background: var(--status-error-bg); border-color: var(--status-error); }
 .badge-success { color: var(--status-success); background: var(--status-success-bg); border-color: var(--status-success); }
 .badge-info { color: var(--status-info); background: var(--status-info-bg); border-color: var(--status-info); }
-.badge-neutral { color: var(--status-neutral); background: var(--status-neutral-bg); border-color: var(--status-neutral); }
+.badge-neutral { color: var(--text-muted); background: transparent; border-color: var(--border-default); border-style: dashed; }
 
 /* Status Dots */
 .status-dot {

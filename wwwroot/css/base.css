@@ -19,8 +19,8 @@
   --bg-elevated: #242830;
   --bg-overlay:  #2E333B;
   --text-primary:   #E5E7EB;
-  --text-secondary: #9CA3AF;
-  --text-muted:     #6B7280;
+  --text-secondary: #D1D5DB;
+  --text-muted:     #9CA3AF;
   --accent-brand:       #E46231;
   --accent-brand-hover: #F0764A;
   --status-success:    #4ADE80;
@@ -47,8 +47,8 @@
   --bg-elevated: #1A1D24;
   --bg-overlay:  rgba(26, 29, 36, 0.8);
   --text-primary:   #F3F4F6;
-  --text-secondary: #9CA3AF;
-  --text-muted:     #6B7280;
+  --text-secondary: #D1D5DB;
+  --text-muted:     #9CA3AF;
   --accent-brand:       #E46231;
   --accent-brand-hover: #F0764A;
   --status-success:    #10B981; /* Premium Emerald */
