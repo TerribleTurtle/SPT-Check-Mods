@@ -40,6 +40,11 @@
     user-select: none;
 }
 
+.mod-table td {
+    padding: var(--space-md);
+    vertical-align: middle;
+}
+
 .sort-btn {
     border: none;
     background: transparent;
