@@ -16,6 +16,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **Web UI Polish & Accessibility**: Refactored the Web GUI using a mobile-first responsive architecture. Standardized CSS styling, added non-intrusive Toast notifications for background actions, and improved screen reader accessibility.
 
+### Fixed
+- **Cache Scoping**: Fixed an issue where the global mod cache would prompt you to load results from a different SPT installation when running the CLI. The cache is now strictly bound to the specific SPT installation path it was scanned from.
+
 ## [2.0.3] - 2026-07-12
 
 ### Added
