@@ -224,6 +224,7 @@ export async function renderSettingsDashboard() {
         html += `<div class="settings-group">
             <h3 class="mb-2">App Paths</h3>
             <label class="form-label">App Data Directory</label>
+            <div class="text-muted text-sm mb-2">The root directory for logs, caches, and application state. Default: <code>%APPDATA%\\SptCheckModsExtended</code></div>
             <input type="text" id="setting-AppDataDirectory" class="form-input w-full" value="${escapeHtml(settings.AppPaths?.AppDataDirectory || '')}" placeholder="Leave empty for default">
         </div>`;
         
@@ -233,16 +234,23 @@ export async function renderSettingsDashboard() {
             <label class="form-label flex align-center gap-sm">
                 <input type="checkbox" id="setting-EnableFileLogging" class="row-checkbox" ${settings.LoggingOptions?.EnableFileLogging ? 'checked' : ''}> Enable File Logging
             </label>
-            <label class="form-label mt-2">Minimum Log Level</label>
+            <div class="text-muted text-sm mb-4">Write application logs to disk for troubleshooting.</div>
+
+            <label class="form-label">Minimum Log Level</label>
+            <div class="text-muted text-sm mb-2">Controls the verbosity of the log file.</div>
             <select id="setting-MinimumLogLevel" class="form-input w-full">
                 <option value="Debug" ${settings.LoggingOptions?.MinimumLogLevel === 'Debug' ? 'selected' : ''}>Debug</option>
                 <option value="Information" ${settings.LoggingOptions?.MinimumLogLevel === 'Information' ? 'selected' : ''}>Information</option>
                 <option value="Warning" ${settings.LoggingOptions?.MinimumLogLevel === 'Warning' ? 'selected' : ''}>Warning</option>
                 <option value="Error" ${settings.LoggingOptions?.MinimumLogLevel === 'Error' ? 'selected' : ''}>Error</option>
             </select>
-            <label class="form-label mt-2">Log File Path</label>
+
+            <label class="form-label mt-4">Log File Path</label>
+            <div class="text-muted text-sm mb-2">The filename for the log file (relative to AppDataDirectory/logs). Default: <code>checkmod.log</code></div>
             <input type="text" id="setting-LogFilePath" class="form-input w-full" value="${escapeHtml(settings.LoggingOptions?.LogFilePath || '')}">
-            <label class="form-label mt-2">Max File Size (Bytes)</label>
+            
+            <label class="form-label mt-4">Max File Size (Bytes)</label>
+            <div class="text-muted text-sm mb-2">Maximum size of a single log file before it rolls over. Default: 10485760 (10MB)</div>
             <input type="number" id="setting-MaxFileSizeBytes" class="form-input w-full" value="${settings.LoggingOptions?.MaxFileSizeBytes || 10485760}">
         </div>`;
 
@@ -250,6 +258,7 @@ export async function renderSettingsDashboard() {
         html += `<div class="settings-group">
             <h3 class="mb-2">Scanner Options</h3>
             <label class="form-label">Max DLL Size (Bytes)</label>
+            <div class="text-muted text-sm mb-2">Maximum size limit for scanning individual mod DLLs. Default: 104857600 (100MB)</div>
             <input type="number" id="setting-MaxDllSizeBytes" class="form-input w-full" value="${settings.ModScannerOptions?.MaxDllSizeBytes || 104857600}">
         </div>`;
 
