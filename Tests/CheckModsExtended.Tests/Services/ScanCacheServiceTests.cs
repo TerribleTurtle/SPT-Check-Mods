@@ -47,6 +47,22 @@ public class ScanCacheServiceTests
 
         Assert.NotNull(loaded);
         Assert.Equal("3.8.0", loaded.Response.SptVersion);
+        Assert.Null(loaded.SptPath);
+    }
+
+    [Fact]
+    public async Task SaveAndLoadCacheAsync_WithSptPath_WorksCorrectly()
+    {
+        var response = new ScanResponse(new List<ModDto>(), null, "3.8.0");
+        var sptPath = "C:\\Games\\SPT";
+        var record = new ScanCacheRecord(TimeProvider.System.GetUtcNow(), sptPath, response);
+
+        await _service.SaveCacheAsync(record);
+
+        var loaded = await _service.LoadCacheAsync();
+
+        Assert.NotNull(loaded);
+        Assert.Equal(sptPath, loaded.SptPath);
     }
 
     [Fact]
