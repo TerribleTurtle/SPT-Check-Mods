@@ -55,7 +55,8 @@ public static class ScanResponseMapper
             LoadWarnings: m.LoadWarnings.Count > 0 ? m.LoadWarnings.ToList() : null,
             IsIgnored: m.Update.UpdateSuppressed,
             IsPaired: m.Local.PairedComponentPath != null,
-            LocalDirectory: m.Local.FilePath != null ? System.IO.Path.GetDirectoryName(m.Local.FilePath) : null
+            LocalDirectory: m.Local.FilePath != null ? System.IO.Path.GetDirectoryName(m.Local.FilePath) : null,
+            IgnoreSource: m.Update.UpdateSuppressedSource?.ToString()
         )).ToList();
 
         MisplacedModReportDto? misplacedReportDto = null;

@@ -84,7 +84,7 @@ export function renderTable(filteredMods, sort, ui) {
         }
         
         const actionHtml = renderVersionCell(mod);
-        const statusPill = renderStatusPill(mod.status, mod.isIgnored);
+        const statusPill = renderStatusPill(mod.status, mod.isIgnored, mod.ignoreSource);
 
         tr.innerHTML = `
             <td>

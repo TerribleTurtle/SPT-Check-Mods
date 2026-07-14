@@ -56,7 +56,8 @@ public record ModDto(
     IReadOnlyList<string>? LoadWarnings = null,
     bool IsIgnored = false,
     bool IsPaired = false,
-    string? LocalDirectory = null
+    string? LocalDirectory = null,
+    string? IgnoreSource = null
 );
 
 public record MisplacedModDto(string Name, string Version, string FilePath, bool IsServerMod);

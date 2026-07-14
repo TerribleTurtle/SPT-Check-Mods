@@ -4,11 +4,18 @@ import { escapeHtml } from '../utils.js';
  * Renders an HTML string for a mod's status pill.
  * @param {string} status - Status string.
  * @param {boolean} [isIgnored=false] - Whether the mod is ignored.
+ * @param {string|null} [ignoreSource=null] - The source of the ignore ('User' or 'Remote').
  * @returns {string} HTML string of the status pill.
  */
-export function renderStatusPill(status, isIgnored = false) {
+export function renderStatusPill(status, isIgnored = false, ignoreSource = null) {
     if (isIgnored) {
-        return `<span class="status-pill status-pill-unknown" title="Status: IGNORED">IGNORED</span>`;
+        let text = 'IGNORED';
+        if (ignoreSource === 'User') {
+            text = 'IGNORED (YOU)';
+        } else if (ignoreSource === 'Remote') {
+            text = 'IGNORED (COMMUNITY)';
+        }
+        return `<span class="status-pill status-pill-unknown" title="Status: ${text}">${text}</span>`;
     }
     
     let text, colorClass;

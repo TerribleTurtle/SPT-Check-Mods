@@ -25,8 +25,14 @@ export function renderDetailRow(mod) {
             ${mod.compatibleVersion ? `<p class="mt-2">Latest compatible version: <strong>${escapeHtml(mod.compatibleVersion)}</strong></p>` : ''}
         </div>`;
     } else if (mod.status === 'UpdateAvailable' || mod.isIgnored) {
+        let ignoredText = 'Update Ignored';
+        if (mod.ignoreSource === 'User') {
+            ignoredText = 'Update Ignored (You)';
+        } else if (mod.ignoreSource === 'Remote') {
+            ignoredText = 'Update Ignored (Community)';
+        }
         html += `<div class="alert-box alert-warning">
-            <h3 class="text-warning mb-2">${mod.isIgnored ? 'Update Ignored' : 'Update Available'}</h3>
+            <h3 class="text-warning mb-2">${mod.isIgnored ? ignoredText : 'Update Available'}</h3>
             <p>Version <strong class="ver-ok">${escapeHtml(mod.latestVersion)}</strong> is available. You are running <strong class="ver-warn">${escapeHtml(mod.localVersion)}</strong>.</p>
             <div class="mt-3 flex gap-sm">
                 ${renderActions(mod)}
