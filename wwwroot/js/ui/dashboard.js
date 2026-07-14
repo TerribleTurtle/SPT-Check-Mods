@@ -90,19 +90,18 @@ export async function showOverview() {
     
     let summaryHtml = '';
     if (updateMods.length === 0 && blockedMods.length === 0 && incompatMods.length === 0) {
-        summaryHtml = `<div class="dashboard-summary-box dashboard-summary-success">
-            <h3 class="mb-2">All systems nominal</h3>
-            <p>Your workspace is fully up to date with ${activeCount} active mods installed.</p>
+        summaryHtml = `<div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: var(--bg-elevated); border: 1px solid var(--status-success); border-radius: var(--radius-sm);">
+            <span class="text-success font-semibold">All systems nominal:</span>
+            <span class="text-sm">Your workspace is fully up to date with ${activeCount} active mods installed.</span>
         </div>`;
     } else {
-        summaryHtml = `<div class="dashboard-summary-box dashboard-summary-warning">
-            <h3 class="text-warning mb-2">Action Required</h3>
-            <p>Out of ${activeCount} active mods:</p>
-            <ul class="mt-2 ml-5">
-                ${updateMods.length > 0 ? `<li><strong>${updateMods.length}</strong> updates available</li>` : ''}
-                ${blockedMods.length > 0 ? `<li><strong>${blockedMods.length}</strong> updates blocked</li>` : ''}
-                ${incompatMods.length > 0 ? `<li><strong>${incompatMods.length}</strong> incompatible mods</li>` : ''}
-            </ul>
+        summaryHtml = `<div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: var(--status-warning-bg, rgba(255,165,0,0.1)); border: 1px solid var(--status-warning); border-radius: var(--radius-sm);">
+            <span class="text-warning font-semibold">Action Required:</span>
+            <span class="text-sm flex gap-sm items-center">
+                ${updateMods.length > 0 ? `<span><strong>${updateMods.length}</strong> updates available</span>` : ''}
+                ${blockedMods.length > 0 ? `<span class="ml-2"><strong>${blockedMods.length}</strong> updates blocked</span>` : ''}
+                ${incompatMods.length > 0 ? `<span class="ml-2"><strong>${incompatMods.length}</strong> incompatible</span>` : ''}
+            </span>
         </div>`;
     }
 
@@ -118,19 +117,17 @@ export async function showOverview() {
     }
 
     const bulkToolbar = `
-        <div class="flex flex-col justify-center flex-1">
-            <h4 class="text-muted mb-2 uppercase text-sm">Workspace Actions</h4>
-            <div class="grid grid-cols-1 gap-sm">
-                <button id="btn-copy-mods" class="btn-secondary">Copy Mods List to Clipboard</button>
-                <button id="btn-download-updates" class="btn-primary" ${downloadCount === 0 ? 'disabled' : ''} ${downloadTooltip}>
-                    Download Updates ${downloadCount > 0 ? `(${downloadCount})` : ''}
-                </button>
-                <button id="btn-open-pages" class="btn-secondary" ${pageCount === 0 ? 'disabled' : ''}>
-                    Open Update Pages ${pageCount > 0 ? `(${pageCount})` : ''}
-                </button>
-                <button id="btn-manage-ignored" class="btn-secondary">Manage Ignored Mods</button>
-                <button id="btn-edit-settings" class="btn-secondary">Edit Settings</button>
-            </div>
+        <div class="workspace-actions-toolbar flex items-center gap-sm flex-wrap w-full">
+            <span class="text-muted uppercase text-sm font-semibold mr-2">Workspace Actions:</span>
+            <button id="btn-copy-mods" class="btn-secondary text-sm">Copy Mods List</button>
+            <button id="btn-download-updates" class="btn-primary text-sm" ${downloadCount === 0 ? 'disabled' : ''} ${downloadTooltip}>
+                Download Updates ${downloadCount > 0 ? `(${downloadCount})` : ''}
+            </button>
+            <button id="btn-open-pages" class="btn-secondary text-sm" ${pageCount === 0 ? 'disabled' : ''}>
+                Open Pages ${pageCount > 0 ? `(${pageCount})` : ''}
+            </button>
+            <button id="btn-manage-ignored" class="btn-secondary text-sm">Manage Ignored</button>
+            <button id="btn-edit-settings" class="btn-secondary text-sm ml-auto">Settings</button>
         </div>
     `;
 

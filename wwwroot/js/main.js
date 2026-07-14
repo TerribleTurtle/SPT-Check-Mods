@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.ui.scanning) return;
         setScanning(true);
         btnScan.disabled = true;
-        btnScan.textContent = '[ SCANNING... ]';
+        btnScan.textContent = 'SCANNING...';
         btnScan.classList.add('is-loading');
         
         logToConsole('> INITIATING BACKGROUND SCAN...', 'warn');
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setScanning(false);
             updateLastScanTime();
             btnScan.disabled = false;
-            btnScan.textContent = '[ SCAN LOCAL MODS ]';
+            btnScan.textContent = 'SCAN LOCAL MODS';
             btnScan.classList.remove('is-loading');
         }
     }
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setScanning(true);
         btnScan.disabled = true;
-        btnScan.textContent = '[ SCANNING... ]';
+        btnScan.textContent = 'SCANNING...';
         btnScan.classList.add('is-loading');
         
         modsList.innerHTML = `
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill"></div>
                     </div>
-                    <div id="loader-text">[ INITIALIZING SCAN SEQUENCE... ]</div>
+                    <div id="loader-text">INITIALIZING SCAN SEQUENCE...</div>
                 </div>
             </td></tr>
         `;
@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setScanning(false);
             updateLastScanTime();
             btnScan.disabled = false;
-            btnScan.textContent = '[ SCAN LOCAL MODS ]';
+            btnScan.textContent = 'SCAN LOCAL MODS';
             btnScan.classList.remove('is-loading');
         }
     }
