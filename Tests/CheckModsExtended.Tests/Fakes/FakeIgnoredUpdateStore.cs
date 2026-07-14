@@ -40,8 +40,8 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
         return Task.FromResult(
             _store.Any(x =>
                 x.ApiModId == mod.Api.ApiModId
-                && x.LocalVersion == mod.Local.LocalVersion
-                && x.IgnoredLatestVersion == mod.Update.LatestVersion
+                && StringComparer.OrdinalIgnoreCase.Equals(x.LocalVersion, mod.Local.LocalVersion)
+                && StringComparer.OrdinalIgnoreCase.Equals(x.IgnoredLatestVersion, mod.Update.LatestVersion)
             )
         );
     }
@@ -57,8 +57,8 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
         return Task.FromResult(
             _store.FirstOrDefault(x =>
                 x.ApiModId == mod.Api.ApiModId
-                && x.LocalVersion == mod.Local.LocalVersion
-                && x.IgnoredLatestVersion == mod.Update.LatestVersion
+                && StringComparer.OrdinalIgnoreCase.Equals(x.LocalVersion, mod.Local.LocalVersion)
+                && StringComparer.OrdinalIgnoreCase.Equals(x.IgnoredLatestVersion, mod.Update.LatestVersion)
             )
         );
     }
@@ -83,8 +83,8 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
             if (
                 !_store.Any(x =>
                     x.ApiModId == entry.ApiModId
-                    && x.LocalVersion == entry.LocalVersion
-                    && x.IgnoredLatestVersion == entry.IgnoredLatestVersion
+                    && StringComparer.OrdinalIgnoreCase.Equals(x.LocalVersion, entry.LocalVersion)
+                    && StringComparer.OrdinalIgnoreCase.Equals(x.IgnoredLatestVersion, entry.IgnoredLatestVersion)
                 )
             )
             {

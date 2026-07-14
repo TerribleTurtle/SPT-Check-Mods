@@ -12,7 +12,9 @@ public sealed class IgnoredUpdateOptions
     /// <summary>
     /// URL of the author-maintained remote base list, or null/empty to disable the remote-fetch prompt entirely.
     /// </summary>
-    public string? RemoteUrl { get; set; } = "https://raw.githubusercontent.com/TerribleTurtle/CheckModsExtended/main/ignored-updates.json";
+    public string? RemoteUrl { get; set; } =
+        "https://raw.githubusercontent.com/TerribleTurtle/"
+        + "CheckModsExtended/main/ignored-updates.json";
 
     /// <summary>Timeout for the remote fetch, in seconds.</summary>
     public int RemoteTimeoutSeconds { get; set; } = 10;

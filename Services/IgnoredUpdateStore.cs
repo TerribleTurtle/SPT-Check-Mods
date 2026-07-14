@@ -23,7 +23,6 @@ namespace CheckModsExtended.Services;
 public sealed class IgnoredUpdateStore(
     IOptions<IgnoredUpdateOptions> options,
     IOptions<AppPaths> appPaths,
-    ILogger<IgnoredUpdateStore> logger,
     IFileSystem fileSystem
 ) : IIgnoredUpdateStore, IDisposable
 {
@@ -191,62 +190,43 @@ public sealed class IgnoredUpdateStore(
 
     private async Task<List<IgnoredUpdate>> ReadFromDiskAsync(CancellationToken cancellationToken)
     {
-        try
+        if (!_fileSystem.FileExists(_resolvedFilePath))
         {
-            if (!_fileSystem.FileExists(_resolvedFilePath))
-            {
-                return [];
-            }
-
-            var json = await _fileSystem.ReadAllTextAsync(_resolvedFilePath, cancellationToken);
-            var file = JsonSerializer.Deserialize(
-                json,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
-            );
-            if (file?.Ignored is null)
-            {
-                return [];
-            }
-
-            // Keep only well-formed entries.
-            return file.Ignored.Where(e => e.IsWellFormed).ToList();
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
-        {
-            logger.LogWarning(
-                ex,
-                "Could not read ignored-updates file at {Path}; treating it as empty",
-                _resolvedFilePath
-            );
             return [];
         }
+
+        var json = await _fileSystem.ReadAllTextAsync(_resolvedFilePath, cancellationToken);
+        var file = JsonSerializer.Deserialize(
+            json,
+            CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
+        );
+        if (file?.Ignored is null)
+        {
+            return [];
+        }
+
+        // Keep only well-formed entries.
+        return file.Ignored.Where(e => e.IsWellFormed).ToList();
     }
 
     private async Task WriteToDiskAsync(List<IgnoredUpdate> entries, CancellationToken cancellationToken)
     {
-        try
+        var directory = Path.GetDirectoryName(_resolvedFilePath);
+        if (!string.IsNullOrEmpty(directory))
         {
-            var directory = Path.GetDirectoryName(_resolvedFilePath);
-            if (!string.IsNullOrEmpty(directory))
-            {
-                _fileSystem.CreateDirectory(directory);
-            }
-
-            var file = new IgnoredUpdatesFile(IgnoredUpdatesFile.CurrentSchemaVersion, entries);
-            var json = JsonSerializer.Serialize(
-                file,
-                CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
-            );
-
-            // Atomic write: stage to a temp file then move into place.
-            var tempPath = _resolvedFilePath + ".tmp";
-            await _fileSystem.WriteAllTextAsync(tempPath, json, cancellationToken);
-            _fileSystem.MoveFile(tempPath, _resolvedFilePath, true);
+            _fileSystem.CreateDirectory(directory);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
-        {
-            logger.LogWarning(ex, "Could not write ignored-updates file at {Path}", _resolvedFilePath);
-        }
+
+        var file = new IgnoredUpdatesFile(IgnoredUpdatesFile.CurrentSchemaVersion, entries);
+        var json = JsonSerializer.Serialize(
+            file,
+            CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.IgnoredUpdatesFile
+        );
+
+        // Atomic write: stage to a temp file then move into place.
+        var tempPath = _resolvedFilePath + ".tmp";
+        await _fileSystem.WriteAllTextAsync(tempPath, json, cancellationToken);
+        _fileSystem.MoveFile(tempPath, _resolvedFilePath, true);
     }
 
     private void RebuildKeys()

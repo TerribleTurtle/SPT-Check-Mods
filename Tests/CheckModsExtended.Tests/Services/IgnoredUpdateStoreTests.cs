@@ -30,7 +30,6 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
         return new IgnoredUpdateStore(
             Options.Create(new IgnoredUpdateOptions { FilePath = _path, RemoteUrl = null }),
             Options.Create(new AppPaths { AppDataDirectory = "/mock" }),
-            NullLogger<IgnoredUpdateStore>.Instance,
             _fileSystem
         );
     }
@@ -81,11 +80,11 @@ public sealed class IgnoredUpdateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task Load_returns_empty_on_corrupt_file()
+    public async Task Load_throws_on_corrupt_file()
     {
         await _fileSystem.WriteAllTextAsync(_path, "{ this is not valid json ");
 
-        Assert.Empty(await CreateStore().LoadAsync());
+        await Assert.ThrowsAsync<System.Text.Json.JsonException>(() => CreateStore().LoadAsync());
     }
 
     [Fact]

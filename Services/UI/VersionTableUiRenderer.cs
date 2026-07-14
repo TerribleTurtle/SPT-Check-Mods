@@ -76,7 +76,11 @@ public sealed class VersionTableUiRenderer(ITextRenderer textRenderer) : IVersio
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Checking for mod updates...[/]");
         AnsiConsole.MarkupLine(
-            "[white]This tool depends on mod authors to use and update valid version numbers. If you notice a version number in the Current Version column that is incorrect, please contact the author of the mod to have it updated. Additionally, these updates can be ignored by selecting the \"Manage ignored updates\" option at the end of the check.[/]"
+            "[white]This tool depends on mod authors to use and update valid version numbers. "
+                + "If you notice a version number in the Current Version column that is incorrect, "
+                + "please contact the author of the mod to have it updated. Additionally, "
+                + "these updates can be ignored by selecting the \"Manage ignored updates\" option "
+                + "at the end of the check.[/]"
         );
         AnsiConsole.WriteLine();
 
