@@ -121,6 +121,11 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
                 {
                     return ExitCodes.LaunchWebGui;
                 }
+
+                if (endOfRunChoice == EndOfRunChoice.Exit)
+                {
+                    return ExitCodes.ExitRequested;
+                }
             }
 
             break;

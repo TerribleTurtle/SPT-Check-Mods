@@ -21,6 +21,7 @@ public static class ExitCodes
 {
     public const int Success = 0;
     public const int Error = 2;
+    public const int ExitRequested = 3;
     public const int LaunchWebGui = 42;
 }
 
@@ -245,7 +246,7 @@ public sealed class Program
                 || args.Contains("--no-prompt")
                 || args.Contains("-y");
 
-            if (!_wasCancelled && !isHeadless)
+            if (!_wasCancelled && !isHeadless && exitCode != ExitCodes.ExitRequested)
             {
                 while (Console.KeyAvailable)
                 {
@@ -255,6 +256,11 @@ public sealed class Program
                 AnsiConsole.MarkupLine("[grey]Press any key to exit...[/]");
                 Console.ReadKey();
             }
+        }
+
+        if (exitCode == ExitCodes.ExitRequested)
+        {
+            exitCode = ExitCodes.Success;
         }
 
         return exitCode;
