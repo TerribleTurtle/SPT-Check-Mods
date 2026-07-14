@@ -132,6 +132,20 @@ Phase 9
   - [x] Remove the brittle "double-scan" click mechanism (await auto-scan instead).
 - **Status:** completed
 
+### Phase 12: UI/UX Professional Polish (Multi-Agent Swarm)
+- [x] Step 12.1 — Subagent A (Layout & Flow)
+  - [x] Convert "Action Required" box into a horizontal banner.
+  - [x] Relocate "Workspace Actions" into a horizontal toolbar.
+  - [x] Clean up top header text bracket formatting.
+- [x] Step 12.2 — Subagent B (Theme & Color)
+  - [x] Update "Download Updates" button to use positive action color.
+  - [x] Soften "UNKNOWN" status badge.
+  - [x] Improve dark-mode contrast for author names and ignored rows.
+- [x] Step 12.3 — Subagent C (Spacing & Formatting)
+  - [x] Increase table row vertical padding.
+  - [x] Ensure vertical centering of row contents.
+- **Status:** completed
+
 ## Decisions Made
 | Decision | Rationale |
 |----------|-----------|
@@ -139,6 +153,7 @@ Phase 9
 | Cache-then-Network Web GUI | Show stale data instantly with a timestamp and background scan. Avoids double-scanning on handoff from CLI. |
 | **Mobile-First CSS Refactor** | Prevent CSS bloat and UI overflow bugs on small viewports by adopting industry standard `min-width` rules. |
 | **Vanilla JS Toast System** | Provide transient feedback for API actions/errors cleanly without the visual weight of a persistent console drawer. |
+| **Multi-Agent UI Polish** | Used parallel subagents in isolated worktrees to safely and rapidly apply UI design, theme, and spacing refactors without creating merge conflicts on core layout code. |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |

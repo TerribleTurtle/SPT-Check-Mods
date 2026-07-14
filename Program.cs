@@ -21,6 +21,7 @@ public static class ExitCodes
 {
     public const int Success = 0;
     public const int Error = 2;
+    public const int LaunchWebGui = 42;
 }
 
 /// <summary>
@@ -176,10 +177,25 @@ public sealed class Program
                         }
                     );
 
+                    config.SetExceptionHandler(
+                        (ex, resolver) =>
+                        {
+                            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+                            return ExitCodes.Error;
+                        }
+                    );
+
                     config.PropagateExceptions(); // Let the try-catch block handle exceptions
                 });
 
                 exitCode = await app.RunAsync(cliArgs);
+
+                if (exitCode == ExitCodes.LaunchWebGui)
+                {
+                    AnsiConsole.MarkupLine("[grey]Switching to Web GUI mode...[/]");
+                    await WebManagerHost.RunAsync(cliArgs, CancellationToken);
+                    exitCode = ExitCodes.Success;
+                }
             }
         }
         catch (OperationCanceledException)

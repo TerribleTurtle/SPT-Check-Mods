@@ -65,10 +65,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
 
     /// <summary>
     /// Executes the main check mods command asynchronously.
-    /// Handles caching, running the update pipeline, and process inception for the Web GUI.
-    /// Process Inception details: If the user chooses to open the GUI at the end of the run,
-    /// the CLI restarts its own executable but passes the "gui" argument. This creates a detached
-    /// child process running the web dashboard, allowing the current CLI process to exit cleanly.
+    /// Handles caching, running the update pipeline, and delegating to the Web GUI if requested.
     /// </summary>
     /// <param name="context">The command context.</param>
     /// <param name="settings">The command settings.</param>
@@ -106,20 +103,7 @@ public sealed class CheckModsCommand : AsyncCommand<CheckModsCommand.Settings>
 
                 if (endOfRunChoice == EndOfRunChoice.LaunchWebGui)
                 {
-                    // "Process inception": The CLI restarts its own executable but passes the "gui" argument.
-                    // This creates a detached child process running the web dashboard, allowing the current
-                    // CLI process to exit cleanly without keeping the terminal blocked.
-                    var processPath = System.Environment.ProcessPath;
-                    if (processPath != null)
-                    {
-                        var guiArgs = string.IsNullOrWhiteSpace(settings.SptPath) ? "gui" : $"gui \"{settings.SptPath}\"";
-                        var startInfo = new System.Diagnostics.ProcessStartInfo(processPath, guiArgs)
-                        {
-                            UseShellExecute = true
-                        };
-                        _processRunner.Start(startInfo);
-                    }
-                    break;
+                    return ExitCodes.LaunchWebGui;
                 }
             }
 
