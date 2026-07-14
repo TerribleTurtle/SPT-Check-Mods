@@ -254,14 +254,6 @@ export async function renderSettingsDashboard() {
             <input type="number" id="setting-MaxFileSizeBytes" class="form-input w-full" value="${settings.LoggingOptions?.MaxFileSizeBytes || 10485760}">
         </div>`;
 
-        // ModScannerOptions
-        html += `<div class="settings-group">
-            <h3 class="mb-2">Scanner Options</h3>
-            <label class="form-label">Max DLL Size (Bytes)</label>
-            <div class="text-muted text-sm mb-2">Maximum size limit for scanning individual mod DLLs. Default: 104857600 (100MB)</div>
-            <input type="number" id="setting-MaxDllSizeBytes" class="form-input w-full" value="${settings.ModScannerOptions?.MaxDllSizeBytes || 104857600}">
-        </div>`;
-
         html += '</div>';
         
         if (modalBody) {
@@ -283,10 +275,6 @@ export async function renderSettingsDashboard() {
                         MinimumLogLevel: document.getElementById('setting-MinimumLogLevel').value,
                         LogFilePath: document.getElementById('setting-LogFilePath').value,
                         MaxFileSizeBytes: parseInt(document.getElementById('setting-MaxFileSizeBytes').value, 10)
-                    },
-                    ModScannerOptions: {
-                        ...settings.ModScannerOptions,
-                        MaxDllSizeBytes: parseInt(document.getElementById('setting-MaxDllSizeBytes').value, 10)
                     }
                 };
                 
