@@ -91,6 +91,35 @@ public sealed class IgnoredUpdateStore(
     }
 
     /// <inheritdoc />
+    public async Task<IgnoredUpdate?> GetIgnoredUpdateAsync(Mod mod, CancellationToken cancellationToken = default)
+    {
+        if (!mod.Api.ApiModId.HasValue || mod.Update.LatestVersion is null)
+        {
+            return null;
+        }
+
+        return await GetIgnoredUpdateAsync(
+            mod.Api.ApiModId.Value,
+            mod.Local.LocalVersion,
+            mod.Update.LatestVersion,
+            cancellationToken
+        );
+    }
+
+    /// <summary>Value-based overload of <see cref="GetIgnoredUpdateAsync"/>.</summary>
+    internal async Task<IgnoredUpdate?> GetIgnoredUpdateAsync(
+        int apiModId,
+        string localVersion,
+        string latestVersion,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await LoadAsync(cancellationToken);
+        var key = MakeKey(apiModId, localVersion, latestVersion);
+        return _cache?.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <inheritdoc />
     public async Task SaveAsync(IReadOnlyList<IgnoredUpdate> entries, CancellationToken cancellationToken = default)
     {
         var list = entries.ToList();

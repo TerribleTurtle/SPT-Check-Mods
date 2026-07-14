@@ -147,10 +147,11 @@ public static class ModExtensions
     /// </summary>
     /// <param name="mod">The mod to modify.</param>
     /// <param name="suppressed">Whether updates should be suppressed.</param>
+    /// <param name="source">The source of the suppression.</param>
     /// <returns>A new <see cref="Mod"/> instance with the updated suppression state.</returns>
-    public static Mod WithUpdateSuppressed(this Mod mod, bool suppressed)
+    public static Mod WithUpdateSuppressed(this Mod mod, bool suppressed, IgnoreSource? source = null)
     {
-        return mod with { Update = mod.Update with { UpdateSuppressed = suppressed } };
+        return mod with { Update = mod.Update with { UpdateSuppressed = suppressed, UpdateSuppressedSource = source } };
     }
 
     /// <summary>

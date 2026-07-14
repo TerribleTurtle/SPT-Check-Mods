@@ -18,6 +18,12 @@ public interface IIgnoredUpdateStore
     /// <returns>True if the mod's available update is ignored, otherwise false.</returns>
     Task<bool> IsIgnoredAsync(Mod mod, CancellationToken cancellationToken = default);
 
+    /// <summary>Retrieves the ignored update entry if this mod's available update has been dismissed.</summary>
+    /// <param name="mod">The mod to check for an ignored update.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The ignored update entry if found, otherwise null.</returns>
+    Task<IgnoredUpdate?> GetIgnoredUpdateAsync(Mod mod, CancellationToken cancellationToken = default);
+
     /// <summary>Replaces the stored entries with <paramref name="entries"/>.</summary>
     /// <param name="entries">The entries to replace the stored ones with.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>

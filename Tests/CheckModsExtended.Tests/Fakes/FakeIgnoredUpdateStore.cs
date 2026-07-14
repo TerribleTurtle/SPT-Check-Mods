@@ -47,6 +47,23 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
     }
 
     /// <inheritdoc />
+    public Task<IgnoredUpdate?> GetIgnoredUpdateAsync(Mod mod, CancellationToken cancellationToken = default)
+    {
+        if (mod.Api.ApiModId <= 0)
+        {
+            return Task.FromResult<IgnoredUpdate?>(null);
+        }
+
+        return Task.FromResult(
+            _store.FirstOrDefault(x =>
+                x.ApiModId == mod.Api.ApiModId
+                && x.LocalVersion == mod.Local.LocalVersion
+                && x.IgnoredLatestVersion == mod.Update.LatestVersion
+            )
+        );
+    }
+
+    /// <inheritdoc />
     public Task SaveAsync(IReadOnlyList<IgnoredUpdate> entries, CancellationToken cancellationToken = default)
     {
         _store.Clear();

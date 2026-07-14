@@ -69,12 +69,13 @@ public sealed class UpdateOrchestrationService(
         foreach (var mod in modsList)
         {
             var updatedMod = mod;
-            if (
-                mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable
-                && await ignoredUpdateStore.IsIgnoredAsync(mod, cancellationToken)
-            )
+            if (mod.Update.UpdateStatus == UpdateStatus.UpdateAvailable)
             {
-                updatedMod = updatedMod.WithUpdateSuppressed(true);
+                var ignoredUpdate = await ignoredUpdateStore.GetIgnoredUpdateAsync(mod, cancellationToken);
+                if (ignoredUpdate is not null)
+                {
+                    updatedMod = updatedMod.WithUpdateSuppressed(true, ignoredUpdate.Source);
+                }
             }
             updatedMods.Add(updatedMod);
         }

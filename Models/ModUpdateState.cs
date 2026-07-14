@@ -51,6 +51,11 @@ public sealed record ModUpdateState
     public bool UpdateSuppressed { get; init; }
 
     /// <summary>
+    /// The source that suppressed the update, if any.
+    /// </summary>
+    public IgnoreSource? UpdateSuppressedSource { get; init; }
+
+    /// <summary>
     /// Contains information about how an update alters the mod's dependencies.
     /// </summary>
     public UpdateDependencyDelta? UpdateDependencyChanges { get; init; }
