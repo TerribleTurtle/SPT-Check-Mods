@@ -29,8 +29,8 @@ This fork builds upon that foundation by modifying the internal architecture and
 
 ## User Interface & Commands
 
-- **Web GUI (`gui` mode):** A locally hosted web dashboard available at `localhost:37194` powered by a cache-then-network architecture for immediate loading.
-- **Offline CLI Commands:** Built with `Spectre.Console.Cli`, the application supports commands that function without an internet connection:
+- **Web GUI (Default):** A locally hosted web dashboard available at `localhost:37194` powered by a cache-then-network architecture for immediate loading. The frontend uses a "Zero-build" architecture with Vanilla CSS and Alpine.js, allowing native UI components without Node.js or bundlers.
+- **Offline CLI Commands:** Built with `Spectre.Console.Cli`, the application acts as a seamless hybrid. If you pass arguments (like a path or a specific command), it automatically switches to CLI mode:
   - `list`: View installed mods locally.
   - `ignore`: Manage the ignore list manually.
   - `clean`: Clear local caches and overrides.

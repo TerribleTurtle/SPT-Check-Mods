@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CheckModsExtended // MANAGER</title>
+    <title x-text="documentTitle">CheckModsExtended // MANAGER</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -12,146 +12,405 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/table.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    
+    <script type="module">
+        import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/module.esm.js';
+        import './js/main.js';
+        
+        window.Alpine = Alpine;
+        Alpine.start();
+    </script>
     <script>
         const savedTheme = localStorage.getItem('cme-theme');
         if (savedTheme) document.documentElement.dataset.theme = savedTheme;
     </script>
 </head>
-<body>
+<body x-data="modManager()">
     <a href="#main-content" class="skip-link sr-only sr-only-focusable">Skip to main content</a>
-    <div id="a11y-announcer" aria-live="polite" class="sr-only"></div>
+    <div id="a11y-announcer" aria-live="polite" class="sr-only" x-text="`Showing ${filteredMods.length} of ${mods.length} mods.`"></div>
     <div class="terminal-container">
-        <header class="app-header" role="banner">
+        <header class="app-header glass-header" role="banner">
             <div class="header-title">
                 <h1 class="font-brand">CHECK_MODS_EXTENDED</h1>
-                <span class="version-tag" id="app-version">v---</span>
-                <span class="version-tag" id="spt-version" hidden>SPT v---</span>
+                <span class="version-tag" x-text="'v' + meta.appVersion" x-show="meta.appVersion"></span>
+                <span class="version-tag" x-text="'SPT v' + meta.sptVersion" x-show="meta.sptVersion"></span>
             </div>
             <div class="header-controls">
-                <span id="cache-indicator" class="chip cached pulsing-cache badge badge-warning hidden">
-                    <svg id="cache-indicator-icon" class="spin-svg mr-1 align-text-bottom" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line></svg>
-                    <span id="cache-indicator-text">CACHED (UPDATING)</span>
+                <span id="cache-indicator" class="chip cached badge" :class="ui.scanning ? 'badge-warning pulsing-cache' : 'badge-success'" x-show="meta.lastScan">
+                    <svg x-show="ui.scanning" aria-hidden="true" class="align-text-bottom mr-1 spin-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <g>
+                            <line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line>
+                        </g>
+                    </svg>
+                    <svg x-show="!ui.scanning" aria-hidden="true" class="align-text-bottom mr-1" style="display: none;" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span x-text="ui.scanning ? 'CACHED (UPDATING)' : 'UPDATED ' + formatTimeAgo().toUpperCase()"></span>
                 </span>
-                <button id="btn-theme" class="theme-toggle" aria-label="Toggle theme">🌙</button>
-                <button id="btn-scan" class="btn-primary">SCAN LOCAL MODS</button>
+                <button class="theme-toggle" @click="toggleTheme()" aria-label="Toggle theme" x-text="meta.theme === 'dark' ? '🌙' : '☀️'"></button>
+                <button class="btn-primary" @click="handleScan()" :disabled="ui.scanning" :class="{'is-loading': ui.scanning}">
+                    <span x-text="ui.scanning ? 'SCANNING…' : 'SCAN LOCAL MODS'"></span>
+                </button>
             </div>
         </header>
 
-
         <main class="dashboard" id="main-content">
             <!-- Workspace Overview -->
-            <div id="workspace-overview" class="workspace-overview hidden">
-                <!-- Populated by JS -->
+            <div class="workspace-overview" x-show="mods.length > 0">
+                <template x-if="updatesAvailable.length === 0 && updatesBlocked.length === 0 && incompatibleMods.length === 0">
+                    <div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm);">
+                        <span class="text-success font-semibold">All systems nominal:</span>
+                        <span class="text-sm" x-text="`Your workspace is fully up to date with ${activeMods.length} active mods installed.`"></span>
+                    </div>
+                </template>
+                <template x-if="updatesAvailable.length > 0 || updatesBlocked.length > 0 || incompatibleMods.length > 0">
+                    <div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-sm);">
+                        <span class="text-warning font-semibold">Action Required:</span>
+                        <span class="text-sm flex gap-sm items-center">
+                            <template x-if="updatesAvailable.length > 0"><span><strong x-text="updatesAvailable.length"></strong> updates available</span></template>
+                            <template x-if="updatesBlocked.length > 0"><span class="ml-2"><strong x-text="updatesBlocked.length"></strong> updates blocked</span></template>
+                            <template x-if="incompatibleMods.length > 0"><span class="ml-2"><strong x-text="incompatibleMods.length"></strong> incompatible</span></template>
+                        </span>
+                    </div>
+                </template>
+                <div class="workspace-actions-toolbar flex items-center gap-sm flex-wrap w-full">
+                    <span class="text-muted uppercase text-sm font-semibold mr-2">Workspace Actions:</span>
+                    <button class="btn-secondary text-sm" @click="copyModsList($event)">Copy Mods List</button>
+                    <button class="btn-primary text-sm" @click="bulkDownloadUpdates()" :disabled="downloadableUpdates.length === 0" :title="downloadableUpdates.length < pageUpdates.length ? (pageUpdates.length - downloadableUpdates.length) + ' update(s) must be downloaded manually from their mod page' : ''">
+                        Download Updates <span x-show="downloadableUpdates.length > 0" x-text="`(${downloadableUpdates.length})`"></span>
+                    </button>
+                    <button class="btn-secondary text-sm" @click="bulkOpenPages()" :disabled="pageUpdates.length === 0">
+                        Open Pages <span x-show="pageUpdates.length > 0" x-text="`(${pageUpdates.length})`"></span>
+                    </button>
+                    <button class="btn-secondary text-sm" @click="showIgnoreDashboard()">Manage Ignored</button>
+                    <button class="btn-secondary text-sm ml-auto" @click="showSettingsDashboard()">Settings</button>
+                </div>
             </div>
             
             <!-- Toolbar -->
             <div class="toolbar">
                 <div class="search-wrapper">
                     <span class="search-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </span>
-                    <input type="text" id="search-input" class="search-input" placeholder="Search mods..." aria-label="Search mods">
-                    <span id="search-count" class="search-count"></span>
+                    <input type="text" name="search" autocomplete="off" x-model="filters.search" class="search-input" placeholder="Search mods…" aria-label="Search mods">
+                    <span class="search-count" x-text="filters.search || filters.status !== 'all' ? `Showing ${filteredMods.length} of ${mods.length}` : ''"></span>
                 </div>
                 <div class="filter-chips">
-                    <button class="chip active" data-filter="all">All <span class="chip-count" id="chip-count-all">0</span></button>
-                    <button class="chip" data-filter="ok">Up to Date <span class="chip-count" id="chip-count-ok">0</span></button>
-                    <button class="chip" data-filter="attention">Action Needed <span class="chip-count" id="chip-count-attention">0</span></button>
-                    <button class="chip" data-filter="ignored">Ignored <span class="chip-count" id="chip-count-ignored">0</span></button>
+                    <button class="chip" :class="{'active': filters.status === 'all'}" @click="setFilter('all')">All <span class="chip-count" x-text="mods.length"></span></button>
+                    <button class="chip" :class="{'active': filters.status === 'ok'}" @click="setFilter('ok')">Up to Date <span class="chip-count" x-text="upToDateMods.length"></span></button>
+                    <button class="chip" :class="{'active': filters.status === 'attention'}" @click="setFilter('attention')">Action Needed <span class="chip-count" x-text="attentionMods.length"></span></button>
+                    <button class="chip" :class="{'active': filters.status === 'ignored'}" @click="setFilter('ignored')">Ignored <span class="chip-count" x-text="ignoredMods.length"></span></button>
                 </div>
-                <div id="last-scan-time" class="last-scan">
-                    Last scan: Never
-                </div>
+                <div class="last-scan" x-text="meta.lastScan ? 'Last scanned: ' + formatTimeAgo() : 'Last scan: Never'"></div>
             </div>
 
             <!-- Master-Detail Container -->
             <div class="master-detail-container">
                 <!-- Master List -->
-                <div class="master-list">
-                    <div class="table-container relative">
-                        <div id="table-loading-indicator" class="table-loading-bar hidden"></div>
+                <div class="master-list" :class="{'fade-hidden': ui.isScrolledToBottom}">
+                    <div class="table-container relative" @scroll="ui.isScrolledToBottom = ($event.target.scrollHeight - $event.target.scrollTop <= $event.target.clientHeight + 10)">
+                        <div class="table-loading-bar" x-show="ui.scanning && mods.length > 0"></div>
                         <table class="mod-table w-full">
                             <thead>
                                 <tr>
                                     <th class="text-left w-40px">
-                                        <input type="checkbox" id="select-all" class="row-checkbox" aria-label="Select all">
+                                        <input type="checkbox" class="row-checkbox" aria-label="Select all" :checked="isAllSelected" :indeterminate="isIndeterminate" @change="toggleSelectAll()">
                                     </th>
-                                    <th data-sortable="status" aria-sort="none" class="text-left">Status</th>
-                                    <th data-sortable="name" aria-sort="none" class="text-left">Mod Name</th>
-                                    <th data-sortable="type" aria-sort="none" class="text-left">Type</th>
-                                    <th data-sortable="version" aria-sort="none" class="col-version text-right">Version</th>
+                                    <th @click="setSort('status')" class="text-left cursor-pointer hover-accent" :aria-sort="sort.column === 'status' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Status</th>
+                                    <th @click="setSort('name')" class="text-left cursor-pointer hover-accent" :aria-sort="sort.column === 'name' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Mod Name</th>
+                                    <th @click="setSort('type')" class="text-left cursor-pointer hover-accent" :aria-sort="sort.column === 'type' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Type</th>
+                                    <th @click="setSort('version')" class="col-version text-right cursor-pointer hover-accent" :aria-sort="sort.column === 'version' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Version</th>
                                 </tr>
                             </thead>
-                            <tbody id="mods-list">
-                                <tr>
-                                    <td colspan="5" class="empty-state">Initializing core systems... Ready for scan.</td>
-                                </tr>
+                            <tbody @keydown.window="handleKeydown($event)">
+                                <template x-if="mods.length === 0 && ui.scanning">
+                                    <tr><td colspan="5" class="p-0 border-none h-300">
+                                        <div class="scan-loader-container">
+                                            <div class="progress-bar-container">
+                                                <div class="progress-bar-fill pulsing" :style="`width: ${loaderProgress}%`"></div>
+                                            </div>
+                                            <div id="loader-text" class="text-muted font-mono mt-4 text-sm" x-text="loaderText"></div>
+                                        </div>
+                                    </td></tr>
+                                </template>
+                                <template x-if="mods.length > 0 && filteredMods.length === 0">
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="empty-state">
+                                                No mods match your current filters.
+                                                <br><br><button class="btn-secondary" @click="clearFilters()">Clear Filters</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-for="mod in filteredMods" :key="mod.id">
+                                    <tr :class="{'selected': selectedMod && selectedMod.id === mod.id}" @click="selectMod(mod)" class="animated-row">
+                                        <td>
+                                            <input type="checkbox" class="row-checkbox action-select" :value="mod.id" aria-label="Select mod" :checked="ui.selectedIds.has(String(mod.id))" @change="toggleSelect(String(mod.id), $event)" @click.stop>
+                                        </td>
+                                        <td data-label="Status">
+                                            <div class="flex items-center gap-md">
+                                                <div class="status-dot" :class="getStatusClass(mod)" :title="mod.status"></div>
+                                                <span class="status-pill" :class="getPillClass(mod)" :title="getPillText(mod)" x-text="getPillText(mod)"></span>
+                                            </div>
+                                        </td>
+                                        <td data-label="Mod Name">
+                                            <div class="mod-card-primary">
+                                                <div class="mod-card-title font-semibold">
+                                                    <span x-text="mod.name || 'Unknown'"></span>
+                                                    <template x-if="mod.hasWarnings"><span title="Mod has warnings. Check details pane." class="text-warning ml-1 text-sm">⚠️</span></template>
+                                                    <template x-if="mod.isDuplicate"><span class="status-badge badge badge-warning ml-2">DUPLICATE</span></template>
+                                                </div>
+                                                <div class="mod-card-meta" x-text="`by ${mod.author || 'Unknown'}`"></div>
+                                            </div>
+                                        </td>
+                                        <td data-label="Type">
+                                            <template x-if="mod.isPaired">
+                                                <span><span class="text-success font-semibold" title="Server Mod">Server</span> <span class="opacity-50 mx-1">&amp;</span> <span class="text-info font-semibold" title="Client Mod">Client</span></span>
+                                            </template>
+                                            <template x-if="!mod.isPaired && mod.isServerMod">
+                                                <span class="text-success font-semibold" title="Server Mod">Server</span>
+                                            </template>
+                                            <template x-if="!mod.isPaired && !mod.isServerMod">
+                                                <span class="text-info font-semibold" title="Client Mod">Client</span>
+                                            </template>
+                                        </td>
+                                        <td data-label="Version" class="col-version text-right">
+                                            <template x-if="mod.status === 'UpdateAvailable' && !mod.isIgnored">
+                                                <span>
+                                                    <span class="version-outdated" title="Current Version" x-text="`v${mod.localVersion}`"></span> <span class="version-arrow">→</span> <span class="version-newer" title="Latest Version" x-text="`v${mod.latestVersion}`"></span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!(mod.status === 'UpdateAvailable' && !mod.isIgnored) && mod.localVersion">
+                                                <span class="version-match" title="Current Version" x-text="`v${mod.localVersion}`"></span>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
                 <!-- Detail Pane -->
-                <div id="detail-pane" class="detail-pane hidden">
-                    <div class="detail-header">
-                        <h2 id="detail-title">Select a mod to view details</h2>
-                        <button id="btn-close-detail" class="btn-close-detail" aria-label="Close detail pane">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <div class="detail-pane" x-show="selectedMod" style="display: none;">
+                    <div class="detail-header glass-header">
+                        <h2 x-text="selectedMod ? selectedMod.name : ''"></h2>
+                        <button class="btn-close-detail" aria-label="Close detail pane" @click="selectedMod = null">
+                            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
-                    <div id="detail-content" class="detail-content">
-                        <!-- Populated by JS -->
-                        <div class="empty-state">Select a mod from the list to view its details.</div>
+                    <div class="detail-content" tabindex="-1">
+                        <template x-if="selectedMod">
+                            <div>
+                                <!-- Alerts -->
+                                <template x-if="selectedMod.status === 'UpdateBlocked'">
+                                    <div class="alert-box alert-error">
+                                        <h3 class="text-error mb-2">Update Blocked</h3>
+                                        <p x-text="selectedMod.blockReason ? selectedMod.blockReason.replace(/_/g, ' ') : 'Unknown reason'"></p>
+                                    </div>
+                                </template>
+                                <template x-if="selectedMod.status === 'Incompatible'">
+                                    <div class="alert-box alert-error">
+                                        <h3 class="text-error mb-2">Incompatible with SPT</h3>
+                                        <p x-text="selectedMod.incompatibilityReason || 'Unknown'"></p>
+                                        <template x-if="selectedMod.compatibleVersion">
+                                            <p class="mt-2">Latest compatible version: <strong x-text="selectedMod.compatibleVersion"></strong></p>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template x-if="selectedMod.status === 'UpdateAvailable' || selectedMod.isIgnored">
+                                    <div class="alert-box alert-warning">
+                                        <h3 class="text-warning mb-2" x-text="selectedMod.isIgnored ? (selectedMod.ignoreSource === 'User' ? 'Update Ignored (You)' : (selectedMod.ignoreSource === 'Remote' ? 'Update Ignored (Community)' : 'Update Ignored')) : 'Update Available'"></h3>
+                                        <p>Version <strong class="ver-ok" x-text="selectedMod.latestVersion"></strong> is available. You are running <strong class="ver-warn" x-text="selectedMod.localVersion"></strong>.</p>
+                                        <div class="mt-3 flex gap-sm flex-wrap">
+                                            <template x-if="selectedMod.downloadUrl"><button class="btn-primary" @click="systemOpen(selectedMod.downloadUrl)">Download ZIP</button></template>
+                                            <template x-if="selectedMod.modUrl"><button class="btn-secondary" @click="systemOpen(selectedMod.modUrl)">Open Mod Page</button></template>
+                                            <template x-if="selectedMod.localDirectory"><button class="btn-secondary" @click="systemOpen(selectedMod.localDirectory)">Open Local Folder</button></template>
+                                            <template x-if="selectedMod.status === 'UpdateAvailable'"><button class="btn-secondary action-ignore" @click="ignoreMod(selectedMod.id, selectedMod.localVersion, selectedMod.latestVersion, $event)">Ignore Update</button></template>
+                                            <template x-if="selectedMod.isIgnored"><button class="btn-secondary action-unignore" @click="unignoreMod(selectedMod.id, $event)">Un-Ignore</button></template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- General Actions if not UpdateAvailable and not ignored -->
+                                <template x-if="selectedMod.status !== 'UpdateAvailable' && !selectedMod.isIgnored">
+                                    <div class="mb-4 flex gap-sm flex-wrap">
+                                        <template x-if="selectedMod.downloadUrl"><button class="btn-primary" @click="systemOpen(selectedMod.downloadUrl)">Download ZIP</button></template>
+                                        <template x-if="selectedMod.modUrl"><button class="btn-secondary" @click="systemOpen(selectedMod.modUrl)">Open Mod Page</button></template>
+                                        <template x-if="selectedMod.localDirectory"><button class="btn-secondary" @click="systemOpen(selectedMod.localDirectory)">Open Local Folder</button></template>
+                                    </div>
+                                </template>
+
+                                <!-- Metadata -->
+                                <div class="mb-4">
+                                    <h4 class="detail-section-title">Metadata</h4>
+                                    <div class="detail-grid">
+                                        <span class="text-muted">Author</span>
+                                        <span x-text="selectedMod.author || 'Unknown'"></span>
+                                        <span class="text-muted">Local Ver</span>
+                                        <span :class="(selectedMod.status === 'UpdateAvailable' || selectedMod.isIgnored) ? 'ver-warn' : (selectedMod.status === 'UpdateBlocked' || selectedMod.status === 'Incompatible' ? 'ver-error' : (selectedMod.status === 'NewerInstalled' ? 'ver-info' : 'ver-ok'))" x-text="selectedMod.localVersion || 'N/A'"></span>
+                                        <span class="text-muted">Latest Ver</span>
+                                        <span class="ver-ok" x-text="selectedMod.latestVersion || 'N/A'"></span>
+                                        <span class="text-muted">Type</span>
+                                        <span x-text="selectedMod.isServerMod ? 'Server Mod' : 'Client Mod'"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Dependencies -->
+                                <template x-if="selectedMod.addedDependencies && selectedMod.addedDependencies.length > 0">
+                                    <div class="mb-4">
+                                        <h4 class="detail-section-title">Required Dependencies</h4>
+                                        <div class="flex flex-col gap-sm">
+                                            <template x-for="dep in selectedMod.addedDependencies">
+                                                <div class="dep-card">
+                                                    <div class="flex justify-between items-center">
+                                                        <span>
+                                                            <template x-if="dep.downloadLink"><a :href="dep.downloadLink" target="_blank" class="dep-link" x-text="dep.name"></a></template>
+                                                            <template x-if="!dep.downloadLink"><span x-text="dep.name"></span></template>
+                                                        </span>
+                                                        <span class="badge" :class="dep.installState === 'NotInstalled' ? 'badge-error' : (dep.installState === 'InstalledOutdated' ? 'badge-warning' : 'badge-neutral')" x-text="dep.installState === 'NotInstalled' ? 'MISSING' : (dep.installState === 'InstalledOutdated' ? 'OUTDATED' : 'SATISFIED')"></span>
+                                                    </div>
+                                                    <div class="text-sm text-muted mt-1" x-text="`Requires v${dep.recommendedVersion}`"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Blocked By -->
+                                <template x-if="selectedMod.blockingMods && selectedMod.blockingMods.length > 0">
+                                    <div class="mb-4">
+                                        <h4 class="detail-section-title">Blocked By</h4>
+                                        <ul class="detail-list">
+                                            <template x-for="b in selectedMod.blockingMods">
+                                                <li x-text="`${b.name} (constraint: ${b.constraint})`"></li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </template>
+
+                                <!-- Warnings -->
+                                <template x-if="selectedMod.loadWarnings && selectedMod.loadWarnings.length > 0">
+                                    <div class="alert-box alert-warning">
+                                        <h3 class="text-warning mb-2">Mod Warnings</h3>
+                                        <ul class="detail-list ml-5">
+                                            <template x-for="w in selectedMod.loadWarnings">
+                                                <li class="mb-1" x-text="w"></li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
 
             <!-- Bulk Bar -->
-            <div id="bulk-bar" class="bulk-bar bulk-bar-hidden">
-                <span id="bulk-count">0 selected</span>
-                <button id="btn-bulk-open" class="btn-primary">Update Selected</button>
-                <button id="btn-bulk-ignore" class="btn-secondary text-warning">Ignore All</button>
-                <button id="btn-bulk-clear" class="btn-secondary ml-auto">Clear</button>
+            <div class="bulk-bar" :class="{'bulk-bar-hidden': ui.selectedIds.size === 0}">
+                <span id="bulk-count" x-text="`${ui.selectedIds.size} selected`"></span>
+                <button class="btn-primary" @click="bulkUpdate($event)">Update Selected</button>
+                <button class="btn-secondary text-warning" @click="bulkIgnore($event)">Ignore All</button>
+                <button class="btn-secondary ml-auto" @click="ui.selectedIds.clear()">Clear</button>
             </div>
         </main>
 
     </div>
     
     <!-- Modal for Ignored Mods -->
-    <div id="ignore-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="ignore-modal-title">
+    <div class="modal-overlay glass-modal" :class="{'hidden': !ui.showIgnoreModal}" @click.self="closeModals()">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="ignore-modal-title">Manage Ignore List</h2>
-                <button id="btn-close-modal" class="btn-close-detail" aria-label="Close modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <div class="modal-header glass-header">
+                <h2>Manage Ignore List</h2>
+                <button class="btn-close-detail" aria-label="Close modal" @click="closeModals()">
+                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <div id="ignore-modal-body" class="modal-body">
-                <!-- Populated by JS -->
+            <div class="modal-body">
+                <template x-if="ui.loadingIgnores">
+                    <div class="flex justify-center p-20"><div class="loader-spinner spinner-sm"></div><span class="ml-2 text-muted">Loading ignored mods…</span></div>
+                </template>
+                <template x-if="!ui.loadingIgnores && ignores.length === 0">
+                    <p class="text-muted text-sm">No mods are currently ignored.</p>
+                </template>
+                <template x-if="!ui.loadingIgnores && ignores.length > 0">
+                    <ul class="dashboard-list">
+                        <template x-for="ig in ignores" :key="ig.id">
+                            <li class="dashboard-list-item animated-row">
+                                <span><strong x-text="ig.name || ig.id"></strong> <span x-text="`(v${ig.localVersion})`"></span></span>
+                                <button class="btn-secondary" @click="unignoreMod(ig.id, $event, true)">Remove</button>
+                            </li>
+                        </template>
+                    </ul>
+                </template>
             </div>
         </div>
     </div>
 
     <!-- Modal for Settings -->
-    <div id="settings-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-overlay glass-modal" :class="{'hidden': !ui.showSettingsModal}" @click.self="closeModals()">
         <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2 id="settings-modal-title">Edit Settings</h2>
-                <button id="btn-close-settings-modal" class="btn-close-detail" aria-label="Close settings modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <div class="modal-header glass-header">
+                <h2>Edit Settings</h2>
+                <button class="btn-close-detail" aria-label="Close settings modal" @click="closeModals()">
+                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <div id="settings-modal-body" class="modal-body">
-                <!-- Populated by JS -->
+            <div class="modal-body">
+                <template x-if="ui.loadingSettings">
+                    <div class="flex justify-center p-20"><div class="loader-spinner spinner-sm"></div><span class="ml-2 text-muted">Loading settings…</span></div>
+                </template>
+                <template x-if="!ui.loadingSettings && settings">
+                    <div class="settings-form grid grid-cols-1 gap-md">
+                        <div class="settings-group animated-row">
+                            <h3 class="mb-2">App Paths</h3>
+                            <label class="form-label" for="setting-appdata">App Data Directory</label>
+                            <div class="text-muted text-sm mb-4">The root directory for logs, caches, and application state. Default: <code>%APPDATA%\SptCheckModsExtended</code></div>
+                            <input type="text" id="setting-appdata" name="appDataDirectory" autocomplete="off" spellcheck="false" x-model="settings.AppPaths.AppDataDirectory" class="form-input w-full" placeholder="Leave empty for default">
+                        </div>
+                        <div class="settings-group animated-row">
+                            <h3 class="mb-2">Logging Options</h3>
+                            <label class="form-label flex align-center gap-sm" for="setting-enablelog">
+                                <input type="checkbox" id="setting-enablelog" name="enableLogging" x-model="settings.LoggingOptions.EnableFileLogging" class="row-checkbox"> Enable File Logging
+                            </label>
+                            <div class="text-muted text-sm mb-4">Write application logs to disk for troubleshooting.</div>
+
+                            <label class="form-label" for="setting-loglevel">Minimum Log Level</label>
+                            <div class="text-muted text-sm mb-4">Controls the verbosity of the log file.</div>
+                            <select id="setting-loglevel" name="minLogLevel" autocomplete="off" x-model="settings.LoggingOptions.MinimumLogLevel" class="form-input w-full">
+                                <option value="Debug">Debug</option>
+                                <option value="Information">Information</option>
+                                <option value="Warning">Warning</option>
+                                <option value="Error">Error</option>
+                            </select>
+
+                            <label class="form-label mt-4" for="setting-logpath">Log File Path</label>
+                            <div class="text-muted text-sm mb-4">The filename for the log file (relative to AppDataDirectory/logs). Default: <code>checkmod.log</code></div>
+                            <input type="text" id="setting-logpath" name="logFilePath" autocomplete="off" spellcheck="false" x-model="settings.LoggingOptions.LogFilePath" class="form-input w-full">
+                            
+                            <label class="form-label mt-4" for="setting-maxfilesize">Max File Size (Bytes)</label>
+                            <div class="text-muted text-sm mb-4">Maximum size of a single log file before it rolls over. Default: 10485760 (10MB)</div>
+                            <input type="number" id="setting-maxfilesize" name="maxFileSizeBytes" autocomplete="off" x-model.number="settings.LoggingOptions.MaxFileSizeBytes" class="form-input w-full">
+                        </div>
+                    </div>
+                </template>
             </div>
-            <div class="modal-footer">
-                <button id="btn-save-settings" class="btn-primary">Save Settings</button>
-                <button id="btn-cancel-settings" class="btn-secondary">Cancel</button>
+            <div class="modal-footer glass-header">
+                <button class="btn-primary" @click="saveSettings($event)">Save Settings</button>
+                <button class="btn-secondary" @click="closeModals()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Toasts -->
+    <div id="toast-container" class="toast-container">
+        <template x-for="toast in ui.toasts" :key="toast.id">
+            <div class="toast show" :class="'toast-' + toast.type" role="status" aria-live="polite" x-text="toast.message" x-init="setTimeout(() => { toast.show = false; setTimeout(() => ui.toasts = ui.toasts.filter(t => t.id !== toast.id), 300) }, 3000)" :style="toast.show === false ? 'opacity: 0; transform: translateX(100%);' : ''"></div>
+        </template>
+    </div>
+
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

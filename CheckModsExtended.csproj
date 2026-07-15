@@ -19,6 +19,7 @@
     <Copyright>Copyright (c) 2026 TerribleTurtle, Copyright (c) 2025 Refringe</Copyright>
     <Product>https://github.com/TerribleTurtle/CheckModsExtended</Product>
     <AssemblyTitle>CheckModsExtended</AssemblyTitle>
+    <AssemblyName>CheckModsExtended</AssemblyName>
     <!--
     Baseline semver for local/dev builds. Releases override this via -p:BuildVersion (from the git tag). Bump this when
     preparing a new release so local builds report the in-progress version.
@@ -89,9 +90,6 @@
           if (File.Exists(DestinationArchive)) File.Delete(DestinationArchive);
           using var archive = ZipFile.Open(DestinationArchive, ZipArchiveMode.Create);
           archive.CreateEntryFromFile(SourceFile, Path.GetFileName(SourceFile), CompressionLevel.Optimal);
-          
-          string bat1 = Path.Combine(ProjectDirectory, "CheckModsExtended - Start Web Manager.bat");
-          if (File.Exists(bat1)) archive.CreateEntryFromFile(bat1, "CheckModsExtended - Start Web Manager.bat", CompressionLevel.Optimal);
         ]]>
       </Code>
     </Task>
@@ -105,9 +103,6 @@
   </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="CheckModsExtended.Tests" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CheckModsExtended - Start Web Manager.bat" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LICENSE" />

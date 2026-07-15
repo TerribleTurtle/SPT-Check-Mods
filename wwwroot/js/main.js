@@ -1,545 +1,464 @@
-import { state , setMods, setFilteredMods, setSearchFilter, setStatusFilter, setSortColumn, setSortDirection, setScanning, setConsoleCollapsed, setLastFocus, setLastScan, setAppVersion, setSptVersion, setThemeMeta, clearSelectedIds, addSelectedId, removeSelectedId } from './state.js';;
-import { fetchStatus, fetchScan, fetchCache, ignoreMod, unignoreMod, systemOpen } from './api.js';
-import { logToConsole } from './utils.js';
-import { setTheme, setFilter, render } from './ui/table.js';
-import { toggleConsole, handleCopyLog, updateLastScanTime, startLoaderAnimation, stopLoaderAnimation, renderEmptyState, showToast } from './ui/components.js';
-import { showOverview } from './ui/dashboard.js';
-import { renderDetailRow } from './ui/details.js';
+import { fetchStatus, fetchScan, fetchCache, ignoreMod, unignoreMod, systemOpen, fetchIgnores, fetchSettings, saveSettings } from './api.js';
 
-/**
- * Main application entry point and master-detail UI controller.
- *
- * Master-Detail View Heuristic:
- * - The left pane (master) contains the list of all filtered and sorted mods.
- * - Clicking a row marks it as 'selected' and populates the right pane (detail) via renderDetailRow.
- * - Selecting multiple rows or unselected all rows hides the detail pane and triggers showOverview() to display workspace summaries.
- * - Keyboard navigation (j/k, up/down arrows) automatically moves the selection and updates the detail pane dynamically.
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const btnScan = document.getElementById('btn-scan');
-    const btnTheme = document.getElementById('btn-theme');
-    const modsList = document.getElementById('mods-list');
-    const consoleLogs = document.getElementById('console-logs');
-    const appVersionEl = document.getElementById('app-version');
-    const sptVersionEl = document.getElementById('spt-version');
-    
-    const detailPane = document.getElementById('detail-pane');
-    const detailTitle = document.getElementById('detail-title');
-    const detailContent = document.getElementById('detail-content');
-    const btnCloseDetail = document.getElementById('btn-close-detail');
+document.addEventListener('alpine:init', () => {
+    Alpine.data('modManager', () => ({
+        mods: [],
+        filters: { search: '', status: 'all' },
+        sort: { column: 'status', direction: 'asc' },
+        ui: {
+            scanning: false,
+            selectedIds: new Set(),
+            lastFocus: null,
+            showIgnoreModal: false,
+            showSettingsModal: false,
+            loadingIgnores: false,
+            loadingSettings: false,
+            isScrolledToBottom: false,
+            toasts: [],
+            toastIdCounter: 0
+        },
+        meta: {
+            sptVersion: null,
+            appVersion: null,
+            lastScan: null,
+            theme: localStorage.getItem('cme-theme') || 'dark'
+        },
+        ignores: [],
+        settings: null,
+        selectedMod: null,
+        loaderProgress: 0,
+        loaderText: '> Initiating workspace scan…',
+        loaderInterval: null,
 
-    const ignoreModal = document.getElementById('ignore-modal');
-    const btnCloseModal = document.getElementById('btn-close-modal');
-    const ignoreModalBody = document.getElementById('ignore-modal-body');
-
-    const settingsModal = document.getElementById('settings-modal');
-    const btnCloseSettingsModal = document.getElementById('btn-close-settings-modal');
-    const btnCancelSettings = document.getElementById('btn-cancel-settings');
-
-    function init() {
-        // Restore theme
-        const savedTheme = localStorage.getItem('cme-theme') || 'dark';
-        setTheme(savedTheme);
-
-        // Restore filter status
-        const savedFilterStatus = localStorage.getItem('cme-filter-status');
-        if (savedFilterStatus) {
-            setStatusFilter(savedFilterStatus);
-            document.querySelectorAll('.chip').forEach(c => {
-                if (c.dataset.filter === savedFilterStatus) c.classList.add('active');
-                else c.classList.remove('active');
-            });
-        }
-
-
-        // Fetch initial status
-        fetchStatus().then(data => {
-            if (data && data.version) {
-                setAppVersion(data.version);
-                appVersionEl.textContent = `v${data.version}`;
-            }
-            if (data && data.sptVersion) {
-                setSptVersion(data.sptVersion);
-                sptVersionEl.textContent = `SPT v${data.sptVersion}`;
-                sptVersionEl.hidden = false;
-            }
-        }).finally(async () => {
-            const cacheData = await fetchCache();
-            if (cacheData && cacheData.response) {
-                setMods(cacheData.response.mods || []);
-                setLastScan(new Date(cacheData.cachedAtUtc).getTime());
-                
-                const cacheIndicator = document.getElementById('cache-indicator');
-                if (cacheIndicator) {
-                    cacheIndicator.classList.remove('hidden');
+        get filteredMods() {
+            let res = this.mods.filter(mod => {
+                if (this.filters.search) {
+                    const query = this.filters.search.toLowerCase();
+                    const matchName = mod.name && mod.name.toLowerCase().includes(query);
+                    const matchAuthor = mod.author && mod.author.toLowerCase().includes(query);
+                    if (!matchName && !matchAuthor) return false;
                 }
-                
-                render();
-                updateLastScanTime();
-                
-                // Fire silent background scan
-                handleBackgroundScan();
-            } else {
-                handleScan();
-            }
-        });
-
-        setInterval(updateLastScanTime, 30000);
+                if (this.filters.status !== 'all') {
+                    if (this.filters.status === 'ignored') return mod.isIgnored === true;
+                    if (mod.isIgnored) return false;
+                    if (this.filters.status === 'ok') return mod.status === 'UpToDate' || mod.status === 'NewerInstalled';
+                    if (this.filters.status === 'attention') return ['UpdateAvailable', 'UpdateBlocked', 'Incompatible'].includes(mod.status);
+                }
+                return true;
+            });
             
-        // Event Listeners
-        btnScan.addEventListener('click', handleScan);
-        btnTheme.addEventListener('click', () => setTheme(state.meta.theme === 'dark' ? 'light' : 'dark'));
-        btnCloseDetail.addEventListener('click', () => {
-            const selectedRow = document.querySelector('#mods-list tr.selected');
-            document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
-            clearSelectedIds();
-            showOverview();
-            if (selectedRow) {
-                const checkbox = selectedRow.querySelector('.row-checkbox');
-                if (checkbox) checkbox.focus();
-            }
-        });
-        
-        // Event delegation for mod list actions
-        modsList.addEventListener('click', handleModListClick);
-        detailContent.addEventListener('click', handleDetailClick);
-        if (ignoreModalBody) {
-            ignoreModalBody.addEventListener('click', handleDetailClick);
-        }
-
-        if (btnCloseModal) {
-            btnCloseModal.addEventListener('click', () => {
-                if (ignoreModal) {
-                    ignoreModal.classList.add('hidden');
-                    if (state.ui.lastFocus) {
-                        state.ui.lastFocus.focus();
-                        setLastFocus(null);
+            return res.sort((a, b) => {
+                let valA, valB;
+                if (this.sort.column === 'name') {
+                    valA = (a.name || '').toLowerCase();
+                    valB = (b.name || '').toLowerCase();
+                } else if (this.sort.column === 'status') {
+                    if (a.isIgnored && !b.isIgnored) return this.sort.direction === 'asc' ? 1 : -1;
+                    if (!a.isIgnored && b.isIgnored) return this.sort.direction === 'asc' ? -1 : 1;
+                    const order = { 'UpdateAvailable': 0, 'UpdateBlocked': 1, 'Incompatible': 2, 'Error': 3, 'NoVersionsFound': 4, 'NewerInstalled': 5, 'UpToDate': 6, 'Unknown': 7 };
+                    valA = order[a.status] !== undefined ? order[a.status] : 8;
+                    valB = order[b.status] !== undefined ? order[b.status] : 8;
+                } else if (this.sort.column === 'version') {
+                    const parseVer = v => (v || '').split('-')[0].split('.').map(n => parseInt(n) || 0);
+                    const pA = parseVer(a.localVersion);
+                    const pB = parseVer(b.localVersion);
+                    const len = Math.max(pA.length, pB.length);
+                    let cmp = 0;
+                    for (let i = 0; i < len; i++) {
+                        const nA = pA[i] || 0;
+                        const nB = pB[i] || 0;
+                        if (nA > nB) { cmp = 1; break; }
+                        if (nA < nB) { cmp = -1; break; }
                     }
-                }
-            });
-        }
-        
-        if (ignoreModal) {
-            ignoreModal.addEventListener('click', (e) => {
-                if (e.target === ignoreModal) {
-                    ignoreModal.classList.add('hidden');
-                    if (state.ui.lastFocus) {
-                        state.ui.lastFocus.focus();
-                        setLastFocus(null);
-                    }
-                }
-            });
-        }
-
-        const closeSettings = () => {
-            if (settingsModal) {
-                settingsModal.classList.add('hidden');
-                if (state.ui.lastFocus) {
-                    state.ui.lastFocus.focus();
-                    setLastFocus(null);
-                }
-            }
-        };
-
-        if (btnCloseSettingsModal) btnCloseSettingsModal.addEventListener('click', closeSettings);
-        if (btnCancelSettings) btnCancelSettings.addEventListener('click', closeSettings);
-        if (settingsModal) {
-            settingsModal.addEventListener('click', (e) => {
-                if (e.target === settingsModal) {
-                    closeSettings();
-                }
-            });
-        }
-
-        document.addEventListener('keydown', handleKeyboardNavigation);
-
-        const savedSortCol = localStorage.getItem('cme-sort-column');
-        const savedSortDir = localStorage.getItem('cme-sort-direction');
-        if (savedSortCol) setSortColumn(savedSortCol);
-        if (savedSortDir) setSortDirection(savedSortDir);
-
-        const searchInput = document.getElementById('search-input');
-        let searchTimeout;
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    setSearchFilter(e.target.value.toLowerCase());
-                    render();
-                }, 250);
-            });
-        }
-
-        document.querySelectorAll('.chip').forEach(el => {
-            el.addEventListener('click', (e) => setFilter(e.currentTarget.dataset.filter));
-        });
-
-        document.querySelectorAll('th[data-sortable]').forEach(th => {
-            th.addEventListener('click', (e) => {
-                const col = e.currentTarget.dataset.sortable;
-                if (state.sort.column === col) {
-                    if (state.sort.direction === 'asc') {
-                        setSortDirection('desc');
-                    } else if (state.sort.direction === 'desc' && col === 'type') {
-                        setSortDirection('paired');
+                    return this.sort.direction === 'asc' ? cmp : -cmp;
+                } else if (this.sort.column === 'type') {
+                    if (this.sort.direction === 'asc' || this.sort.direction === 'paired') {
+                        valA = a.isPaired ? 2 : (a.isServerMod ? 1 : 0);
+                        valB = b.isPaired ? 2 : (b.isServerMod ? 1 : 0);
                     } else {
-                        // Clear to default 'status' asc, UNLESS we clicked 'status', then clear to 'name' asc
-                        setSortColumn(col === 'status' ? 'name' : 'status');
-                        setSortDirection('asc');
+                        valA = a.isPaired ? 0 : (a.isServerMod ? 2 : 1);
+                        valB = b.isPaired ? 0 : (b.isServerMod ? 2 : 1);
                     }
                 } else {
-                    setSortColumn(col);
-                    setSortDirection('asc');
+                    valA = ''; valB = '';
                 }
-                localStorage.setItem('cme-sort-column', state.sort.column);
-                localStorage.setItem('cme-sort-direction', state.sort.direction);
-                render();
+                
+                if (valA < valB) return this.sort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return this.sort.direction === 'asc' ? 1 : -1;
+                
+                const nameA = (a.name || '').toLowerCase();
+                const nameB = (b.name || '').toLowerCase();
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
+                return 0;
             });
-        });
+        },
+        get activeMods() { return this.mods.filter(m => !m.isIgnored); },
+        get ignoredMods() { return this.mods.filter(m => m.isIgnored); },
+        get updatesAvailable() { return this.activeMods.filter(m => m.status === 'UpdateAvailable'); },
+        get updatesBlocked() { return this.activeMods.filter(m => m.status === 'UpdateBlocked'); },
+        get incompatibleMods() { return this.activeMods.filter(m => m.status === 'Incompatible'); },
+        get attentionMods() { return this.activeMods.filter(m => ['UpdateAvailable', 'UpdateBlocked', 'Incompatible'].includes(m.status)); },
+        get upToDateMods() { return this.activeMods.filter(m => ['UpToDate', 'NewerInstalled'].includes(m.status)); },
+        get downloadableUpdates() { return this.updatesAvailable.filter(m => m.downloadUrl); },
+        get pageUpdates() { return this.updatesAvailable.filter(m => m.modUrl); },
+        get isAllSelected() { return this.filteredMods.length > 0 && this.filteredMods.every(m => this.ui.selectedIds.has(String(m.id))); },
+        get isIndeterminate() { return this.filteredMods.some(m => this.ui.selectedIds.has(String(m.id))) && !this.isAllSelected; },
+        get documentTitle() {
+            const outdatedCount = this.updatesAvailable.length + this.updatesBlocked.length;
+            return outdatedCount > 0 ? `(${outdatedCount} outdated) Check Mods Extended` : "CheckModsExtended // MANAGER";
+        },
 
-        const selectAll = document.getElementById('select-all');
-        if (selectAll) {
-            selectAll.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    state.filteredMods.forEach(m => addSelectedId(m.id));
+        init() {
+            document.documentElement.dataset.theme = this.meta.theme;
+            const savedFilter = localStorage.getItem('cme-filter-status');
+            if (savedFilter) this.filters.status = savedFilter;
+            const savedSortCol = localStorage.getItem('cme-sort-column');
+            const savedSortDir = localStorage.getItem('cme-sort-direction');
+            if (savedSortCol) this.sort.column = savedSortCol;
+            if (savedSortDir) this.sort.direction = savedSortDir;
+
+            fetchStatus().then(data => {
+                if (data && data.version) this.meta.appVersion = data.version;
+                if (data && data.sptVersion) this.meta.sptVersion = data.sptVersion;
+            }).finally(async () => {
+                const cacheData = await fetchCache();
+                const responseData = cacheData?.response || cacheData?.Response;
+                const cachedAt = cacheData?.cachedAtUtc || cacheData?.CachedAtUtc;
+                if (cacheData && responseData) {
+                    console.log("CACHE DATA RECEIVED:", JSON.stringify(cacheData));
+                    this.mods = responseData.mods || responseData.Mods || [];
+                    this.meta.lastScan = new Date(cachedAt).getTime();
+                    console.log("META LAST SCAN:", this.meta.lastScan);
+                    this.handleBackgroundScan();
                 } else {
-                    state.filteredMods.forEach(m => removeSelectedId(m.id));
+                    console.log("NO CACHE DATA FOUND, RUNNING SCAN");
+                    this.handleScan();
                 }
-                render();
             });
-        }
 
-        const btnBulkOpen = document.getElementById('btn-bulk-open');
-        if (btnBulkOpen) {
-            btnBulkOpen.addEventListener('click', async () => {
-                const selectedMods = state.mods.filter(m => state.ui.selectedIds.has(String(m.id)));
-                btnBulkOpen.disabled = true;
-                btnBulkOpen.classList.add('is-loading');
-                for (const m of selectedMods) {
-                    const url = m.downloadUrl || m.modUrl;
-                    if (url) {
-                        try {
-                            await systemOpen(url);
-                        } catch (e) {
-                            showToast(`Error opening URL for ${m.name}: ${e}`, 'error');
-                        }
-                    }
+            setInterval(() => {
+                if (this.meta.lastScan) this.meta.lastScan = this.meta.lastScan; 
+            }, 30000);
+        },
+
+        toggleTheme() {
+            this.meta.theme = this.meta.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = this.meta.theme;
+            localStorage.setItem('cme-theme', this.meta.theme);
+        },
+
+        setFilter(status) {
+            this.filters.status = status;
+            localStorage.setItem('cme-filter-status', status);
+            this.ui.selectedIds.clear();
+        },
+
+        clearFilters() {
+            this.filters.search = '';
+            this.setFilter('all');
+        },
+
+        setSort(column) {
+            if (this.sort.column === column) {
+                if (this.sort.direction === 'asc') this.sort.direction = 'desc';
+                else if (this.sort.direction === 'desc' && column === 'type') this.sort.direction = 'paired';
+                else {
+                    this.sort.column = column === 'status' ? 'name' : 'status';
+                    this.sort.direction = 'asc';
                 }
-                btnBulkOpen.disabled = false;
-                btnBulkOpen.classList.remove('is-loading');
-            });
-        }
-
-        const btnBulkIgnore = document.getElementById('btn-bulk-ignore');
-        if (btnBulkIgnore) {
-            btnBulkIgnore.addEventListener('click', async () => {
-                const selectedMods = state.mods.filter(m => state.ui.selectedIds.has(String(m.id)));
-                btnBulkIgnore.disabled = true;
-                btnBulkIgnore.classList.add('is-loading');
-                for (const mod of selectedMods) {
-                    try {
-                        await ignoreMod(mod.id, mod.localVersion, mod.latestVersion);
-                        showToast(`Successfully ignored ${mod.id}.`, 'success');
-                    } catch(err) {
-                        showToast(`Error ignoring mod ${mod.id}: ${err.message}`, 'error');
-                    }
-                }
-                btnBulkIgnore.disabled = false;
-                btnBulkIgnore.classList.remove('is-loading');
-                clearSelectedIds();
-                handleScan();
-            });
-        }
-
-        const btnBulkClear = document.getElementById('btn-bulk-clear');
-        if (btnBulkClear) {
-            btnBulkClear.addEventListener('click', () => {
-                clearSelectedIds();
-                render();
-            });
-        }
-    }
-
-    function handleKeyboardNavigation(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-        const ignoreModal = document.getElementById('ignore-modal');
-        const settingsModal = document.getElementById('settings-modal');
-        const modalOpen = (ignoreModal && !ignoreModal.classList.contains('hidden')) || 
-                          (settingsModal && !settingsModal.classList.contains('hidden'));
-
-        // Modal Focus Trap
-        if (modalOpen && e.key === 'Tab') {
-            const activeModal = (!ignoreModal.classList.contains('hidden')) ? ignoreModal : settingsModal;
-            const focusableElements = activeModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-            if (focusableElements.length > 0) {
-                const first = focusableElements[0];
-                const last = focusableElements[focusableElements.length - 1];
-
-                if (e.shiftKey) {
-                    if (document.activeElement === first || document.activeElement === document.body) {
-                        e.preventDefault();
-                        last.focus();
-                    }
-                } else {
-                    if (document.activeElement === last || document.activeElement === document.body) {
-                        e.preventDefault();
-                        first.focus();
-                    }
-                }
-            }
-            return;
-        }
-
-        if (e.key === 'Escape') {
-            if (modalOpen) {
-                if (ignoreModal) ignoreModal.classList.add('hidden');
-                if (settingsModal) settingsModal.classList.add('hidden');
-                if (state.ui.lastFocus) {
-                    state.ui.lastFocus.focus();
-                    setLastFocus(null);
-                }
-                return;
-            }
-
-            const selectedRow = document.querySelector('#mods-list tr.selected');
-            document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
-            showOverview();
-            if (selectedRow) {
-                const checkbox = selectedRow.querySelector('.row-checkbox');
-                if (checkbox) checkbox.focus();
-            }
-        } else if (e.key === 'j' || e.key === 'k' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            // Scope to table or body to avoid hijacking other interactive elements
-            if (document.activeElement !== document.body && !e.target.closest('.master-list')) {
-                return;
-            }
-            e.preventDefault();
-            const rows = Array.from(document.querySelectorAll('#mods-list tr'));
-            if (rows.length === 0) return;
-
-            let selectedIdx = rows.findIndex(r => r.classList.contains('selected'));
-            if (selectedIdx === -1) {
-                selectedIdx = 0;
             } else {
-                if (e.key === 'j' || e.key === 'ArrowDown') {
-                    selectedIdx = Math.min(selectedIdx + 1, rows.length - 1);
-                } else if (e.key === 'k' || e.key === 'ArrowUp') {
-                    selectedIdx = Math.max(selectedIdx - 1, 0); 
+                this.sort.column = column;
+                this.sort.direction = 'asc';
+            }
+            localStorage.setItem('cme-sort-column', this.sort.column);
+            localStorage.setItem('cme-sort-direction', this.sort.direction);
+        },
+
+        toggleSelect(id, event) {
+            if (this.ui.selectedIds.has(id)) this.ui.selectedIds.delete(id);
+            else this.ui.selectedIds.add(id);
+        },
+
+        toggleSelectAll() {
+            if (this.isAllSelected) {
+                this.filteredMods.forEach(m => this.ui.selectedIds.delete(String(m.id)));
+            } else {
+                this.filteredMods.forEach(m => this.ui.selectedIds.add(String(m.id)));
+            }
+        },
+
+        selectMod(mod) {
+            this.selectedMod = mod;
+        },
+
+        async handleBackgroundScan() {
+            if (this.ui.scanning) return;
+            this.ui.scanning = true;
+            try {
+                const results = await fetchScan();
+                this.mods = results.mods || [];
+                this.meta.lastScan = Date.now();
+                this.showToast(`Scan complete. ${this.mods.length} entities analyzed.`, 'success');
+            } catch (error) {
+                this.showToast(`Scan failed: ${error.message}`, 'error');
+            } finally {
+                this.ui.scanning = false;
+            }
+        },
+
+        async handleScan() {
+            if (this.ui.scanning) return;
+            this.ui.scanning = true;
+            this.mods = [];
+            this.selectedMod = null;
+            this.startLoader();
+            try {
+                const results = await fetchScan();
+                this.mods = results.mods || [];
+                this.meta.lastScan = Date.now();
+                this.showToast(`Scan complete. ${this.mods.length} entities analyzed.`, 'success');
+            } catch (error) {
+                this.showToast(`Scan failed: ${error.message}`, 'error');
+            } finally {
+                this.stopLoader();
+                this.ui.scanning = false;
+            }
+        },
+
+        startLoader() {
+            this.loaderProgress = 0;
+            this.loaderText = '> Initiating workspace scan…';
+            this.loaderInterval = setInterval(() => {
+                if (this.loaderProgress < 95) {
+                    const remaining = 95 - this.loaderProgress;
+                    this.loaderProgress += Math.max(remaining * 0.05, 0.1);
+                    if (this.loaderProgress > 20) this.loaderText = '> Indexing local mod directories…';
+                    if (this.loaderProgress > 50) this.loaderText = '> Reconciling version hashes…';
+                    if (this.loaderProgress > 80) this.loaderText = '> Analyzing dependencies…';
+                }
+            }, 100);
+        },
+
+        stopLoader() {
+            if (this.loaderInterval) clearInterval(this.loaderInterval);
+            this.loaderProgress = 100;
+            this.loaderText = '> SCAN COMPLETE';
+        },
+
+        systemOpen(target) {
+            systemOpen(target).catch(e => this.showToast(`Error opening target: ${e.message}`, 'error'));
+        },
+
+        async ignoreMod(id, localVer, latestVer, btnEvent) {
+            if(btnEvent) btnEvent.target.classList.add('is-loading');
+            try {
+                await ignoreMod(id, localVer, latestVer);
+                this.showToast(`Successfully ignored ${id}.`, 'success');
+                this.selectedMod = null;
+                this.handleScan();
+            } catch (err) {
+                this.showToast(`Error ignoring mod: ${err.message}`, 'error');
+            }
+        },
+
+        async unignoreMod(id, btnEvent, fromModal = false) {
+            if(btnEvent) btnEvent.target.classList.add('is-loading');
+            try {
+                await unignoreMod(id);
+                this.showToast(`Successfully un-ignored ${id}.`, 'success');
+                if (fromModal) {
+                    await this.loadIgnores();
+                } else {
+                    this.selectedMod = null;
+                }
+                this.handleScan();
+            } catch (err) {
+                this.showToast(`Error un-ignoring mod: ${err.message}`, 'error');
+            }
+        },
+
+        async bulkUpdate(btnEvent) {
+            const selectedMods = this.mods.filter(m => this.ui.selectedIds.has(String(m.id)));
+            if(btnEvent) btnEvent.target.classList.add('is-loading');
+            for (const m of selectedMods) {
+                const url = m.downloadUrl || m.modUrl;
+                if (url) {
+                    try {
+                        await systemOpen(url);
+                    } catch (e) {
+                        this.showToast(`Error opening URL for ${m.name}: ${e}`, 'error');
+                    }
                 }
             }
+            if(btnEvent) btnEvent.target.classList.remove('is-loading');
+        },
 
-            const row = rows[selectedIdx];
-            document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
-            row.classList.add('selected');
-            row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
-            const id = row.dataset.id;
-            const mod = state.mods.find(m => String(m.id) === String(id));
-            if (mod) renderDetailRow(mod);
-            
-            const checkbox = row.querySelector('.row-checkbox');
-            if (checkbox) checkbox.focus();
-        } else if (e.key === 'Enter') {
-            if (document.activeElement !== document.body && !e.target.closest('.master-list')) {
-                return;
-            }
-            const selectedRow = document.querySelector('#mods-list tr.selected');
-            if (selectedRow && !detailPane.classList.contains('hidden')) {
-                const detailContent = document.getElementById('detail-content');
-                if (detailContent) {
-                    detailContent.setAttribute('tabindex', '-1');
-                    detailContent.focus();
+        async bulkIgnore(btnEvent) {
+            const selectedMods = this.mods.filter(m => this.ui.selectedIds.has(String(m.id)));
+            if(btnEvent) btnEvent.target.classList.add('is-loading');
+            for (const mod of selectedMods) {
+                try {
+                    await ignoreMod(mod.id, mod.localVersion, mod.latestVersion);
+                    this.showToast(`Successfully ignored ${mod.id}.`, 'success');
+                } catch(err) {
+                    this.showToast(`Error ignoring mod ${mod.id}: ${err.message}`, 'error');
                 }
             }
-        }
-    }
-    
-    function handleModListClick(e) {
-        const checkbox = e.target.closest('.row-checkbox');
-        if (checkbox) {
-            if (checkbox.id === 'select-all') return;
-            const id = checkbox.value;
-            if (checkbox.checked) addSelectedId(id);
-            else removeSelectedId(id);
-            const tr = checkbox.closest('tr');
-            if (tr) {
-                if (checkbox.checked) tr.classList.add('selected');
-                else tr.classList.remove('selected');
-            }
-            
-            // Re-render bulk bar and select-all
-            render();
-            e.stopPropagation();
-            return;
-        }
+            if(btnEvent) btnEvent.target.classList.remove('is-loading');
+            this.ui.selectedIds.clear();
+            this.handleScan();
+        },
 
-        const tr = e.target.closest('tr');
-        if (tr && tr.dataset.id) {
-            const id = tr.dataset.id;
-            const mod = state.mods.find(m => String(m.id) === String(id));
-            if (mod) {
-                document.querySelectorAll('#mods-list tr.selected').forEach(c => c.classList.remove('selected'));
-                tr.classList.add('selected');
-                renderDetailRow(mod);
+        async bulkDownloadUpdates() {
+            for (const m of this.downloadableUpdates) {
+                this.systemOpen(m.downloadUrl);
+            }
+        },
+
+        async bulkOpenPages() {
+            for (const m of this.pageUpdates) {
+                this.systemOpen(m.modUrl);
+            }
+        },
+
+        copyModsList(e) {
+            const list = this.mods.map(m => `- ${m.name} (v${m.localVersion || 'Unknown'}) - ${m.status}`).join('\n');
+            navigator.clipboard.writeText(list).then(() => {
+                const orig = e.target.textContent;
+                e.target.textContent = 'Copied!';
+                setTimeout(() => e.target.textContent = orig, 2000);
+            });
+        },
+
+        async showIgnoreDashboard() {
+            this.ui.lastFocus = document.activeElement;
+            this.ui.showIgnoreModal = true;
+            await this.loadIgnores();
+        },
+        
+        async loadIgnores() {
+            this.ui.loadingIgnores = true;
+            try {
+                this.ignores = await fetchIgnores();
+            } catch (e) {
+                this.showToast(`Error loading ignores: ${e.message}`, 'error');
+                this.ignores = [];
+            } finally {
+                this.ui.loadingIgnores = false;
+            }
+        },
+
+        async showSettingsDashboard() {
+            this.ui.lastFocus = document.activeElement;
+            this.ui.showSettingsModal = true;
+            this.ui.loadingSettings = true;
+            try {
+                this.settings = await fetchSettings();
+                if(!this.settings.AppPaths) this.settings.AppPaths = { AppDataDirectory: '' };
+                if(!this.settings.LoggingOptions) this.settings.LoggingOptions = { EnableFileLogging: false, MinimumLogLevel: 'Information', LogFilePath: 'checkmod.log', MaxFileSizeBytes: 10485760 };
+            } catch (e) {
+                this.showToast(`Error loading settings: ${e.message}`, 'error');
+                this.settings = null;
+            } finally {
+                this.ui.loadingSettings = false;
+            }
+        },
+
+        async saveSettings(btnEvent) {
+            if(btnEvent) btnEvent.target.classList.add('is-loading');
+            try {
+                await saveSettings(this.settings);
+                this.closeModals();
+                this.showToast('Settings saved! A restart may be required.', 'success');
+            } catch (e) {
+                this.showToast(`Error saving settings: ${e.message}`, 'error');
+            } finally {
+                if(btnEvent) btnEvent.target.classList.remove('is-loading');
+            }
+        },
+
+        closeModals() {
+            this.ui.showIgnoreModal = false;
+            this.ui.showSettingsModal = false;
+            if (this.ui.lastFocus) {
+                this.ui.lastFocus.focus();
+                this.ui.lastFocus = null;
+            }
+        },
+
+        showToast(message, type = 'info') {
+            this.ui.toastIdCounter++;
+            this.ui.toasts.push({ id: this.ui.toastIdCounter, message, type, show: true });
+        },
+
+        formatTimeAgo() {
+            if (!this.meta.lastScan) return 'Never';
+            const seconds = Math.floor((Date.now() - this.meta.lastScan) / 1000);
+            if (seconds > 59) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds > 10) return `${seconds}s ago`;
+            return 'Just now';
+        },
+
+        getStatusClass(mod) {
+            if (mod.isIgnored) return 'status-unknown';
+            if (mod.status === 'UpToDate') return 'status-ok';
+            if (mod.status === 'NewerInstalled') return 'status-newer';
+            if (mod.status === 'UpdateAvailable') return 'status-update';
+            if (['UpdateBlocked', 'Incompatible', 'Error', 'NoVersionsFound'].includes(mod.status)) return 'status-blocked';
+            return 'status-unknown';
+        },
+
+        getPillClass(mod) {
+            if (mod.isIgnored) return 'status-pill-unknown';
+            if (mod.status === 'UpToDate') return 'status-pill-ok';
+            if (mod.status === 'NewerInstalled') return 'status-pill-newer';
+            if (mod.status === 'UpdateAvailable') return 'status-pill-update';
+            if (['UpdateBlocked', 'Incompatible', 'Error', 'NoVersionsFound'].includes(mod.status)) return 'status-pill-blocked';
+            return 'status-pill-unknown';
+        },
+
+        getPillText(mod) {
+            if (mod.isIgnored) return mod.ignoreSource === 'User' ? 'IGNORED (YOU)' : (mod.ignoreSource === 'Remote' ? 'IGNORED (COMMUNITY)' : 'IGNORED');
+            if (mod.status === 'UpToDate') return 'UP TO DATE';
+            if (mod.status === 'NewerInstalled') return 'NEWER';
+            if (mod.status === 'UpdateAvailable') return 'UPDATE';
+            if (mod.status === 'UpdateBlocked') return 'BLOCKED';
+            if (mod.status === 'Incompatible') return 'INCOMPATIBLE';
+            return 'UNKNOWN';
+        },
+
+        handleKeydown(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+            const modalOpen = this.ui.showIgnoreModal || this.ui.showSettingsModal;
+            if (e.key === 'Escape') {
+                if (modalOpen) {
+                    this.closeModals();
+                    return;
+                }
+                this.selectedMod = null;
+            } else if (!modalOpen && (e.key === 'j' || e.key === 'k' || e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                if (this.filteredMods.length === 0) return;
+                e.preventDefault();
+                let idx = -1;
+                if (this.selectedMod) {
+                    idx = this.filteredMods.findIndex(m => m.id === this.selectedMod.id);
+                }
+                
+                if (idx === -1) {
+                    idx = 0;
+                } else {
+                    if (e.key === 'j' || e.key === 'ArrowDown') idx = Math.min(idx + 1, this.filteredMods.length - 1);
+                    if (e.key === 'k' || e.key === 'ArrowUp') idx = Math.max(idx - 1, 0);
+                }
+                this.selectedMod = this.filteredMods[idx];
+                
                 setTimeout(() => {
-                    const closeBtn = document.getElementById('btn-close-detail');
-                    if (closeBtn) closeBtn.focus();
+                    const row = document.querySelector('tr.selected');
+                    if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                 }, 50);
             }
         }
-    }
-
-    async function handleDetailClick(e) {
-        if (e.target.classList.contains('action-ignore')) {
-            const btn = e.target;
-            const id = btn.dataset.id;
-            const localVer = btn.dataset.local;
-            const latestVer = btn.dataset.latest;
-            
-            btn.disabled = true;
-            btn.classList.add('is-loading');
-            try {
-                await ignoreMod(id, localVer, latestVer);
-                showToast(`Successfully ignored ${id}.`, 'success');
-                detailPane.classList.add('hidden');
-                handleScan();
-            } catch(err) {
-                showToast(`Error ignoring mod: ${err.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('is-loading');
-            }
-        } else if (e.target.classList.contains('action-unignore')) {
-            const btn = e.target;
-            const id = btn.dataset.id;
-            
-            btn.disabled = true;
-            btn.classList.add('is-loading');
-            try {
-                await unignoreMod(id);
-                showToast(`Successfully un-ignored ${id}.`, 'success');
-                detailPane.classList.add('hidden');
-                
-                const ignoreModal = document.getElementById('ignore-modal');
-                if (ignoreModal && !ignoreModal.classList.contains('hidden')) {
-                    import('./ui/dashboard.js').then(d => d.renderIgnoreDashboard());
-                }
-                
-                handleScan();
-            } catch(err) {
-                showToast(`Error un-ignoring mod: ${err.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('is-loading');
-            }
-        } else if (e.target.classList.contains('action-system-open')) {
-            const btn = e.target;
-            const targetStr = btn.dataset.target;
-            if (!targetStr) return;
-            
-            try {
-                await systemOpen(targetStr);
-            } catch(err) {
-                showToast(`Error opening target: ${err.message}`, 'error');
-            }
-        }
-    }
-    
-    async function handleBackgroundScan() {
-        if (state.ui.scanning) return;
-        setScanning(true);
-        btnScan.disabled = true;
-        btnScan.textContent = 'SCANNING...';
-        btnScan.classList.add('is-loading');
-        
-        logToConsole('> INITIATING BACKGROUND SCAN...', 'warn');
-        
-        const tableLoader = document.getElementById('table-loading-indicator');
-        if (tableLoader) tableLoader.classList.remove('hidden');
-
-        const cacheIndicator = document.getElementById('cache-indicator');
-        const cacheText = document.getElementById('cache-indicator-text');
-        const cacheIcon = document.getElementById('cache-indicator-icon');
-        if (cacheIndicator) {
-            cacheIndicator.classList.remove('hidden');
-            cacheIndicator.classList.remove('badge-success');
-            cacheIndicator.classList.add('badge-warning');
-            cacheIndicator.style.backgroundColor = '';
-            cacheIndicator.style.borderColor = '';
-            cacheIndicator.classList.add('pulsing-cache');
-            
-            if (cacheIcon) {
-                cacheIcon.classList.add('spin-svg');
-                cacheIcon.innerHTML = '<line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line>';
-            }
-            if (cacheText) cacheText.textContent = 'CACHED (UPDATING)';
-        }
-
-        try {
-            const results = await fetchScan();
-            setMods(results.mods || []);
-            setLastScan(Date.now());
-            
-            showToast(`Scan complete. ${state.mods.length} entities analyzed.`, 'success');
-            render();
-        } catch (error) {
-            showToast(`Scan failed: ${error.message}`, 'error');
-        } finally {
-            if (tableLoader) tableLoader.classList.add('hidden');
-            setScanning(false);
-            updateLastScanTime();
-            btnScan.disabled = false;
-            btnScan.textContent = 'SCAN LOCAL MODS';
-            btnScan.classList.remove('is-loading');
-        }
-    }
-
-    async function handleScan() {
-        if (state.ui.scanning) return;
-        
-        setScanning(true);
-        btnScan.disabled = true;
-        btnScan.textContent = 'SCANNING...';
-        btnScan.classList.add('is-loading');
-        
-        modsList.innerHTML = `
-            <tr><td colspan="5" class="p-0 border-none h-300">
-                <div class="scan-loader-container">
-                    <div class="loader-spinner hidden"></div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-fill"></div>
-                    </div>
-                    <div id="loader-text">INITIALIZING SCAN SEQUENCE...</div>
-                </div>
-            </td></tr>
-        `;
-        detailPane.classList.add('hidden');
-        
-        startLoaderAnimation();
-        logToConsole('> INITIATING MOD SCAN...', 'warn');
-
-        try {
-            const results = await fetchScan();
-            setMods(results.mods || []);
-            
-            setLastScan(Date.now());
-            
-            showToast(`Scan complete. ${state.mods.length} entities analyzed.`, 'success');
-            render();
-            
-        } catch (error) {
-            showToast(`Scan failed: ${error.message}`, 'error');
-            renderEmptyState(`Scan failed: ${error.message}`, 'error');
-        } finally {
-            stopLoaderAnimation();
-            setScanning(false);
-            updateLastScanTime();
-            btnScan.disabled = false;
-            btnScan.textContent = 'SCAN LOCAL MODS';
-            btnScan.classList.remove('is-loading');
-        }
-    }
-
-    init();
+    }));
 });

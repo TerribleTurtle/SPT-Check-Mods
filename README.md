@@ -35,9 +35,7 @@ For a detailed list of architectural changes and features introduced in this for
 Download the latest release for your operating system (`CheckModsExtended-win-x64.exe` or `CheckModsExtended-linux-x64`) from the [Releases](https://github.com/TerribleTurtle/CheckModsExtended/releases) page.
 
 - **Windows**: Move the `.exe` into the root of your SPT installation directory.
-- **Linux**: Download both `CheckModsExtended-linux-x64` and `CheckMods-CLI.sh`. Move them into your SPT directory and make them executable: `chmod +x CheckModsExtended-linux-x64 CheckMods-CLI.sh`. The CLI script provides an easier way to pass arguments.
-
-Running the application from the root directory will automatically check the mods in that installation.
+- **Linux**: Download `CheckModsExtended-linux-x64`, move it into your SPT directory, and make it executable: `chmod +x CheckModsExtended-linux-x64`.
 
 ### Option 2: Build from Source
 ```bash
@@ -48,38 +46,33 @@ dotnet build
 
 ## Usage
 
-### Basic Usage
+### Web Manager GUI (Default)
 
-To launch the **Web Manager GUI**, double-click the included `CheckModsExtended - Start Web Manager.bat` shortcut. This will automatically open the application in your default browser on `http://localhost:37194`.
-
-Alternatively, you can start the Web Manager manually by passing the `gui` argument:
+The **Web Manager GUI** is the default execution mode. Simply **double-click** the executable. This will automatically open the beautiful dashboard in your default browser on `http://localhost:37194`.
 
 ```bash
 # Windows
-CheckModsExtended-win-x64.exe gui
+CheckModsExtended-win-x64.exe
 
 # Linux
-./CheckMods-CLI.sh gui
+./CheckModsExtended-linux-x64
 ```
-
-The Web Manager will automatically start on `http://localhost:37194` (and fallback to dynamic ports if that is taken).
 
 ### Command Line Interface (CLI)
 
-The CLI is the default execution mode. Simply running the executable or double-clicking it will run the default update check in the current directory:
+The executable acts as a seamless hybrid. If you pass **any** arguments (or explicitly pass `cli`), it will run in terminal mode without launching the web server.
+
+To run the default update check in the current directory:
 ```bash
-CheckModsExtended-win-x64.exe
-```
-```bash
-./CheckMods-CLI.sh
+CheckModsExtended-win-x64.exe cli
 ```
 
-It checks the mods in the current directory. You can also point it at an SPT installation elsewhere by passing the path:
+You can also point it at an SPT installation elsewhere by passing the path:
 ```bash
-CheckModsExtended-win-x64.exe "C:\path\to\spt"
+CheckModsExtended-win-x64.exe "/path/to/spt"
 ```
 ```bash
-./CheckMods-CLI.sh "/path/to/spt"
+./CheckModsExtended-linux-x64 "/path/to/spt"
 ```
 
 If you built from source, use `dotnet run` instead. You must run this command from the `CheckModsExtended` source directory where the `.csproj` is located. The `--` passes the path through to the application rather than to the .NET CLI:
@@ -155,7 +148,7 @@ $env:LoggingOptions__MinimumLogLevel="Debug"
 .\CheckModsExtended-win-x64.exe
 
 # Linux CLI with custom log level
-LoggingOptions__MinimumLogLevel=Debug ./CheckMods-CLI.sh
+LoggingOptions__MinimumLogLevel=Debug ./CheckModsExtended-linux-x64
 ```
 
 

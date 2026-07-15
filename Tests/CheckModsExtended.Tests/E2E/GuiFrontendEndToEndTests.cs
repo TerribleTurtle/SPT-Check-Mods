@@ -204,6 +204,7 @@ public sealed class GuiFrontendEndToEndTests
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 
             var page = await browser.NewPageAsync();
+            page.Console += (_, msg) => Console.WriteLine($"BROWSER: {msg.Text}");
             await page.GotoAsync(url);
 
             // Assert title

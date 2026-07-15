@@ -122,21 +122,25 @@ public sealed class Program
             }
 
             // Determine execution mode
-            bool runGui = args.Length > 0 && args[0].Equals("gui", StringComparison.OrdinalIgnoreCase);
+            // In the Web build, default to GUI if no args are provided.
+            bool runGui = args.Length == 0 || args[0].Equals("gui", StringComparison.OrdinalIgnoreCase);
+            var cliArgs = args;
+
+            if (args.Length > 0 && args[0].Equals("cli", StringComparison.OrdinalIgnoreCase))
+            {
+                runGui = false;
+                cliArgs = args.Skip(1).ToArray();
+            }
 
             if (runGui)
             {
-                var webArgs = args.Skip(1).ToArray();
+                var webArgs = args.Length > 0 && args[0].Equals("gui", StringComparison.OrdinalIgnoreCase) 
+                    ? args.Skip(1).ToArray() 
+                    : args;
                 await WebManagerHost.RunAsync(webArgs, CancellationToken);
             }
             else
             {
-                var cliArgs = args;
-                if (args.Length > 0 && args[0].Equals("cli", StringComparison.OrdinalIgnoreCase))
-                {
-                    cliArgs = args.Skip(1).ToArray();
-                }
-
                 var services = new ServiceCollection();
                 services.AddCheckModsExtendedServices(configuration, runtimeConfig);
 
