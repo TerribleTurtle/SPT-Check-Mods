@@ -51,7 +51,7 @@ public sealed class MaybeFetchRemoteIgnoresStep(
 
         if (reporter.PromptFetchRemoteIgnores())
         {
-            await settingsService.UpdateIgnoredUpdateOptionsAsync(true, cancellationToken);
+            await settingsService.UpdateIgnoredUpdateOptionsAsync(o => o.UseCommunityList = true, cancellationToken);
             var remote = await remoteIgnoreFileClient.FetchAsync(cancellationToken);
             if (remote is null)
             {
@@ -66,7 +66,7 @@ public sealed class MaybeFetchRemoteIgnoresStep(
         }
         else
         {
-            await settingsService.UpdateIgnoredUpdateOptionsAsync(false, cancellationToken);
+            await settingsService.UpdateIgnoredUpdateOptionsAsync(o => o.UseCommunityList = false, cancellationToken);
         }
 
         reporter.Blank();

@@ -32,24 +32,8 @@ public sealed class SettingsService(IFileSystem fileSystem) : ISettingsService
         return await fileSystem.ReadAllTextAsync(path, token);
     }
 
-    /// <inheritdoc />
-    public async Task UpdateIgnoredUpdateOptionsAsync(bool useCommunityList, CancellationToken token = default)
-    {
-        var json = await GetSettingsAsync(token);
-        var root = System.Text.Json.Nodes.JsonNode.Parse(json) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();
-        
-        var optionsNode = root["IgnoredUpdateOptions"] as System.Text.Json.Nodes.JsonObject;
-        if (optionsNode == null)
-        {
-            optionsNode = new System.Text.Json.Nodes.JsonObject();
-            root["IgnoredUpdateOptions"] = optionsNode;
-        }
-        
-        optionsNode["UseCommunityList"] = useCommunityList;
-        
-        var newJson = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-        await UpdateSettingsAsync(newJson, token);
-    }
+    private static readonly JsonSerializerOptions s_deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions s_serializeOptions = new JsonSerializerOptions { WriteIndented = true };
 
     /// <inheritdoc />
     public async Task<OneOf<MessageResponse, ApiError>> UpdateSettingsAsync(string jsonPayload, CancellationToken token = default)
@@ -82,7 +66,7 @@ public sealed class SettingsService(IFileSystem fileSystem) : ISettingsService
         {
             options = JsonSerializer.Deserialize<CheckModsExtended.Configuration.IgnoredUpdateOptions>(
                 optionsNode.ToJsonString(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                s_deserializeOptions
             ) ?? new();
         }
 
@@ -91,11 +75,11 @@ public sealed class SettingsService(IFileSystem fileSystem) : ISettingsService
 
         // Save back into the JSON node
         jsonNode["IgnoredUpdateOptions"] = System.Text.Json.Nodes.JsonNode.Parse(
-            JsonSerializer.Serialize(options, new JsonSerializerOptions { WriteIndented = true })
+            JsonSerializer.Serialize(options, s_serializeOptions)
         );
 
         // Write the updated document
-        var newSettingsJson = jsonNode.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+        var newSettingsJson = jsonNode.ToJsonString(s_serializeOptions);
         return await UpdateSettingsAsync(newSettingsJson, token);
     }
 }

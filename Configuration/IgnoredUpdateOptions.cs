@@ -12,7 +12,7 @@ public sealed class IgnoredUpdateOptions
     /// <summary>
     /// Whether to fetch and merge the author-maintained remote base list. If null, the user will be prompted on startup.
     /// </summary>
-    public bool? UseCommunityList { get; set; } = null;
+    public bool? UseCommunityList { get; set; }
 
     /// <summary>
     /// URL of the author-maintained remote base list, or null/empty to disable the remote-fetch prompt entirely.
@@ -22,7 +22,4 @@ public sealed class IgnoredUpdateOptions
 
     /// <summary>Timeout for the remote fetch, in seconds.</summary>
     public int RemoteTimeoutSeconds { get; set; } = 10;
-
-    /// <summary>Whether to use the community-maintained ignore list.</summary>
-    public bool? UseCommunityList { get; set; }
 }
