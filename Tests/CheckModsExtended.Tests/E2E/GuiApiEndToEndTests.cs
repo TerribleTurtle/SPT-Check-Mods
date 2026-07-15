@@ -25,6 +25,9 @@ public sealed class GuiApiEndToEndTests
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         var sptRoot = Path.Combine(tempDir, "SPT");
 
+        var originalAppDir = Environment.GetEnvironmentVariable("AppPaths__AppDataDirectory");
+        var originalForgeApiUrl = Environment.GetEnvironmentVariable("ForgeApiOptions__BaseUrl");
+
         Environment.SetEnvironmentVariable("AppPaths__AppDataDirectory", tempDir);
 
         try
@@ -212,12 +215,16 @@ public sealed class GuiApiEndToEndTests
         {
             server.Stop();
             server.Dispose();
-            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", null);
-            Environment.SetEnvironmentVariable("AppPaths__AppDataDirectory", null);
+            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", originalForgeApiUrl);
+            Environment.SetEnvironmentVariable("AppPaths__AppDataDirectory", originalAppDir);
 
             if (Directory.Exists(tempDir))
             {
-                Directory.Delete(tempDir, true);
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch (IOException) { }
             }
         }
     }

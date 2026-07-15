@@ -31,6 +31,9 @@ public sealed class GuiFrontendEndToEndTests
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         var sptRoot = Path.Combine(tempDir, "SPT");
 
+        var originalAppDir = Environment.GetEnvironmentVariable("AppPaths__AppDataDirectory");
+        var originalForgeApiUrl = Environment.GetEnvironmentVariable("ForgeApiOptions__BaseUrl");
+
         Environment.SetEnvironmentVariable("AppPaths__AppDataDirectory", tempDir);
 
         try
@@ -222,10 +225,12 @@ public sealed class GuiFrontendEndToEndTests
 
             // Dismiss the community list setup modal if it appears
             var skipButton = page.Locator("button", new PageLocatorOptions { HasText = "No, skip" });
-            if (await skipButton.IsVisibleAsync())
+            try
             {
+                await skipButton.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 2000 });
                 await skipButton.ClickAsync();
             }
+            catch (TimeoutException) { }
 
             // Since there is no auto-scan on load, we manually click the scan button
             var scanButton = page.Locator("button", new PageLocatorOptions { HasText = "RESCAN MODS" });
@@ -258,8 +263,8 @@ public sealed class GuiFrontendEndToEndTests
         {
             server.Stop();
             server.Dispose();
-            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", null);
-            Environment.SetEnvironmentVariable("AppPaths__AppDataDirectory", null);
+            Environment.SetEnvironmentVariable("ForgeApiOptions__BaseUrl", originalForgeApiUrl);
+            Environment.SetEnvironmentVariable("AppPaths__AppDataDirectory", originalAppDir);
 
             if (Directory.Exists(tempDir))
             {
