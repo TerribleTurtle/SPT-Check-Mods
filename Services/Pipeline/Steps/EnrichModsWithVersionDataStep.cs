@@ -14,6 +14,7 @@ namespace CheckModsExtended.Services.Pipeline.Steps;
 /// Workflow step that enriches mods with version data.
 /// </summary>
 public sealed class EnrichModsWithVersionDataStep(
+    IModCheckReporter reporter,
     IModEnrichmentService modEnrichmentService,
     ILogger<EnrichModsWithVersionDataStep> logger
 ) : IWorkflowStep
@@ -22,6 +23,7 @@ public sealed class EnrichModsWithVersionDataStep(
     public async Task ExecuteAsync(UpdateWorkflowContext context, CancellationToken cancellationToken)
     {
         logger.LogDebug("Enriching mods with version data");
+        reporter.Heading("Enriching mods with version data...");
 
         var matchedMods = context.Mods.Where(m => m.IsMatched).ToList();
 
@@ -57,3 +59,4 @@ public sealed class EnrichModsWithVersionDataStep(
         context.Mods = result;
     }
 }
+
