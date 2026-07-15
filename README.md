@@ -29,6 +29,7 @@ For a detailed list of architectural changes and features introduced in this for
 ## Requirements
 
 - A valid SPT 4.0+ installation
+- .NET 9.0 SDK
 
 ## Installation
 
@@ -106,6 +107,13 @@ The application supports additional commands for specific tasks:
   ```bash
     CheckModsExtended-win-x64.exe ignore list
   ```
+  Options:
+  - `-t`, `--type <TYPE>`: Filter by type (e.g., server, client)
+  - `-s`, `--status <STATUS>`: Filter by status
+  - `--sort <SORT>`: Sort by field (e.g., name, author, version)
+  - `-l`, `--limit <LIMIT>`: Limit the number of results
+  - `--search <SEARCH>`: Search by text
+
   ```bash
     CheckModsExtended-win-x64.exe ignore add <ApiModId> <LocalVersion> <LatestVersion>
   ```
