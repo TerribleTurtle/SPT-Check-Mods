@@ -198,7 +198,8 @@ public sealed class Program
                 if (exitCode == ExitCodes.LaunchWebGui)
                 {
                     AnsiConsole.MarkupLine("[grey]Switching to Web GUI mode...[/]");
-                    await WebManagerHost.RunAsync(cliArgs, CancellationToken);
+                    var guiArgs = cliArgs.Append("--from-cli").ToArray();
+                    await WebManagerHost.RunAsync(guiArgs, CancellationToken);
                     exitCode = ExitCodes.Success;
                 }
             }

@@ -56,7 +56,16 @@
 
         <main class="dashboard" id="main-content">
             <!-- Workspace Overview -->
-            <div class="workspace-overview" x-show="mods.length > 0">
+            <template x-if="ui.driftDetected && !ui.scanning">
+                <div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: var(--radius-sm); justify-content: space-between;">
+                    <div>
+                        <span class="text-warning font-semibold">⚠️ Potential Local Changes Detected:</span>
+                        <span class="opacity-80 text-sm ml-2">Mods on your disk differ from the cached results.</span>
+                    </div>
+                    <button class="btn-primary" @click="handleScan()" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">RUN FORGE SCAN</button>
+                </div>
+            </template>
+            <div class="workspace-overview" x-show="mods.length > 0 && !ui.scanning">
                 <template x-if="updatesAvailable.length === 0 && updatesBlocked.length === 0 && incompatibleMods.length === 0">
                     <div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm);">
                         <span class="text-success font-semibold">All systems nominal:</span>
@@ -158,11 +167,11 @@
                                         <td data-label="Mod Name">
                                             <div class="mod-card-primary">
                                                 <div class="mod-card-title font-semibold">
-                                                    <span x-text="mod.name || 'Unknown'"></span>
+                                                    <span x-text="mod.name || '&lt;Unnamed Mod&gt;'" :class="{'text-muted italic': !mod.name}"></span>
                                                     <template x-if="mod.hasWarnings"><span title="Mod has warnings. Check details pane." class="text-warning ml-1 text-sm">⚠️</span></template>
                                                     <template x-if="mod.isDuplicate"><span class="status-badge badge badge-warning ml-2">DUPLICATE</span></template>
                                                 </div>
-                                                <div class="mod-card-meta" x-text="`by ${mod.author || 'Unknown'}`"></div>
+                                                <div class="mod-card-meta" x-show="mod.author && mod.author !== 'Unknown'" x-text="`by ${mod.author}`"></div>
                                             </div>
                                         </td>
                                         <td data-label="Type">
@@ -248,7 +257,7 @@
                                     <h4 class="detail-section-title">Metadata</h4>
                                     <div class="detail-grid">
                                         <span class="text-muted">Author</span>
-                                        <span x-text="selectedMod.author || 'Unknown'"></span>
+                                        <span x-text="selectedMod.author && selectedMod.author !== 'Unknown' ? selectedMod.author : ''"></span>
                                         <span class="text-muted">Local Ver</span>
                                         <span :class="(selectedMod.status === 'UpdateAvailable' || selectedMod.isIgnored) ? 'ver-warn' : (selectedMod.status === 'UpdateBlocked' || selectedMod.status === 'Incompatible' ? 'ver-error' : (selectedMod.status === 'NewerInstalled' ? 'ver-info' : 'ver-ok'))" x-text="selectedMod.localVersion || 'N/A'"></span>
                                         <span class="text-muted">Latest Ver</span>

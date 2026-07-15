@@ -33,6 +33,7 @@ public static class WebEndpoints
 
         api.MapGet("/status", GetStatusAsync);
         api.MapGet("/cache", GetCacheAsync);
+        api.MapGet("/local", GetLocalScanAsync);
         api.MapPost("/scan", PostScanAsync);
         api.MapPost("/ignore", PostIgnoreAsync);
         api.MapGet("/ignores", GetIgnoresAsync);
@@ -83,6 +84,31 @@ public static class WebEndpoints
                 return Results.Ok(cache);
             }
             return Results.NotFound(new ErrorResponse("No cache available"));
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new ErrorResponse(ex.Message), statusCode: StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    private static async Task<IResult> GetLocalScanAsync([FromServices] IInitializationService initService, [FromServices] IModScannerService scannerService, CancellationToken token)
+    {
+        try
+        {
+            string path = _args.Length > 0 ? _args[0] : Environment.CurrentDirectory;
+            var sptPath = initService.GetValidatedSptPath(new[] { path });
+            if (sptPath == null)
+            {
+                return Results.Ok(new { mods = new System.Collections.Generic.List<Mod>() });
+            }
+            
+            var (serverMods, clientMods) = await scannerService.ScanAllModsAsync(sptPath, token);
+            
+            var allLocalMods = new System.Collections.Generic.List<Mod>();
+            allLocalMods.AddRange(serverMods);
+            allLocalMods.AddRange(clientMods);
+
+            return Results.Ok(new { mods = allLocalMods });
         }
         catch (Exception ex)
         {

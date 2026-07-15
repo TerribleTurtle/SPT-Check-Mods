@@ -1,4 +1,5 @@
-import { fetchStatus, fetchScan, fetchCache, ignoreMod, unignoreMod, systemOpen, fetchIgnores, fetchSettings, saveSettings } from './api.js';
+import { fetchStatus, fetchScan, fetchCache, fetchLocalScan, ignoreMod, unignoreMod, systemOpen, fetchIgnores, fetchSettings, saveSettings } from './api.js';
+
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('modManager', () => ({
@@ -7,6 +8,8 @@ document.addEventListener('alpine:init', () => {
         sort: { column: 'status', direction: 'asc' },
         ui: {
             scanning: false,
+            driftDetected: false,
+            localScanController: null,
             selectedIds: new Set(),
             lastFocus: null,
             showIgnoreModal: false,
@@ -138,7 +141,21 @@ document.addEventListener('alpine:init', () => {
                     this.mods = responseData.mods || responseData.Mods || [];
                     this.meta.lastScan = new Date(cachedAt).getTime();
                     console.log("META LAST SCAN:", this.meta.lastScan);
-                    this.handleBackgroundScan();
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('cli')) {
+                        console.log("LAUNCHED FROM CLI, SKIPPING BACKGROUND SCAN");
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    } else {
+                        // Check if cache is older than 24 hours (86,400,000 ms)
+                        const cacheAge = Date.now() - this.meta.lastScan;
+                        if (cacheAge > 86400000) {
+                            this.showToast("Your scan data is older than 24 hours. A fresh scan is recommended.", "warning");
+                        }
+                        
+                        // Run lightweight drift detection
+                        setTimeout(() => this.checkDrift(), 1000);
+                    }
                 } else {
                     console.log("NO CACHE DATA FOUND, RUNNING SCAN");
                     this.handleScan();
@@ -200,24 +217,40 @@ document.addEventListener('alpine:init', () => {
             this.selectedMod = mod;
         },
 
-        async handleBackgroundScan() {
+
+        async checkDrift() {
             if (this.ui.scanning) return;
-            this.ui.scanning = true;
+            
+            this.ui.localScanController = new AbortController();
             try {
-                const results = await fetchScan();
-                this.mods = results.mods || [];
-                this.meta.lastScan = Date.now();
-                this.showToast(`Scan complete. ${this.mods.length} entities analyzed.`, 'success');
-            } catch (error) {
-                this.showToast(`Scan failed: ${error.message}`, 'error');
+                const localData = await fetchLocalScan(this.ui.localScanController.signal);
+                if (!localData || !localData.mods) return;
+                
+                // Diff by ID/Name + Version
+                const localHash = localData.mods.map(m => (m.id || m.name) + m.localVersion).sort().join();
+                const cachedHash = this.mods.map(m => (m.id || m.name) + m.localVersion).sort().join();
+                
+                if (localHash !== cachedHash) {
+                    this.ui.driftDetected = true;
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Drift check failed:", err);
+                }
             } finally {
-                this.ui.scanning = false;
+                this.ui.localScanController = null;
             }
         },
 
         async handleScan() {
             if (this.ui.scanning) return;
             this.ui.scanning = true;
+            this.ui.driftDetected = false;
+            
+            if (this.ui.localScanController) {
+                this.ui.localScanController.abort();
+            }
+            
             this.mods = [];
             this.selectedMod = null;
             this.startLoader();

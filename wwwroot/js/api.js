@@ -1,6 +1,16 @@
 import { logToConsole } from './utils.js';
 
 /**
+ * Performs a lightweight local file scan.
+ * @returns {Promise<Object>} Local mods found on disk.
+ */
+export async function fetchLocalScan(signal) {
+    const response = await fetch('/api/local', { signal });
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return await response.json();
+}
+
+/**
  * Fetches the current status of the application.
  * @returns {Promise<Object|null>} The status object (e.g., version, scan state) or null on error.
  */

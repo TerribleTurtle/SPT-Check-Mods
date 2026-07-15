@@ -100,6 +100,11 @@ public static class WebManagerHost
             var serverAddresses = server.Features.Get<Microsoft.AspNetCore.Hosting.Server.Features.IServerAddressesFeature>();
             string actualUrl = serverAddresses?.Addresses.FirstOrDefault() ?? $"http://127.0.0.1:{BasePort}";
 
+            if (args.Contains("--from-cli"))
+            {
+                actualUrl += "?cli=1";
+            }
+
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine($"[green]Web Manager is running at: {actualUrl}[/]");
             AnsiConsole.MarkupLine("[grey]Press Ctrl+C to shut down.[/]");

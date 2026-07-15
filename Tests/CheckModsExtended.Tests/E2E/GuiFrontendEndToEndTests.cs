@@ -215,9 +215,13 @@ public sealed class GuiFrontendEndToEndTests
             var cacheIndicator = page.Locator("#cache-indicator");
             await cacheIndicator.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
             var cacheText = await cacheIndicator.InnerTextAsync();
-            Assert.Contains("CACHED", cacheText);
+            Assert.Contains("UPDATED", cacheText);
 
-            // Wait for the toast to indicate auto-scan finished
+            // Since there is no auto-scan on load, we manually click the scan button
+            var scanButton = page.Locator("button", new PageLocatorOptions { HasText = "SCAN LOCAL MODS" });
+            await scanButton.ClickAsync();
+
+            // Wait for the toast to indicate the manual scan finished
             var toastContainer = page.Locator("#toast-container");
             await toastContainer.Filter(new LocatorFilterOptions { HasText = "Scan complete." }).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
 
