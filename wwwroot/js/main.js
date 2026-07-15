@@ -227,8 +227,15 @@ document.addEventListener('alpine:init', () => {
                 if (!localData || !localData.mods) return;
                 
                 // Diff by ID/Name + Version
-                const localHash = localData.mods.map(m => (m.id || m.name) + m.localVersion).sort().join();
-                const cachedHash = this.mods.map(m => (m.id || m.name) + m.localVersion).sort().join();
+                const getModHash = (m) => {
+                    const id = m.id || (m.api && m.api.apiModId);
+                    const name = m.name || m.displayName || (m.local && m.local.localName) || '';
+                    const version = m.localVersion || (m.local && m.local.localVersion) || '';
+                    return (id || name) + version;
+                };
+
+                const localHash = localData.mods.map(getModHash).sort().join();
+                const cachedHash = this.mods.map(getModHash).sort().join();
                 
                 if (localHash !== cachedHash) {
                     this.ui.driftDetected = true;
