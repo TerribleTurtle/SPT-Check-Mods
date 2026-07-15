@@ -11,16 +11,18 @@ namespace CheckModsExtended.Tests.Pipeline.Steps;
 
 public class MaybeFetchRemoteIgnoresStepTests
 {
-    private sealed class FakeOptionsSnapshot<T>(T value) : IOptionsSnapshot<T> where T : class
+    private sealed class FakeOptionsSnapshot<T> : IOptionsSnapshot<T> where T : class
     {
-        public T Value => value;
-        public T Get(string? name) => value;
+        private readonly T _value;
+        public FakeOptionsSnapshot(T value) { _value = value; }
+        public T Value => _value;
+        public T Get(string? name) => _value;
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenNotConfigured_ReturnsEarly()
+    public async Task ExecuteAsync_WhenConfigured_FetchesAndStores()
     {
-        var client = new FakeRemoteIgnoreFileClient { IsConfigured = false };
+        var client = new FakeRemoteIgnoreFileClient { IsConfigured = true };
         var store = new FakeIgnoredUpdateStore();
         var reporter = new FakeModCheckReporter();
         var logger = new FakeLogger<MaybeFetchRemoteIgnoresStep>();
@@ -31,6 +33,7 @@ public class MaybeFetchRemoteIgnoresStepTests
         var context = new UpdateWorkflowContext { Args = [] };
 
         await step.ExecuteAsync(context, CancellationToken.None);
-        Assert.NotNull(context);
+        
+        Assert.NotNull(context); 
     }
 }

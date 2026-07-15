@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
@@ -14,9 +15,10 @@ namespace CheckModsExtended.Tests.Pipeline.Steps;
 public class MatchModsWithApiStepTests
 {
     [Fact]
-    public async Task ExecuteAsync_RunsMatching()
+    public async Task ExecuteAsync_UpdatesContextMods()
     {
         var service = new FakeModMatchingService();
+        service.MatchModAction = m => m with { Status = ModStatus.Verified };
         var reporter = new FakeModCheckReporter();
         var logger = new FakeLogger<MatchModsWithApiStep>();
         var step = new MatchModsWithApiStep(service, reporter, logger);
@@ -24,12 +26,12 @@ public class MatchModsWithApiStepTests
         var context = new UpdateWorkflowContext
         {
             Args = [],
-            Mods = new List<Mod> { new Mod { Local = new LocalModIdentity { Guid = "test", FilePath = "test", IsServerMod = false, LocalName = "test", LocalAuthor = "test", LocalVersion = "test" } } },
+            Mods = new List<Mod> { new Mod { Local = new LocalModIdentity { Guid = "test", FilePath = "t", IsServerMod = false, LocalName = "t", LocalAuthor = "t", LocalVersion = "1" } } },
             SptVersion = new Version("3.9.0")
         };
 
         await step.ExecuteAsync(context, CancellationToken.None);
 
-        Assert.NotNull(context.Mods);
+        Assert.Equal(ModStatus.Verified, context.Mods.First().Status);
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CheckModsExtended.Models;
@@ -14,21 +15,23 @@ namespace CheckModsExtended.Tests.Pipeline.Steps;
 public class EnrichModsWithVersionDataStepTests
 {
     [Fact]
-    public async Task ExecuteAsync_WithNoMatchedMods_ReturnsEarly()
+    public async Task ExecuteAsync_WithMatchedMods_UpdatesContext()
     {
         var service = new FakeModEnrichmentService();
+        var mod2 = new Mod { Status = ModStatus.Verified, Local = new LocalModIdentity { Guid = "test", FilePath = "t", IsServerMod = false, LocalName = "test2", LocalAuthor = "t", LocalVersion = "1" }, Api = new ForgeApiMetadata { ApiModId = 123 } };
+        service.EnrichedModsToReturn = new List<Mod> { mod2 };
         var logger = new FakeLogger<EnrichModsWithVersionDataStep>();
-        var step = new EnrichModsWithVersionDataStep(new CheckModsExtended.Tests.Fakes.FakeModCheckReporter(), service, logger);
+        var step = new EnrichModsWithVersionDataStep(new FakeModCheckReporter(), service, logger);
 
+        var mod = new Mod { Status = ModStatus.Verified, Local = new LocalModIdentity { Guid = "test", FilePath = "t", IsServerMod = false, LocalName = "t", LocalAuthor = "t", LocalVersion = "1" }, Api = new ForgeApiMetadata { ApiModId = 123 } };
         var context = new UpdateWorkflowContext
         {
             Args = [],
-            Mods = new List<Mod> { new Mod { Status = ModStatus.NoMatch, Local = new LocalModIdentity { Guid = "test", FilePath = "test", IsServerMod = false, LocalName = "test", LocalAuthor = "test", LocalVersion = "test" } } }
+            Mods = new List<Mod> { mod }
         };
 
         await step.ExecuteAsync(context, CancellationToken.None);
-        Assert.NotNull(context);
+        
+        Assert.Equal("test2", context.Mods.First().Local.LocalName);
     }
 }
-
-
