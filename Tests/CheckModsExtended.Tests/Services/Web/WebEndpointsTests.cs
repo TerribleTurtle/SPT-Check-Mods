@@ -229,5 +229,33 @@ public class WebEndpointsTests
         cts.Cancel();
         try { await runTask; } catch { }
     }
-}
 
+    [Fact]
+    public async Task Post_Scan_ClearsCacheBeforeRunningPipeline()
+    {
+        var orchestrator = new FakeUpdateWorkflowOrchestrator();
+        var pluginCache = new FakePluginScanCache();
+        var cacheManager = new FakeCacheManager();
+        var launcher = new TestBrowserLauncher();
+
+        using var cts = new CancellationTokenSource();
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services =>
+        {
+            services.AddSingleton<IUpdateWorkflowOrchestrator>(orchestrator);
+            services.AddSingleton<IPluginScanCache>(pluginCache);
+            services.AddSingleton<ICacheManager>(cacheManager);
+            services.AddSingleton<IBrowserLauncher>(launcher);
+        });
+
+        var url = await launcher.WaitForUrlAsync();
+        using var client = new HttpClient();
+        var response = await client.PostAsync($"{url}/api/scan", new StringContent(""));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(1, pluginCache.ClearCallCount);
+        Assert.Equal(1, cacheManager.ClearCallCount);
+
+        cts.Cancel();
+        try { await runTask; } catch { }
+    }
+}

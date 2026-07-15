@@ -8,6 +8,8 @@ public class FakePluginScanCache : IPluginScanCache
 {
     private readonly Dictionary<string, IReadOnlyList<PluginDll>> _cache = new();
 
+    public int ClearCallCount { get; private set; }
+
     public void AddPlugins(string directory, IReadOnlyList<PluginDll> plugins)
     {
         _cache[directory] = plugins;
@@ -20,6 +22,7 @@ public class FakePluginScanCache : IPluginScanCache
 
     public void Clear()
     {
+        ClearCallCount++;
         _cache.Clear();
     }
 }

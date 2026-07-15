@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - **Web UI Polish & Accessibility**: Refactored the Web GUI using a mobile-first responsive architecture. Standardized CSS styling, added non-intrusive Toast notifications for background actions, and improved screen reader accessibility.
 
 ### Fixed
+- **Web UI Cache Invalidation**: Fixed an issue where clicking the "Scan Local Mods" button in the Web UI would instantly refresh using stale data. The backend memory cache is now properly cleared when a manual scan is triggered.
 - **Cache Scoping**: Fixed an issue where the global mod cache would prompt you to load results from a different SPT installation when running the CLI. The cache is now strictly bound to the specific SPT installation path it was scanned from.
 - **Immediate Exit**: Fixed an annoyance where selecting "Close Check Mods" at the end of a CLI run would unnecessarily prompt you to "Press any key to exit..." before actually closing.
 

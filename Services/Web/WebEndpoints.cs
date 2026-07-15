@@ -116,10 +116,17 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> PostScanAsync([FromServices] IUpdateWorkflowOrchestrator orchestrator, CancellationToken token)
+    private static async Task<IResult> PostScanAsync(
+        [FromServices] IUpdateWorkflowOrchestrator orchestrator,
+        [FromServices] IPluginScanCache pluginScanCache,
+        [FromServices] ICacheManager cacheManager,
+        CancellationToken token)
     {
         try
         {
+            pluginScanCache.Clear();
+            cacheManager.Clear();
+
             UpdateWorkflowContext context = await orchestrator.RunPipelineAsync(_args, token);
             ScanResponse response = ScanResponseMapper.Map(context);
             return Results.Ok(response);
