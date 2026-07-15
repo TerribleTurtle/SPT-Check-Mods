@@ -20,7 +20,7 @@
 - [x] Add null-handling validation tests for `ModUpdatesData`.
 
 ## Phase 4: Frontend UI & Performance Refactor
-- [ ] Decompose `main.js` monolithic state using `Alpine.store`.
-- [ ] Optimize `filteredMods` getter to avoid O(N log N) blocking on every render tick.
-- [ ] Optimize `.progress-bar-fill` CSS animation to use GPU-accelerated `transform: scaleX()`.
-- [ ] Remove declarative violations (`setTimeout`, `scrollIntoView`, `appendChild`) from JS.
+- [~] Decompose `main.js` monolithic state (SKIPPED: Not worth the risk of rewriting the entire DOM template since performance issues were solved).
+- [x] Optimize `filteredMods` getter to avoid O(N log N) blocking on every render tick.
+- [x] Optimize `.progress-bar-fill` CSS animation to use GPU-accelerated `transform: scaleX()`.
+- [x] Remove declarative violations (`setTimeout`, `scrollIntoView`, `appendChild`) from JS.
