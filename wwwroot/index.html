@@ -50,7 +50,7 @@
                 </span>
                 <button class="theme-toggle" @click="toggleTheme()" aria-label="Toggle theme" x-text="meta.theme === 'dark' ? '🌙' : '☀️'"></button>
                 <button class="btn-primary" @click="handleScan()" :disabled="ui.scanning" :class="{'is-loading': ui.scanning}">
-                    <span x-text="ui.scanning ? 'SCANNING…' : 'SCAN LOCAL MODS'"></span>
+                    <span x-text="ui.scanning ? 'SCANNING…' : 'RESCAN MODS'"></span>
                 </button>
             </div>
         </header>
@@ -66,7 +66,17 @@
                     <button class="btn-primary" @click="handleScan()" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">RUN FORGE SCAN</button>
                 </div>
             </template>
-            <div class="workspace-overview" x-show="mods.length > 0 && !ui.scanning">
+            <template x-if="ui.initialLoading">
+                <div class="workspace-overview opacity-50 pointer-events-none">
+                    <div class="dashboard-summary-banner p-2 mb-2" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); height: 42px;"></div>
+                    <div class="workspace-actions-toolbar flex items-center gap-sm flex-wrap w-full">
+                        <div style="width: 150px; height: 16px; background: rgba(255,255,255,0.1); border-radius: 4px;"></div>
+                        <div style="width: 120px; height: 36px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md);"></div>
+                        <div style="width: 120px; height: 36px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md);"></div>
+                    </div>
+                </div>
+            </template>
+            <div class="workspace-overview" x-show="!ui.initialLoading && mods.length > 0" :class="{'opacity-50 pointer-events-none': ui.scanning}">
                 <template x-if="updatesAvailable.length === 0 && updatesBlocked.length === 0 && incompatibleMods.length === 0">
                     <div class="dashboard-summary-banner flex items-center gap-sm p-2 mb-2" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm);">
                         <span class="text-success font-semibold">All systems nominal:</span>
@@ -121,7 +131,15 @@
                 <div class="master-list" :class="{'fade-hidden': ui.isScrolledToBottom}">
                     <div class="table-container relative" @scroll="ui.isScrolledToBottom = ($event.target.scrollHeight - $event.target.scrollTop <= $event.target.clientHeight + 10)">
                         <div class="table-loading-bar" x-show="ui.scanning && mods.length > 0"></div>
-                        <table class="mod-table w-full">
+                        <div x-show="ui.scanning && mods.length > 0" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                            <div class="scan-loader-container" style="background: var(--bg-surface); padding: var(--space-xl); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-lg); max-width: 400px; height: auto;">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar-fill pulsing" :style="`transform: scaleX(${loaderProgress / 100})`"></div>
+                                </div>
+                                <div id="loader-text" class="text-muted font-mono mt-4 text-sm text-center w-full" x-text="loaderText"></div>
+                            </div>
+                        </div>
+                        <table class="mod-table w-full" :class="{'opacity-50 pointer-events-none': ui.scanning && mods.length > 0}">
                             <thead>
                                 <tr>
                                     <th class="text-left w-40px">
@@ -134,7 +152,7 @@
                                 </tr>
                             </thead>
                             <tbody @keydown.window="handleKeydown($event)">
-                                <template x-if="mods.length === 0 && ui.scanning">
+                                <template x-if="mods.length === 0 && ui.scanning && !ui.initialLoading">
                                     <tr><td colspan="5" class="p-0 border-none h-300">
                                         <div class="scan-loader-container">
                                             <div class="progress-bar-container">
@@ -144,7 +162,21 @@
                                         </div>
                                     </td></tr>
                                 </template>
-                                <template x-if="mods.length > 0 && filteredMods.length === 0">
+                                <template x-if="ui.initialLoading && mods.length === 0">
+                                    <template x-for="i in 5">
+                                        <tr class="opacity-50 pointer-events-none">
+                                            <td><div style="width: 16px; height: 16px; background: rgba(255,255,255,0.05); border-radius: 2px;"></div></td>
+                                            <td><div style="width: 80px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 10px;"></div></td>
+                                            <td>
+                                                <div style="width: 200px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 4px;"></div>
+                                                <div style="width: 100px; height: 14px; background: rgba(255,255,255,0.05); border-radius: 4px;"></div>
+                                            </td>
+                                            <td><div style="width: 60px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px;"></div></td>
+                                            <td><div style="width: 60px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; float: right;"></div></td>
+                                        </tr>
+                                    </template>
+                                </template>
+                                <template x-if="mods.length > 0 && filteredMods.length === 0 && !ui.initialLoading">
                                     <tr>
                                         <td colspan="5">
                                             <div class="empty-state">

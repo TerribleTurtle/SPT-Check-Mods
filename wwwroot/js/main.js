@@ -11,6 +11,7 @@ document.addEventListener('alpine:init', () => {
         sort: { column: 'status', direction: 'asc' },
         ui: {
             scanning: false,
+            initialLoading: true,
             driftDetected: false,
             localScanController: null,
             selectedIds: new Set(),
@@ -166,6 +167,7 @@ document.addEventListener('alpine:init', () => {
                     console.log("NO CACHE DATA FOUND, RUNNING SCAN");
                     this.handleScan();
                 }
+                this.ui.initialLoading = false;
             });
 
             setInterval(() => {
@@ -262,8 +264,8 @@ document.addEventListener('alpine:init', () => {
                 this.ui.localScanController.abort();
             }
             
-            this.mods = [];
             this.selectedMod = null;
+            this.showToast('Scan started...', 'info');
             this.startLoader();
             try {
                 const results = await fetchScan();
