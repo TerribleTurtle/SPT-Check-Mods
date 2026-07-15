@@ -8,6 +8,7 @@ using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace CheckModsExtended.Services.Web;
@@ -41,8 +42,8 @@ public static class WebEndpoints
     }
 
     private static async Task<IResult> GetStatusAsync(
-        ISptInstallationService sptInstall,
-        IUpdateCheckService updateCheck,
+        [FromServices] ISptInstallationService sptInstall,
+        [FromServices] IUpdateCheckService updateCheck,
         CancellationToken token)
     {
         await _statusLock.WaitAsync(token);
@@ -72,7 +73,7 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> GetCacheAsync(IScanCacheService cacheService, CancellationToken token)
+    private static async Task<IResult> GetCacheAsync([FromServices] IScanCacheService cacheService, CancellationToken token)
     {
         try
         {
@@ -89,7 +90,7 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> PostScanAsync(IUpdateWorkflowOrchestrator orchestrator, CancellationToken token)
+    private static async Task<IResult> PostScanAsync([FromServices] IUpdateWorkflowOrchestrator orchestrator, CancellationToken token)
     {
         try
         {
@@ -103,7 +104,7 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> PostIgnoreAsync(IIgnoreService ignoreService, HttpRequest request, CancellationToken token)
+    private static async Task<IResult> PostIgnoreAsync([FromServices] IIgnoreService ignoreService, HttpRequest request, CancellationToken token)
     {
         try
         {
@@ -123,7 +124,7 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> GetIgnoresAsync(IIgnoreService ignoreService, CancellationToken token)
+    private static async Task<IResult> GetIgnoresAsync([FromServices] IIgnoreService ignoreService, CancellationToken token)
     {
         try
         {
@@ -136,7 +137,7 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> DeleteIgnoreAsync(int modId, IIgnoreService ignoreService, CancellationToken token)
+    private static async Task<IResult> DeleteIgnoreAsync(int modId, [FromServices] IIgnoreService ignoreService, CancellationToken token)
     {
         try
         {
@@ -151,7 +152,7 @@ public static class WebEndpoints
 
 
 
-    private static IResult PostSystemOpen(OpenSystemRequest req, IBrowserLauncher browserLauncher)
+    private static IResult PostSystemOpen(OpenSystemRequest req, [FromServices] IBrowserLauncher browserLauncher)
     {
         if (string.IsNullOrWhiteSpace(req.Target))
         {

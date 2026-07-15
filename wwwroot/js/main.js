@@ -48,7 +48,7 @@ document.addEventListener('alpine:init', () => {
                 return true;
             });
             
-            return res.sort((a, b) => {
+            res.sort((a, b) => {
                 let valA, valB;
                 if (this.sort.column === 'name') {
                     valA = (a.name || '').toLowerCase();

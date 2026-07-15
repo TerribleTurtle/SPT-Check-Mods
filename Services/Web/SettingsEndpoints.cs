@@ -6,6 +6,7 @@ using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using OneOf;
 
@@ -26,7 +27,7 @@ public static class SettingsEndpoints
         api.MapPost("/settings", PostSettingsAsync);
     }
 
-    private static async Task<IResult> GetSettingsAsync(ISettingsService settingsService, CancellationToken token)
+    private static async Task<IResult> GetSettingsAsync([FromServices] ISettingsService settingsService, CancellationToken token)
     {
         try
         {
@@ -39,7 +40,7 @@ public static class SettingsEndpoints
         }
     }
 
-    private static async Task<IResult> PostSettingsAsync(HttpRequest request, ISettingsService settingsService, CancellationToken token)
+    private static async Task<IResult> PostSettingsAsync(HttpRequest request, [FromServices] ISettingsService settingsService, CancellationToken token)
     {
         try
         {
