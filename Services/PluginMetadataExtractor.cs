@@ -91,6 +91,7 @@ public sealed class PluginMetadataExtractor(
             .ToList();
     }
 
+    /// <inheritdoc />
     public async Task<(List<Mod> Mods, List<PluginDll> Plugins)> ConsolidateDirectoryModsAsync(
         string directory,
         List<string> dllPaths,

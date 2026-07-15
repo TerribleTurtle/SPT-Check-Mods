@@ -102,6 +102,9 @@ public sealed class MisplacedModDetector(
         return new MisplacedModReport(wrongFolder, crossInstalled);
     }
 
+    /// <summary>
+    /// Detects directories inside BepInEx/plugins that contain multiple unrelated mods installed together.
+    /// </summary>
     private async Task<List<CrossInstalledDirectory>> DetectCrossInstalledDirectoriesAsync(
         string pluginsDir,
         CancellationToken cancellationToken
@@ -152,6 +155,9 @@ public sealed class MisplacedModDetector(
         return crossInstalled;
     }
 
+    /// <summary>
+    /// Determines which mod is legitimately installed in the directory and which ones are cross-installed.
+    /// </summary>
     private CrossInstalledDirectory AttributeCrossInstall(string directory, List<List<PluginDll>> components)
     {
         var directoryName = Path.GetFileName(directory);

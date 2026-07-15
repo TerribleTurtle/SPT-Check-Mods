@@ -59,6 +59,9 @@ public sealed class ModEnrichmentService(
 
         var modsDict = mods.ToDictionary(m => m.Local.Guid);
 
+        /// <summary>
+        /// Processes updates for a generic collection of items in batches to avoid rate limits.
+        /// </summary>
         void ProcessUpdates<T>(IEnumerable<T>? updates, Func<T, int> getModId, Func<Mod, T, Mod> updateAction)
         {
             if (updates is null)

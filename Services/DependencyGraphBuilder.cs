@@ -53,6 +53,9 @@ public static class DependencyGraphBuilder
         return node;
     }
 
+    /// <summary>
+    /// Recursively builds the dependency subtree for a given node.
+    /// </summary>
     private static DependencyNode BuildDependencySubtreeInternal(
         ModDependency dependency,
         Dictionary<string, Mod> modByGuid,
