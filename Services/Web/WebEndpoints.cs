@@ -99,7 +99,7 @@ public static class WebEndpoints
             var sptPath = initService.GetValidatedSptPath(new[] { path });
             if (sptPath == null)
             {
-                return Results.Ok(new { mods = new System.Collections.Generic.List<Mod>() });
+                return Results.Ok(new LocalScanResponse(new System.Collections.Generic.List<Mod>()));
             }
             
             var (serverMods, clientMods) = await scannerService.ScanAllModsAsync(sptPath, token);
@@ -108,7 +108,7 @@ public static class WebEndpoints
             allLocalMods.AddRange(serverMods);
             allLocalMods.AddRange(clientMods);
 
-            return Results.Ok(new { mods = allLocalMods });
+            return Results.Ok(new LocalScanResponse(allLocalMods));
         }
         catch (Exception ex)
         {

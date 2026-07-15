@@ -23,6 +23,7 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(List<Mod>))]
 [JsonSerializable(typeof(IReadOnlyList<Mod>))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.StatusResponse))]
+[JsonSerializable(typeof(CheckModsExtended.Services.Web.LocalScanResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ScanResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.ModDto))]
 [JsonSerializable(typeof(CheckModsExtended.Services.Web.DependencyChangeDto))]

@@ -12,6 +12,13 @@ public sealed record StatusResponse(
 );
 
 /// <summary>
+/// Response returned from the local scan API endpoint.
+/// </summary>
+public sealed record LocalScanResponse(
+    List<CheckModsExtended.Models.Mod> Mods
+);
+
+/// <summary>
 /// Response returned from the scan API endpoint.
 /// </summary>
 public sealed record ScanResponse(
