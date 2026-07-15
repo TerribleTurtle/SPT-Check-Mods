@@ -29,8 +29,9 @@ document.addEventListener('alpine:init', () => {
         loaderProgress: 0,
         loaderText: '> Initiating workspace scan…',
         loaderInterval: null,
+        filteredMods: [],
 
-        get filteredMods() {
+        updateFilteredMods() {
             let res = this.mods.filter(mod => {
                 if (this.filters.search) {
                     const query = this.filters.search.toLowerCase();
@@ -92,6 +93,7 @@ document.addEventListener('alpine:init', () => {
                 if (nameA > nameB) return 1;
                 return 0;
             });
+            this.filteredMods = res;
         },
         get activeMods() { return this.mods.filter(m => !m.isIgnored); },
         get ignoredMods() { return this.mods.filter(m => m.isIgnored); },
@@ -110,6 +112,12 @@ document.addEventListener('alpine:init', () => {
         },
 
         init() {
+            this.$watch('mods', () => this.updateFilteredMods());
+            this.$watch('filters.search', () => this.updateFilteredMods());
+            this.$watch('filters.status', () => this.updateFilteredMods());
+            this.$watch('sort.column', () => this.updateFilteredMods());
+            this.$watch('sort.direction', () => this.updateFilteredMods());
+
             document.documentElement.dataset.theme = this.meta.theme;
             const savedFilter = localStorage.getItem('cme-filter-status');
             if (savedFilter) this.filters.status = savedFilter;
@@ -325,9 +333,7 @@ document.addEventListener('alpine:init', () => {
         copyModsList(e) {
             const list = this.mods.map(m => `- ${m.name} (v${m.localVersion || 'Unknown'}) - ${m.status}`).join('\n');
             navigator.clipboard.writeText(list).then(() => {
-                const orig = e.target.textContent;
-                e.target.textContent = 'Copied!';
-                setTimeout(() => e.target.textContent = orig, 2000);
+                this.showToast('Copied!', 'success');
             });
         },
 
@@ -453,11 +459,6 @@ document.addEventListener('alpine:init', () => {
                     if (e.key === 'k' || e.key === 'ArrowUp') idx = Math.max(idx - 1, 0);
                 }
                 this.selectedMod = this.filteredMods[idx];
-                
-                setTimeout(() => {
-                    const row = document.querySelector('tr.selected');
-                    if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                }, 50);
             }
         }
     }));
