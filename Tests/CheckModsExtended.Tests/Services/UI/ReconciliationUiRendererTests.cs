@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
@@ -11,8 +12,20 @@ using Xunit;
 namespace CheckModsExtended.Tests.Services.UI;
 
 [Collection("ConsoleTests")]
-public sealed class ReconciliationUiRendererTests
+public sealed class ReconciliationUiRendererTests : IDisposable
 {
+    private readonly Spectre.Console.IAnsiConsole _originalConsole;
+
+    public ReconciliationUiRendererTests()
+    {
+        _originalConsole = AnsiConsole.Console;
+    }
+
+    public void Dispose()
+    {
+        AnsiConsole.Console = _originalConsole;
+    }
+
     [Fact]
     public void Unverified_mods_renders_list()
     {

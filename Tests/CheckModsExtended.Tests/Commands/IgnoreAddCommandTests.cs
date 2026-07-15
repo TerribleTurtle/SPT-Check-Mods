@@ -5,6 +5,9 @@ using CheckModsExtended.Services.Interfaces;
 using CheckModsExtended.Tests.Fakes;
 using Spectre.Console.Cli;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using CheckModsExtended.Utils;
+using Spectre.Console.Testing;
 
 namespace CheckModsExtended.Tests.Commands;
 
@@ -30,12 +33,13 @@ public class IgnoreAddCommandTests
     {
         var fakeService = new FakeIgnoreService { ReturnValue = true };
         var fakeReporter = new FakeModCheckReporter();
-        var command = new IgnoreAddCommand(fakeService, fakeReporter);
         
-        var settings = new IgnoreAddCommand.Settings { ApiModId = 1, LocalVersion = "1.0", LatestVersion = "2.0" };
-        var method = typeof(IgnoreAddCommand).GetMethod("ExecuteAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        var result = (Task<int>)method!.Invoke(command, new object[] { null!, settings, CancellationToken.None })!;
-        var exitCode = await result;
+        var services = new ServiceCollection();
+        services.AddSingleton<IIgnoreService>(fakeService);
+        services.AddSingleton<IModCheckReporter>(fakeReporter);
+        var app = new CommandApp<IgnoreAddCommand>(new TypeRegistrar(services));
+        app.Configure(config => config.ConfigureConsole(new TestConsole()));
+        var exitCode = await app.RunAsync(new[] { "1", "1.0", "2.0" });
 
         Assert.Equal(0, exitCode);
         Assert.True(fakeService.AddCalled);

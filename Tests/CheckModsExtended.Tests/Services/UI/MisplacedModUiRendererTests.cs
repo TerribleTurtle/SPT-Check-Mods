@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.UI;
@@ -9,8 +10,20 @@ using Xunit;
 namespace CheckModsExtended.Tests.Services.UI;
 
 [Collection("ConsoleTests")]
-public sealed class MisplacedModUiRendererTests
+public sealed class MisplacedModUiRendererTests : IDisposable
 {
+    private readonly Spectre.Console.IAnsiConsole _originalConsole;
+
+    public MisplacedModUiRendererTests()
+    {
+        _originalConsole = AnsiConsole.Console;
+    }
+
+    public void Dispose()
+    {
+        AnsiConsole.Console = _originalConsole;
+    }
+
     [Fact]
     public void Misplaced_mods_renders_list()
     {

@@ -4,6 +4,9 @@ using CheckModsExtended.Commands;
 using CheckModsExtended.Tests.Fakes;
 using Spectre.Console.Cli;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using CheckModsExtended.Utils;
+using Spectre.Console.Testing;
 
 namespace CheckModsExtended.Tests.Commands;
 
@@ -14,11 +17,14 @@ public class IgnoreListCommandTests
     {
         var store = new FakeIgnoredUpdateStore();
         var reporter = new FakeModCheckReporter();
-        var command = new IgnoreListCommand(store, reporter);
-        var settings = new ListCommandSettings();
-        var method = typeof(IgnoreListCommand).GetMethod("ExecuteAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        var result = (Task<int>)method!.Invoke(command, new object[] { null!, settings, CancellationToken.None })!;
-        var exitCode = await result;
+        
+        var services = new ServiceCollection();
+        services.AddSingleton<CheckModsExtended.Services.Interfaces.IIgnoredUpdateStore>(store);
+        services.AddSingleton<CheckModsExtended.Services.Interfaces.IModCheckReporter>(reporter);
+        var app = new CommandApp<IgnoreListCommand>(new TypeRegistrar(services));
+        app.Configure(config => config.ConfigureConsole(new TestConsole()));
+        var exitCode = await app.RunAsync(new string[0]);
+
         Assert.Equal(0, exitCode);
     }
 }

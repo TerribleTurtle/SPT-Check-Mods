@@ -42,7 +42,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public class WebEndpointsTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class WebEndpointsTests
         Assert.Equal(1, cacheManager.ClearCallCount);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public class WebEndpointsTests
         var url = await launcher.WaitForUrlAsync();
         
         using var client = new HttpClient();
-        client.Timeout = System.TimeSpan.FromSeconds(5);
+
         
         progressTracker.ReportStatus("Testing");
         progressTracker.ReportProgress(42.5);
@@ -295,7 +295,7 @@ public class WebEndpointsTests
         Assert.Contains("42.5", line);
 
         cts.Cancel();
-        try { await runTask; } catch { }
+        try { await runTask; } catch (System.OperationCanceledException) { }
     }
 }
 

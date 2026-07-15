@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CheckModsExtended.Models;
 using CheckModsExtended.Services.Interfaces;
@@ -11,8 +12,20 @@ using Xunit;
 namespace CheckModsExtended.Tests.Services.UI;
 
 [Collection("ConsoleTests")]
-public sealed class DependencyUiRendererTests
+public sealed class DependencyUiRendererTests : IDisposable
 {
+    private readonly Spectre.Console.IAnsiConsole _originalConsole;
+
+    public DependencyUiRendererTests()
+    {
+        _originalConsole = AnsiConsole.Console;
+    }
+
+    public void Dispose()
+    {
+        AnsiConsole.Console = _originalConsole;
+    }
+
     [Fact]
     public void Dependency_results_renders_missing_deps()
     {

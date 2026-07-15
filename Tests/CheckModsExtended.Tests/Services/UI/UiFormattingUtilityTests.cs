@@ -1,3 +1,4 @@
+using System;
 using CheckModsExtended.Services.UI;
 using Xunit;
 
@@ -8,6 +9,7 @@ namespace CheckModsExtended.Tests.Services.UI;
 /// </summary>
 public sealed class UiFormattingUtilityTests
 {
+
     [Fact]
     public void Islinkurlsafe_accepts_normal_urls_forge()
     {

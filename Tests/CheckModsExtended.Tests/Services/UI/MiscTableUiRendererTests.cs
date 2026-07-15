@@ -7,15 +7,23 @@ using Xunit;
 
 namespace CheckModsExtended.Tests.Services.UI;
 
-[Collection("ConsoleTests")]
+using System;
 
-public class MiscTableUiRendererTests
+[Collection("ConsoleTests")]
+public class MiscTableUiRendererTests : IDisposable
 {
     private readonly MiscTableUiRenderer _renderer;
+    private readonly Spectre.Console.IAnsiConsole _originalConsole;
 
     public MiscTableUiRendererTests()
     {
         _renderer = new MiscTableUiRenderer();
+        _originalConsole = AnsiConsole.Console;
+    }
+
+    public void Dispose()
+    {
+        AnsiConsole.Console = _originalConsole;
     }
 
     [Fact]
