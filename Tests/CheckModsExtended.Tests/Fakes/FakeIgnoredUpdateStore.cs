@@ -72,6 +72,8 @@ public sealed class FakeIgnoredUpdateStore : IIgnoredUpdateStore
     }
 
     /// <inheritdoc />
+    public Task<int> SyncRemoteIgnoresAsync(IReadOnlyList<IgnoredUpdate> incoming, CancellationToken cancellationToken = default) => Task.FromResult(0);
+
     public Task<int> MergeWithoutOverwriteAsync(
         IReadOnlyList<IgnoredUpdate> incoming,
         CancellationToken cancellationToken = default

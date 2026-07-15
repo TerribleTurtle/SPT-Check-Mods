@@ -33,6 +33,25 @@ public sealed class SettingsService(IFileSystem fileSystem) : ISettingsService
     }
 
     /// <inheritdoc />
+    public async Task UpdateIgnoredUpdateOptionsAsync(bool useCommunityList, CancellationToken token = default)
+    {
+        var json = await GetSettingsAsync(token);
+        var root = System.Text.Json.Nodes.JsonNode.Parse(json) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();
+        
+        var optionsNode = root["IgnoredUpdateOptions"] as System.Text.Json.Nodes.JsonObject;
+        if (optionsNode == null)
+        {
+            optionsNode = new System.Text.Json.Nodes.JsonObject();
+            root["IgnoredUpdateOptions"] = optionsNode;
+        }
+        
+        optionsNode["UseCommunityList"] = useCommunityList;
+        
+        var newJson = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+        await UpdateSettingsAsync(newJson, token);
+    }
+
+    /// <inheritdoc />
     public async Task<OneOf<MessageResponse, ApiError>> UpdateSettingsAsync(string jsonPayload, CancellationToken token = default)
     {
         // Validate JSON before saving
