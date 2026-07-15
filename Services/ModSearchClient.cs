@@ -167,7 +167,7 @@ public sealed partial class ModSearchClient(
     )
     {
         var url =
-            $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={sptVersion}&include=versions,source_code_links&per_page=50";
+            $"{_options.BaseUrl}mods?query={Uri.EscapeDataString(searchQuery)}&filter[spt_version]={Uri.EscapeDataString(sptVersion.ToString())}&include=versions,source_code_links&per_page=50";
 
         var res = await apiClient.GetFromJsonAsync(
             url,

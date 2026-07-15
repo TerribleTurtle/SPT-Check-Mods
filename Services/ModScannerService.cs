@@ -80,8 +80,11 @@ public sealed class ModScannerService(
 
                 if (!foundMod)
                 {
-                    try { var packageMod = await serverExtractor.ExtractServerModPackageMetadataAsync(modDir, ct); if (packageMod is not null) { concurrentMods.Add(packageMod); } } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { reporter.CouldNotReadModDll(modDir, ex.Message); }
-
+                    var packageMod = await serverExtractor.ExtractServerModPackageMetadataAsync(modDir, ct);
+                    if (packageMod is not null)
+                    {
+                        concurrentMods.Add(packageMod);
+                    }
                 }
             }
         );

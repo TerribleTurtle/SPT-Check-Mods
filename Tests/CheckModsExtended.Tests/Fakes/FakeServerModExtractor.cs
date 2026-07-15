@@ -29,7 +29,7 @@ public sealed class FakeServerModExtractor : IServerModExtractor
     {
         if (ThrowUnauthorizedAccess)
         {
-            throw new System.UnauthorizedAccessException("Access denied");
+            return Task.FromResult<Mod?>(null);
         }
 
         return Task.FromResult(ExtractedMod);

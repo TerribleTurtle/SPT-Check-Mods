@@ -49,9 +49,7 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
             }
 
             await using var bodyStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var rawJson = await new StreamReader(bodyStream).ReadToEndAsync(cancellationToken);
-            logger.LogTrace("[DEBUG] ForgeAPI JSON ({Url}): {RawJson}", url, rawJson);
-            var apiResponse = JsonSerializer.Deserialize(rawJson, jsonTypeInfo);
+            var apiResponse = await JsonSerializer.DeserializeAsync(bodyStream, jsonTypeInfo, cancellationToken);
             if (apiResponse is null)
             {
                 return new NotFound();

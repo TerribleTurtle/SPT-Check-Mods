@@ -31,15 +31,27 @@ public class BinaryParser(IFileSystem fileSystem) : IBinaryParser
 {
     public BepInPluginAttribute? ExtractBepInPlugin(string dllPath)
     {
-        using var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var module = ModuleDefinition.ReadModule(stream);
-
-        foreach (var type in module.Types)
+        var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        ModuleDefinition module;
+        try
         {
-            var plugin = ExtractBepInPluginAttribute(type);
-            if (plugin is not null)
+            module = ModuleDefinition.ReadModule(stream);
+        }
+        catch
+        {
+            stream.Dispose();
+            throw;
+        }
+
+        using (module)
+        {
+            foreach (var type in module.Types)
             {
-                return plugin;
+                var plugin = ExtractBepInPluginAttribute(type);
+                if (plugin is not null)
+                {
+                    return plugin;
+                }
             }
         }
 
@@ -48,24 +60,36 @@ public class BinaryParser(IFileSystem fileSystem) : IBinaryParser
 
     public (BepInPluginAttribute? Plugin, string? AssemblyName, HashSet<string>? ReferencedNames) ReadPluginDllInfo(string dllPath)
     {
-        using var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var module = ModuleDefinition.ReadModule(stream);
-
-        BepInPluginAttribute? plugin = null;
-        foreach (var type in module.Types)
+        var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        ModuleDefinition module;
+        try
         {
-            plugin = ExtractBepInPluginAttribute(type);
-            if (plugin is not null)
-            {
-                break;
-            }
+            module = ModuleDefinition.ReadModule(stream);
+        }
+        catch
+        {
+            stream.Dispose();
+            throw;
         }
 
-        var referencedNames = module
-            .AssemblyReferences.Select(r => r.Name)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        using (module)
+        {
+            BepInPluginAttribute? plugin = null;
+            foreach (var type in module.Types)
+            {
+                plugin = ExtractBepInPluginAttribute(type);
+                if (plugin is not null)
+                {
+                    break;
+                }
+            }
 
-        return (plugin, module.Assembly.Name.Name, referencedNames);
+            var referencedNames = module
+                .AssemblyReferences.Select(r => r.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return (plugin, module.Assembly.Name.Name, referencedNames);
+        }
     }
 
     private static BepInPluginAttribute? ExtractBepInPluginAttribute(TypeDefinition type)
@@ -100,28 +124,40 @@ public class BinaryParser(IFileSystem fileSystem) : IBinaryParser
 
     public ServerModBinaryInfo? ExtractServerModMetadata(string dllPath)
     {
-        using var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var module = ModuleDefinition.ReadModule(stream);
-
-        var metadataType = module.Types.FirstOrDefault(t =>
-            t.BaseType?.Name == "AbstractModMetadata" && !t.IsAbstract
-        );
-
-        if (metadataType is null)
+        var stream = fileSystem.Open(dllPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        ModuleDefinition module;
+        try
         {
-            return null;
+            module = ModuleDefinition.ReadModule(stream);
+        }
+        catch
+        {
+            stream.Dispose();
+            throw;
         }
 
-        var modGuid = GetStringProperty(metadataType, "ModGuid");
-        var name = GetStringProperty(metadataType, "Name");
-        var author = GetStringProperty(metadataType, "Author");
-        var modVersion = GetStringProperty(metadataType, "Version");
-        var sptVersion = GetStringProperty(metadataType, "SptVersion");
-        var modUrl = GetStringProperty(metadataType, "Url");
+        using (module)
+        {
+            var metadataType = module.Types.FirstOrDefault(t =>
+                t.BaseType?.Name == "AbstractModMetadata" && !t.IsAbstract
+            );
 
-        var version = modVersion ?? GetAssemblyVersion(module);
+            if (metadataType is null)
+            {
+                return null;
+            }
 
-        return new ServerModBinaryInfo(modGuid, name, author, version, sptVersion, modUrl);
+            var modGuid = GetStringProperty(metadataType, "ModGuid");
+            var name = GetStringProperty(metadataType, "Name");
+            var author = GetStringProperty(metadataType, "Author");
+            var modVersion = GetStringProperty(metadataType, "Version");
+            var sptVersion = GetStringProperty(metadataType, "SptVersion");
+            var modUrl = GetStringProperty(metadataType, "Url");
+
+            var version = modVersion ?? GetAssemblyVersion(module);
+
+            return new ServerModBinaryInfo(modGuid, name, author, version, sptVersion, modUrl);
+        }
     }
 
     private static string? GetStringProperty(TypeDefinition type, string propertyName)
