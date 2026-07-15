@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Web UI Detail Pane**: Overhauled the mod detail slider (right-side pane) with a premium aesthetic, including deeper shadows, gradient typography, modernized alert boxes, and elevated dependency cards.
+
 ## [2.0.4] - 2026-07-13
 
 ### Added
