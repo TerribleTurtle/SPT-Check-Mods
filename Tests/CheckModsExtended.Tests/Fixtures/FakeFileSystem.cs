@@ -14,6 +14,7 @@ public class FakeFileSystem : IFileSystem
     public readonly HashSet<string> Directories = new(StringComparer.OrdinalIgnoreCase);
 
     public readonly System.Collections.Generic.HashSet<string> UnauthorizedPaths = new(System.StringComparer.OrdinalIgnoreCase);
+    public readonly System.Collections.Generic.HashSet<string> PathsToThrowIOException = new(System.StringComparer.OrdinalIgnoreCase);
 
     public bool FileExists(string path)
     {
@@ -21,6 +22,11 @@ public class FakeFileSystem : IFileSystem
         {
             throw new System.UnauthorizedAccessException("Access denied");
         }
+        if (PathsToThrowIOException.Contains(path))
+        {
+            throw new System.IO.IOException("IO Exception");
+        }
+        
 
         return Files.ContainsKey(path);
     }
@@ -62,6 +68,11 @@ public class FakeFileSystem : IFileSystem
         {
             throw new System.UnauthorizedAccessException("Access denied");
         }
+        if (PathsToThrowIOException.Contains(path))
+        {
+            throw new System.IO.IOException("IO Exception");
+        }
+        
         if (!Files.TryGetValue(path, out var content))
         {
             throw new FileNotFoundException("File not found.", path);
@@ -76,6 +87,11 @@ public class FakeFileSystem : IFileSystem
         {
             throw new System.UnauthorizedAccessException("Access denied");
         }
+        if (PathsToThrowIOException.Contains(path))
+        {
+            throw new System.IO.IOException("IO Exception");
+        }
+        
         Files[path] = System.Text.Encoding.UTF8.GetBytes(contents);
         return Task.CompletedTask;
     }
@@ -165,6 +181,7 @@ public class FakeFileSystem : IFileSystem
 
     public string GetFileVersion(string path)
     {
+        if (PathsToThrowIOException.Contains(path)) throw new System.IO.IOException("IO Error");
         return "3.10.0";
     }
 
@@ -173,4 +190,7 @@ public class FakeFileSystem : IFileSystem
         return Files.TryGetValue(path, out var c) ? c.Length : 0;
     }
 }
+
+
+
 

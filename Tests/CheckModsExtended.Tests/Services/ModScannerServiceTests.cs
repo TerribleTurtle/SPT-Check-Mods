@@ -152,6 +152,21 @@ public sealed class ModScannerServiceTests : IDisposable
         Assert.Contains(_reporter.Warnings, w => w.Contains("CouldNotReadModDll"));
     }
 
+        [Fact]
+    public void GetSptVersion_ThrowsIOException_ReturnsNull()
+    {
+        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
+        _fixture.FileSystem.Files[coreDllPath] = new byte[10];
+
+        _fixture.FileSystem.PathsToThrowIOException.Add(coreDllPath);
+
+        var version = _service.GetSptVersion(_sptPath);
+
+        Assert.Null(version);
+        Assert.Contains(_reporter.Warnings, w => w.Contains("CouldNotReadSptVersion"));
+    }
+
     public void Dispose()
     {
         _fixture.Dispose();
@@ -234,5 +249,6 @@ namespace BepInEx {
         Assert.Equal("Test Server Mod", serverMods[0].Local.LocalName);
     }
 }
+
 
 

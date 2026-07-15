@@ -89,9 +89,22 @@ public sealed class SptInstallationServiceTests : IDisposable
         Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core DLL"));
     }
 
+        [Fact]
+    public async Task GetAndValidateSptVersionAsync_FileExistsThrowsIOException_ReturnsNullAndLogsError()
+    {
+        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        _fixture.FileSystem.PathsToThrowIOException.Add(coreDllPath);
+
+        var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
+
+        Assert.Null(result);
+        Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core DLL"));
+    }
+
     public void Dispose()
     {
         _fixture.Dispose();
     }
 }
+
 

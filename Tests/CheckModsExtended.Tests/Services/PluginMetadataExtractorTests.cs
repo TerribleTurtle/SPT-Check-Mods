@@ -203,9 +203,65 @@ public class ModulePlugin {}
         Assert.Null(mod);
     }
 
+        [Fact]
+    public async Task Processclientdllsinparallelasync_returnsvalidmods_skips_corrupted()
+    {
+        var validDllPath = Path.Combine("BepInEx", "plugins", "test-client-mod", "TestClient.dll");
+        var corruptDllPath = Path.Combine("BepInEx", "plugins", "test-client-mod", "Corrupted.dll");
+
+        var code =
+            @"
+using System;
+public class BepInPluginAttribute : Attribute 
+{
+    public BepInPluginAttribute(string guid, string name, string version) {}
+}
+
+[BepInPlugin(""com.client.test"", ""Test Client Mod"", ""1.0.0"")]
+public class MyClientPlugin {}
+";
+        _fixture.CompileDummyDll(validDllPath, code);
+
+        // Corrupted DLL
+        var fullCorruptPath = Path.Combine(_sptPath, corruptDllPath);
+        _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(fullCorruptPath)!);
+        _fixture.FileSystem.Files[fullCorruptPath] = new byte[] { 0x00, 0x01, 0x02, 0x03 }; // Invalid PE -> BadImageFormatException
+
+        var mods = await _extractor.ProcessClientDllsInParallelAsync([Path.Combine(_sptPath, validDllPath), fullCorruptPath]);
+
+        Assert.Single(mods);
+        Assert.Equal("com.client.test", mods[0].Local.Guid);
+    }
+
+    [Fact]
+    public async Task Readplugindllsasync_skips_corrupted_dlls()
+    {
+        var dllPath = Path.Combine("BepInEx", "plugins", "readplugins-client-mod", "TestClient.dll");
+        var corruptDllPath = Path.Combine("BepInEx", "plugins", "readplugins-client-mod", "Corrupted.dll");
+
+        var code =
+            @"
+using System;
+public class BepInPluginAttribute : Attribute { public BepInPluginAttribute(string g, string n, string v) {} }
+[BepInPlugin(""com.readplugins.test"", ""Read Plugins Mod"", ""1.0.0"")]
+public class ReadPluginsPlugin {}
+";
+        _fixture.CompileDummyDll(dllPath, code);
+
+        // Corrupted DLL
+        var fullCorruptPath = Path.Combine(_sptPath, corruptDllPath);
+        _fixture.FileSystem.Files[fullCorruptPath] = new byte[] { 0x00, 0x01, 0x02, 0x03 }; // Invalid PE
+
+        var plugins = await _extractor.ReadPluginDllsAsync([Path.Combine(_sptPath, dllPath), fullCorruptPath]);
+
+        Assert.Single(plugins);
+        Assert.Equal("com.readplugins.test", plugins[0].Plugin.Guid);
+    }
+
     public void Dispose()
     {
         _fixture.Dispose();
     }
 }
+
 

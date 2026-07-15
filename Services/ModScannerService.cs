@@ -195,13 +195,13 @@ public sealed class ModScannerService(
 
         var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
 
-        if (!fileSystem.FileExists(coreDllPath))
-        {
-            return null;
-        }
-
         try
         {
+            if (!fileSystem.FileExists(coreDllPath))
+            {
+                return null;
+            }
+
             return fileSystem.GetFileVersion(coreDllPath);
         }
         catch (Exception ex)
@@ -227,4 +227,5 @@ public sealed class ModScannerService(
         return await misplacedDetector.DetectMisplacedModsAsync(sptPath, cancellationToken);
     }
 }
+
 
