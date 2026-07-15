@@ -391,6 +391,27 @@
         </div>
     </div>
 
+    <!-- Modal for Community Ignore List -->
+    <div class="modal-overlay glass-modal" :class="{'hidden': !ui.showCommunityListModal}" @click.self="ui.showCommunityListModal = false">
+        <div class="modal-content">
+            <div class="modal-header glass-header">
+                <h2>Community Ignore List Setup</h2>
+                <button class="btn-close-detail" aria-label="Close modal" @click="ui.showCommunityListModal = false">
+                    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4 text-sm">
+                    Would you like to use the Community Ignore List? This list helps filter out known false positive updates, maintained by the community.
+                </p>
+                <div class="flex gap-md justify-end">
+                    <button class="btn-secondary" @click="setupCommunityList(false, $event)">No, skip</button>
+                    <button class="btn-primary" @click="setupCommunityList(true, $event)">Yes, use it</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Settings -->
     <div class="modal-overlay glass-modal" :class="{'hidden': !ui.showSettingsModal}" @click.self="closeModals()">
         <div class="modal-content modal-lg">
@@ -411,6 +432,13 @@
                             <label class="form-label" for="setting-appdata">App Data Directory</label>
                             <div class="text-muted text-sm mb-4">The root directory for logs, caches, and application state. Default: <code>%APPDATA%\SptCheckModsExtended</code></div>
                             <input type="text" id="setting-appdata" name="appDataDirectory" autocomplete="off" spellcheck="false" x-model="settings.AppPaths.AppDataDirectory" class="form-input w-full" placeholder="Leave empty for default">
+                        </div>
+                        <div class="settings-group animated-row">
+                            <h3 class="mb-2">Ignored Updates</h3>
+                            <label class="form-label flex align-center gap-sm" for="setting-communitylist">
+                                <input type="checkbox" id="setting-communitylist" name="useCommunityList" x-model="settings.IgnoredUpdateOptions.UseCommunityList" class="row-checkbox"> Use Community Ignore List
+                            </label>
+                            <div class="text-muted text-sm mb-4">Automatically filter out known false positive updates using a community-maintained list.</div>
                         </div>
                         <div class="settings-group animated-row">
                             <h3 class="mb-2">Logging Options</h3>

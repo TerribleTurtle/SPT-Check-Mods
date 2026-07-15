@@ -18,6 +18,7 @@ document.addEventListener('alpine:init', () => {
             lastFocus: null,
             showIgnoreModal: false,
             showSettingsModal: false,
+            showCommunityListModal: false,
             loadingIgnores: false,
             loadingSettings: false,
             isScrolledToBottom: false,
@@ -140,6 +141,16 @@ document.addEventListener('alpine:init', () => {
                 if (data && data.sptVersion) this.meta.sptVersion = data.sptVersion;
                 if (data && data.appUpdateAvailable !== undefined) this.meta.appUpdateAvailable = data.appUpdateAvailable;
             }).finally(async () => {
+                try {
+                    this.settings = await fetchSettings();
+                    if (!this.settings.IgnoredUpdateOptions) this.settings.IgnoredUpdateOptions = {};
+                    if (this.settings.IgnoredUpdateOptions.UseCommunityList == null) {
+                        this.ui.showCommunityListModal = true;
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch settings on init:", e);
+                }
+
                 const cacheData = await fetchCache();
                 const responseData = cacheData?.response || cacheData?.Response;
                 const cachedAt = cacheData?.cachedAtUtc || cacheData?.CachedAtUtc;
@@ -430,6 +441,7 @@ document.addEventListener('alpine:init', () => {
                 this.settings = await fetchSettings();
                 if(!this.settings.AppPaths) this.settings.AppPaths = { AppDataDirectory: '' };
                 if(!this.settings.LoggingOptions) this.settings.LoggingOptions = { EnableFileLogging: false, MinimumLogLevel: 'Information', LogFilePath: 'checkmod.log', MaxFileSizeBytes: 10485760 };
+                if(!this.settings.IgnoredUpdateOptions) this.settings.IgnoredUpdateOptions = { UseCommunityList: null };
             } catch (e) {
                 this.showToast(`Error loading settings: ${e.message}`, 'error');
                 this.settings = null;
@@ -451,9 +463,26 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        async setupCommunityList(useCommunityList, btnEvent) {
+            if(btnEvent) btnEvent.target.classList.add('is-loading');
+            try {
+                if (!this.settings) this.settings = await fetchSettings();
+                if (!this.settings.IgnoredUpdateOptions) this.settings.IgnoredUpdateOptions = {};
+                this.settings.IgnoredUpdateOptions.UseCommunityList = useCommunityList;
+                await saveSettings(this.settings);
+                this.ui.showCommunityListModal = false;
+                this.showToast('Community list preference saved.', 'success');
+            } catch (e) {
+                this.showToast(`Error saving settings: ${e.message}`, 'error');
+            } finally {
+                if(btnEvent) btnEvent.target.classList.remove('is-loading');
+            }
+        },
+
         closeModals() {
             this.ui.showIgnoreModal = false;
             this.ui.showSettingsModal = false;
+            this.ui.showCommunityListModal = false;
             if (this.ui.lastFocus) {
                 this.ui.lastFocus.focus();
                 this.ui.lastFocus = null;
