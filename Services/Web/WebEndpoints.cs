@@ -52,10 +52,9 @@ public static class WebEndpoints
         context.Response.Headers.Append("Cache-Control", "no-cache");
         context.Response.Headers.Append("Connection", "keep-alive");
 
-        var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
         await foreach (var progress in progressTracker.SubscribeAsync(token))
         {
-            var data = System.Text.Json.JsonSerializer.Serialize(progress, opts);
+            var data = System.Text.Json.JsonSerializer.Serialize(progress, CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default.ScanProgress);
             await context.Response.WriteAsync($"data: {data}\n\n", token);
             await context.Response.Body.FlushAsync(token);
         }
