@@ -21,6 +21,11 @@ public sealed class InitializationService(
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(appPaths.Value.AppDataDirectory))
+            {
+                return;
+            }
+
             var configDirectory = Path.GetFullPath(appPaths.Value.AppDataDirectory);
             var configFilePath = Path.GetFullPath(Path.Combine(configDirectory, "apikey.txt"));
 

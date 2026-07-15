@@ -72,5 +72,10 @@ public sealed class ForgeApiClient(HttpClient httpClient, ILogger<ForgeApiClient
             logger.LogError(ex, "Failed to parse API response from {Url}", url);
             return new ApiError("Failed to parse API response", Exception: ex);
         }
+        catch (System.Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error during request to {Url}", url);
+            return new ApiError("Unexpected error occurred", Exception: ex);
+        }
     }
 }

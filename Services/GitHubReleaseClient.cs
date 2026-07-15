@@ -87,7 +87,7 @@ public sealed class GitHubReleaseClient(HttpClient httpClient, ILogger<GitHubRel
 
             return asset?.BrowserDownloadUrl;
         }
-        catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException)
+        catch (Exception ex)
         {
             logger.LogDebug(ex, "Failed to fetch GitHub release asset for {Repo}", repo);
             return null;
@@ -128,7 +128,7 @@ public sealed class GitHubReleaseClient(HttpClient httpClient, ILogger<GitHubRel
             var version = release.TagName?.TrimStart('v');
             return (version, release.HtmlUrl);
         }
-        catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException)
+        catch (Exception ex)
         {
             logger.LogDebug(ex, "Failed to fetch GitHub release version for {Repo}", repo);
             return (null, null);

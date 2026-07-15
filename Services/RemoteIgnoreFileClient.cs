@@ -77,11 +77,11 @@ public sealed class RemoteIgnoreFileClient(
 
             return file.Ignored.Where(e => e.IsWellFormed).ToList();
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or IOException)
+        catch (Exception ex)
         {
             logger.LogWarning(ex, "Could not fetch the remote ignore list");
             return null;
