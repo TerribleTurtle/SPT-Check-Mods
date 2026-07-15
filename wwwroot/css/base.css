@@ -173,6 +173,16 @@
     padding: 0;
 }
 
+html {
+    font-size: 15px; /* Base 15px (instead of 16px) for a slightly denser dashboard feel on 1080p */
+}
+
+@media (max-height: 800px) {
+    html {
+        font-size: 14px; /* Scale down slightly on smaller laptop screens to prevent crowding */
+    }
+}
+
 body {
     background-color: var(--bg-base);
     color: var(--text-primary);

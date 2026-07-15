@@ -26,6 +26,7 @@ document.addEventListener('alpine:init', () => {
         meta: {
             sptVersion: null,
             appVersion: null,
+            appUpdateAvailable: false,
             lastScan: null,
             theme: localStorage.getItem('cme-theme') || 'dark'
         },
@@ -136,6 +137,7 @@ document.addEventListener('alpine:init', () => {
             fetchStatus().then(data => {
                 if (data && data.version) this.meta.appVersion = data.version;
                 if (data && data.sptVersion) this.meta.sptVersion = data.sptVersion;
+                if (data && data.appUpdateAvailable !== undefined) this.meta.appUpdateAvailable = data.appUpdateAvailable;
             }).finally(async () => {
                 const cacheData = await fetchCache();
                 const responseData = cacheData?.response || cacheData?.Response;

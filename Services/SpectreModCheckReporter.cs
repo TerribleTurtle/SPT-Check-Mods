@@ -165,11 +165,23 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         CancellationToken cancellationToken = default
     )
     {
+        Func<Action<int>, Task> wrappedWork = async innerSet => 
+        {
+            await work(current => 
+            {
+                if (total > 0)
+                {
+                    _webProgressTracker?.ReportProgress((current * 100.0) / total);
+                }
+                innerSet(current);
+            });
+        };
+
         if (!ShouldRender())
         {
-            return work(_ => { });
+            return wrappedWork(_ => { });
         }
-        return _progressRenderer.RunForgeQueryProgressAsync(total, work, cancellationToken);
+        return _progressRenderer.RunForgeQueryProgressAsync(total, wrappedWork, cancellationToken);
     }
 
     public Task<T> RunForgeQueryProgressAsync<T>(
@@ -178,11 +190,23 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         CancellationToken cancellationToken = default
     )
     {
+        Func<Action<int>, Task<T>> wrappedWork = async innerSet => 
+        {
+            return await work(current => 
+            {
+                if (total > 0)
+                {
+                    _webProgressTracker?.ReportProgress((current * 100.0) / total);
+                }
+                innerSet(current);
+            });
+        };
+
         if (!ShouldRender())
         {
-            return work(_ => { });
+            return wrappedWork(_ => { });
         }
-        return _progressRenderer.RunForgeQueryProgressAsync(total, work, cancellationToken);
+        return _progressRenderer.RunForgeQueryProgressAsync(total, wrappedWork, cancellationToken);
     }
 
     public void UsingPath(string path)
