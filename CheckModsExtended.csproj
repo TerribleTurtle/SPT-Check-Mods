@@ -107,6 +107,9 @@
   <ItemGroup>
     <EmbeddedResource Include="LICENSE" />
     <EmbeddedResource Include="wwwroot\**" />
+    <None Update="run-cli.bat">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -79,6 +79,11 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IMisplacedModAnalyzerService, MisplacedModAnalyzerService>();
         services.AddTransient<IModLinkResolverService, ModLinkResolverService>();
 
+        services.AddSingleton<ICacheManager, CacheManager>();
+        services.AddSingleton<IScanCacheService, ScanCacheService>();
+        services.AddSingleton<IIgnoredUpdateStore, IgnoredUpdateStore>();
+        services.AddSingleton<IPluginScanCache, PluginScanCache>();
+
         // Parsers
         services.AddTransient<IBinaryParser, BinaryParser>();
         services.AddTransient<IJsonManifestParser, JsonManifestParser>();
