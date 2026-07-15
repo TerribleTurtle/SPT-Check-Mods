@@ -15,28 +15,21 @@ namespace CheckModsExtended.Services;
 /// Service for reading and updating application settings.
 /// </summary>
 [Injectable(InjectionType.Transient)]
-public sealed class SettingsService : ISettingsService
+public sealed class SettingsService(IFileSystem fileSystem) : ISettingsService
 {
-    private readonly IFileSystem _fileSystem;
-
-    public SettingsService(IFileSystem fileSystem)
-    {
-        _fileSystem = fileSystem;
-    }
-
     /// <inheritdoc />
     public async Task<string> GetSettingsAsync(CancellationToken token = default)
     {
         var path = "appsettings.json";
-        if (!_fileSystem.FileExists(path))
+        if (!fileSystem.FileExists(path))
         {
-            if (_fileSystem.FileExists("appsettings.example.json"))
+            if (fileSystem.FileExists("appsettings.example.json"))
             {
-                return await _fileSystem.ReadAllTextAsync("appsettings.example.json", token);
+                return await fileSystem.ReadAllTextAsync("appsettings.example.json", token);
             }
             return "{}";
         }
-        return await _fileSystem.ReadAllTextAsync(path, token);
+        return await fileSystem.ReadAllTextAsync(path, token);
     }
 
     /// <inheritdoc />
@@ -47,8 +40,8 @@ public sealed class SettingsService : ISettingsService
         catch (JsonException) { return new ApiError("Invalid JSON payload"); }
 
         var tempPath = "appsettings.json.tmp";
-        await _fileSystem.WriteAllTextAsync(tempPath, jsonPayload, token);
-        _fileSystem.MoveFile(tempPath, "appsettings.json", overwrite: true);
+        await fileSystem.WriteAllTextAsync(tempPath, jsonPayload, token);
+        fileSystem.MoveFile(tempPath, "appsettings.json", overwrite: true);
         return new MessageResponse("Settings saved successfully. A restart may be required for some settings to take effect.");
     }
 }

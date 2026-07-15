@@ -78,15 +78,11 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IDiagnosticService, DiagnosticService>();
         services.AddTransient<IMisplacedModAnalyzerService, MisplacedModAnalyzerService>();
         services.AddTransient<IModLinkResolverService, ModLinkResolverService>();
-        services.AddSingleton<ICacheManager, CacheManager>();
 
         // Parsers
         services.AddTransient<IBinaryParser, BinaryParser>();
         services.AddTransient<IJsonManifestParser, JsonManifestParser>();
 
-        services.AddSingleton<IScanCacheService, ScanCacheService>();
-        services.AddSingleton<IIgnoredUpdateStore, IgnoredUpdateStore>();
-        services.AddSingleton<IPluginScanCache, PluginScanCache>();
         services.AddSingleton<IModCheckReporter, SpectreModCheckReporter>();
         services.AddSingleton<IDependencyUiRenderer, DependencyUiRenderer>();
         services.AddSingleton<IMisplacedModUiRenderer, MisplacedModUiRenderer>();
@@ -159,6 +155,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowStep, CacheResultsStep>();
         services.AddTransient<IWorkflowStep, DisplayResultsStep>();
 
+                var handler = new SPTarkov.DI.DependencyInjectionHandler(services);
+        handler.AddInjectableTypesFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+        handler.InjectAll();
         return services;
     }
 }
