@@ -23,7 +23,8 @@ document.addEventListener('alpine:init', () => {
             loadingSettings: false,
             isScrolledToBottom: false,
             toasts: [],
-            toastIdCounter: 0
+            toastIdCounter: 0,
+            currentTime: Date.now()
         },
         meta: {
             sptVersion: null,
@@ -182,8 +183,8 @@ document.addEventListener('alpine:init', () => {
             });
 
             setInterval(() => {
-                if (this.meta.lastScan) this.meta.lastScan = this.meta.lastScan; 
-            }, 30000);
+                this.ui.currentTime = Date.now();
+            }, 10000);
         },
 
         toggleTheme() {
@@ -496,7 +497,7 @@ document.addEventListener('alpine:init', () => {
 
         formatTimeAgo() {
             if (!this.meta.lastScan) return 'Never';
-            const seconds = Math.floor((Date.now() - this.meta.lastScan) / 1000);
+            const seconds = Math.floor((this.ui.currentTime - this.meta.lastScan) / 1000);
             if (seconds > 59) return `${Math.floor(seconds / 60)}m ago`;
             if (seconds > 10) return `${seconds}s ago`;
             return 'Just now';
