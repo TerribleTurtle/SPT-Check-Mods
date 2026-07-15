@@ -15,7 +15,7 @@ public sealed record StatusResponse(
 /// Response returned from the local scan API endpoint.
 /// </summary>
 public sealed record LocalScanResponse(
-    List<CheckModsExtended.Models.Mod> Mods
+    List<ModDto> Mods
 );
 
 /// <summary>
@@ -43,6 +43,7 @@ public sealed record BlockingModDto(int ModId, string Name, string Constraint);
 public sealed record ModDto(
     int? Id,
     string Name,
+    string LocalName,
     string Author,
     string LocalVersion,
     string LatestVersion,

@@ -12,9 +12,50 @@ public static class ScanResponseMapper
 {
     public static ScanResponse Map(UpdateWorkflowContext context)
     {
-        var response = context.Mods.Select(m => new ModDto(
+        var response = context.Mods.Select(m => m.ToDto()).ToList();
+
+        MisplacedModReportDto? misplacedReportDto = null;
+        if (context.MisplacedReport != null && context.MisplacedReport.Any)
+        {
+            misplacedReportDto = new MisplacedModReportDto(
+                WrongFolder: context.MisplacedReport.WrongFolder.Select(m => new MisplacedModDto(
+                    Name: m.Name,
+                    Version: m.Version,
+                    FilePath: m.FilePath,
+                    IsServerMod: m.IsServerMod
+                )).ToList(),
+                CrossInstalled: context.MisplacedReport.CrossInstalled.Select(d => new CrossInstalledDirectoryDto(
+                    Directory: d.Directory,
+                    Mods: d.Mods.Select(m => new MisplacedModDto(
+                        Name: m.Name,
+                        Version: m.Version,
+                        FilePath: m.FilePath,
+                        IsServerMod: m.IsServerMod
+                    )).ToList(),
+                    Ambiguous: d.Ambiguous
+                )).ToList()
+            );
+        }
+
+        return new ScanResponse(response, misplacedReportDto, context.SptVersion?.ToString());
+    }
+
+    public static MisplacedModDto ToDto(this MisplacedMod m)
+    {
+        return new MisplacedModDto(
+            Name: m.Name,
+            Version: m.Version,
+            FilePath: m.FilePath,
+            IsServerMod: m.IsServerMod
+        );
+    }
+
+    public static ModDto ToDto(this Mod m)
+    {
+        return new ModDto(
             Id: m.Api.ApiModId,
             Name: m.DisplayName,
+            LocalName: m.Local.LocalName,
             Author: m.DisplayAuthor,
             LocalVersion: m.Local.LocalVersion,
             LatestVersion: m.Update.LatestVersion ?? "Unknown",
@@ -59,32 +100,7 @@ public static class ScanResponseMapper
             IsPaired: m.Local.PairedComponentPath != null,
             LocalDirectory: m.Local.FilePath != null ? System.IO.Path.GetDirectoryName(m.Local.FilePath) : null,
             IgnoreSource: m.Update.UpdateSuppressedSource?.ToString()
-        )).ToList();
-
-        MisplacedModReportDto? misplacedReportDto = null;
-        if (context.MisplacedReport != null && context.MisplacedReport.Any)
-        {
-            misplacedReportDto = new MisplacedModReportDto(
-                WrongFolder: context.MisplacedReport.WrongFolder.Select(m => new MisplacedModDto(
-                    Name: m.Name,
-                    Version: m.Version,
-                    FilePath: m.FilePath,
-                    IsServerMod: m.IsServerMod
-                )).ToList(),
-                CrossInstalled: context.MisplacedReport.CrossInstalled.Select(d => new CrossInstalledDirectoryDto(
-                    Directory: d.Directory,
-                    Mods: d.Mods.Select(m => new MisplacedModDto(
-                        Name: m.Name,
-                        Version: m.Version,
-                        FilePath: m.FilePath,
-                        IsServerMod: m.IsServerMod
-                    )).ToList(),
-                    Ambiguous: d.Ambiguous
-                )).ToList()
-            );
-        }
-
-        return new ScanResponse(response, misplacedReportDto, context.SptVersion?.ToString());
+        );
     }
 
     public static Mod ToDomain(this ModDto dto)
@@ -94,7 +110,7 @@ public static class ScanResponseMapper
             Local = new LocalModIdentity
             {
                 Guid = dto.Id?.ToString() ?? Guid.NewGuid().ToString(),
-                LocalName = dto.Name,
+                LocalName = dto.LocalName ?? dto.Name,
                 LocalAuthor = dto.Author,
                 LocalVersion = dto.LocalVersion,
                 IsServerMod = dto.IsServerMod,

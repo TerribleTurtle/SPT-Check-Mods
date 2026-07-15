@@ -228,10 +228,7 @@ document.addEventListener('alpine:init', () => {
                 
                 // Diff by ID/Name + Version
                 const getModHash = (m) => {
-                    const id = m.id || (m.api && m.api.apiModId);
-                    const name = m.name || m.displayName || (m.local && m.local.localName) || '';
-                    const version = m.localVersion || (m.local && m.local.localVersion) || '';
-                    return (id || name) + version;
+                    return m.localName + m.localVersion;
                 };
 
                 const localHash = localData.mods.map(getModHash).sort().join();

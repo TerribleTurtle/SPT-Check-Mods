@@ -172,6 +172,7 @@ public sealed class GuiFrontendEndToEndTests
                         new ModDto(
                             1,
                             "FakeMod",
+                            "FakeMod",
                             "FakeAuthor",
                             "1.0.0",
                             "1.0.0",

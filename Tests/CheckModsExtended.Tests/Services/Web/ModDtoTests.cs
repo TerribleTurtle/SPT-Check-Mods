@@ -8,20 +8,21 @@ public class ModDtoTests
     [Fact]
     public void ModDto_IncludesLocalDirectory()
     {
+        var localDir = "C:\\path\\to\\dir";
         var dto = new ModDto(
             Id: 1,
-            Name: "Test",
+            Name: "Test Mod",
+            LocalName: "Test Mod",
             Author: "Author",
-            LocalVersion: "1.0",
-            LatestVersion: "2.0",
-            Status: "UpdateAvailable",
-            IsServerMod: true,
-            ModUrl: "http://example.com",
-            DownloadUrl: "http://example.com/dl",
-            LocalDirectory: "C:\\path\\to\\dir"
+            LocalVersion: "1.0.0",
+            LatestVersion: "1.0.0",
+            Status: "UpToDate",
+            IsServerMod: false,
+            ModUrl: "https://example.com/mod",
+            DownloadUrl: "https://example.com/download",
+            LocalDirectory: localDir
         );
 
         Assert.Equal("C:\\path\\to\\dir", dto.LocalDirectory);
     }
 }
-

@@ -91,7 +91,7 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> GetLocalScanAsync([FromServices] IInitializationService initService, [FromServices] IModScannerService scannerService, CancellationToken token)
+    private static async Task<IResult> GetLocalScanAsync([FromServices] IInitializationService initService, [FromServices] IModScannerService scannerService, [FromServices] IModReconciliationService reconciliationService, CancellationToken token)
     {
         try
         {
@@ -99,16 +99,13 @@ public static class WebEndpoints
             var sptPath = initService.GetValidatedSptPath(new[] { path });
             if (sptPath == null)
             {
-                return Results.Ok(new LocalScanResponse(new System.Collections.Generic.List<Mod>()));
+                return Results.Ok(new LocalScanResponse(new System.Collections.Generic.List<ModDto>()));
             }
             
             var (serverMods, clientMods) = await scannerService.ScanAllModsAsync(sptPath, token);
+            var result = reconciliationService.ReconcileMods(serverMods, clientMods);
             
-            var allLocalMods = new System.Collections.Generic.List<Mod>();
-            allLocalMods.AddRange(serverMods);
-            allLocalMods.AddRange(clientMods);
-
-            return Results.Ok(new LocalScanResponse(allLocalMods));
+            return Results.Ok(new LocalScanResponse(result.Mods.Select(m => m.ToDto()).ToList()));
         }
         catch (Exception ex)
         {
