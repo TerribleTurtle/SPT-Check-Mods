@@ -2,6 +2,7 @@
 
 A .NET 9 console application that validates Single Player Tarkov (SPT) mod compatibility using the Forge API.
 
+<img width="1434" height="870" alt="image" src="https://github.com/user-attachments/assets/d671c4c6-6b92-4dff-ad0f-615f6f87cee2" />
 <img width="1013" height="314" alt="image" src="https://github.com/user-attachments/assets/00878387-024c-4961-b66f-b977f4e550c0" />
 
 ## Acknowledgments
