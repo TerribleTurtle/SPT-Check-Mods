@@ -258,4 +258,47 @@ public class WebEndpointsTests
         cts.Cancel();
         try { await runTask; } catch { }
     }
+
+    [Fact]
+    public async Task Get_ScanProgress_ReturnsEventStream()
+    {
+        var progressTracker = new CheckModsExtended.Services.UI.WebProgressTracker();
+        var launcher = new TestBrowserLauncher();
+        
+        using var cts = new CancellationTokenSource();
+        var runTask = WebManagerHost.RunAsync(new string[0], cts.Token, services =>
+        {
+            services.AddSingleton<CheckModsExtended.Services.UI.IWebProgressTracker>(progressTracker);
+            services.AddSingleton<IBrowserLauncher>(launcher);
+        });
+
+        var url = await launcher.WaitForUrlAsync();
+        
+        using var client = new HttpClient();
+        client.Timeout = System.TimeSpan.FromSeconds(5);
+        
+        progressTracker.ReportStatus("Testing");
+        progressTracker.ReportProgress(42.5);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{url}/api/scan/progress");
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+
+        using var stream = await response.Content.ReadAsStreamAsync();
+        using var reader = new StreamReader(stream);
+        
+        var line = await reader.ReadLineAsync();
+        Assert.StartsWith("data: ", line);
+        Assert.Contains("Testing", line);
+        Assert.Contains("42.5", line);
+
+        cts.Cancel();
+        try { await runTask; } catch { }
+    }
 }
+
+
+
+

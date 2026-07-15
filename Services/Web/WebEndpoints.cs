@@ -35,11 +35,30 @@ public static class WebEndpoints
         api.MapGet("/cache", GetCacheAsync);
         api.MapGet("/local", GetLocalScanAsync);
         api.MapPost("/scan", PostScanAsync);
+        api.MapGet("/scan/progress", GetScanProgressAsync);
         api.MapPost("/ignore", PostIgnoreAsync);
         api.MapGet("/ignores", GetIgnoresAsync);
         api.MapDelete("/ignore/{modId}", DeleteIgnoreAsync);
         SettingsEndpoints.MapSettingsEndpoints(api);
         app.MapPost("/api/system/open", PostSystemOpen);
+    }
+
+    private static async Task GetScanProgressAsync(
+        [FromServices] CheckModsExtended.Services.UI.IWebProgressTracker progressTracker,
+        HttpContext context,
+        CancellationToken token)
+    {
+        context.Response.Headers.Append("Content-Type", "text/event-stream");
+        context.Response.Headers.Append("Cache-Control", "no-cache");
+        context.Response.Headers.Append("Connection", "keep-alive");
+
+        var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+        await foreach (var progress in progressTracker.SubscribeAsync(token))
+        {
+            var data = System.Text.Json.JsonSerializer.Serialize(progress, opts);
+            await context.Response.WriteAsync($"data: {data}\n\n", token);
+            await context.Response.Body.FlushAsync(token);
+        }
     }
 
     private static async Task<IResult> GetStatusAsync(
@@ -196,3 +215,4 @@ public static class WebEndpoints
         );
     }
 }
+

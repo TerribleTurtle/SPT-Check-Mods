@@ -21,6 +21,7 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
     private readonly IMiscTableUiRenderer _miscTableRenderer;
     private readonly IUserPromptService _promptService;
     private readonly IProgressRenderer _progressRenderer;
+    private readonly IWebProgressTracker _webProgressTracker;
     private readonly RuntimeConfig _runtimeConfig;
 
     public SpectreModCheckReporter(
@@ -32,6 +33,7 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         IMiscTableUiRenderer miscTableRenderer,
         IUserPromptService promptService,
         IProgressRenderer progressRenderer,
+        IWebProgressTracker webProgressTracker,
         RuntimeConfig runtimeConfig
     )
     {
@@ -43,6 +45,7 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         _miscTableRenderer = miscTableRenderer;
         _promptService = promptService;
         _progressRenderer = progressRenderer;
+        _webProgressTracker = webProgressTracker;
         _runtimeConfig = runtimeConfig;
     }
 
@@ -77,6 +80,7 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
 
     public void Heading(string text)
     {
+        _webProgressTracker?.ReportStatus(text);
         if (ShouldRender())
         {
             _textRenderer.Heading(text);
@@ -431,3 +435,6 @@ public sealed class SpectreModCheckReporter : IModCheckReporter
         }
     }
 }
+
+
+

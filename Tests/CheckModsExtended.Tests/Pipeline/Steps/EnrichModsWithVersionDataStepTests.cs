@@ -18,7 +18,7 @@ public class EnrichModsWithVersionDataStepTests
     {
         var service = new FakeModEnrichmentService();
         var logger = new FakeLogger<EnrichModsWithVersionDataStep>();
-        var step = new EnrichModsWithVersionDataStep(service, logger);
+        var step = new EnrichModsWithVersionDataStep(new CheckModsExtended.Tests.Fakes.FakeModCheckReporter(), service, logger);
 
         var context = new UpdateWorkflowContext
         {
@@ -30,3 +30,5 @@ public class EnrichModsWithVersionDataStepTests
         Assert.NotNull(context);
     }
 }
+
+

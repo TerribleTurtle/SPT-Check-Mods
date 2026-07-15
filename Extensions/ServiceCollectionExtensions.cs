@@ -88,6 +88,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IBinaryParser, BinaryParser>();
         services.AddTransient<IJsonManifestParser, JsonManifestParser>();
 
+        services.AddSingleton<IWebProgressTracker, WebProgressTracker>();
         services.AddSingleton<IModCheckReporter, SpectreModCheckReporter>();
         services.AddSingleton<IDependencyUiRenderer, DependencyUiRenderer>();
         services.AddSingleton<IMisplacedModUiRenderer, MisplacedModUiRenderer>();
@@ -166,3 +167,4 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
+
