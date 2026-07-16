@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CheckModsExtended.csproj" />
+    <ProjectReference Include="..\..\src\CheckModsExtended\CheckModsExtended.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildMode)' == 'CLI'">
