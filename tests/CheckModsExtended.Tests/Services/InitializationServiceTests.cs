@@ -38,6 +38,9 @@ public sealed class InitializationServiceTests
     [Fact]
     public void Get_validated_spt_path_returns_current_directory_if_no_args()
     {
+        // Arrange
+        _fileSystem.CreateDirectory(_fileSystem.GetCurrentDirectory());
+
         // Act
         var result = _sut.GetValidatedSptPath([]);
 
