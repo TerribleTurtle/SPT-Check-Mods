@@ -193,26 +193,36 @@ public sealed class ModScannerService(
             return fileSystem.ReadAllTextAsync(testVersionFile).GetAwaiter().GetResult().Trim();
         }
 
-        var coreDllPath = Path.Combine(sptPath, "SPTarkov.Server.Core.dll");
-
-        try
+        var possiblePaths = new[]
         {
-            if (!fileSystem.FileExists(coreDllPath))
+            Path.Combine(sptPath, "SPT.Server.exe"),
+            Path.Combine(sptPath, "SPTarkov.Server.Core.dll"),
+            Path.Combine(sptPath, "Aki.Server.exe")
+        };
+
+        foreach (var path in possiblePaths)
+        {
+            try
             {
-                return null;
+                if (fileSystem.FileExists(path))
+                {
+                    var version = fileSystem.GetFileVersion(path);
+                    if (!string.IsNullOrWhiteSpace(version))
+                    {
+                        return version;
+                    }
+                }
             }
-
-            return fileSystem.GetFileVersion(coreDllPath);
-        }
-        catch (Exception ex)
-            when (ex
-                    is IOException
-                        or UnauthorizedAccessException
-                        or FileNotFoundException
-                        or System.ComponentModel.Win32Exception
-            )
-        {
-            reporter.CouldNotReadSptVersion(ex.Message);
+            catch (Exception ex)
+                when (ex
+                        is IOException
+                            or UnauthorizedAccessException
+                            or FileNotFoundException
+                            or System.ComponentModel.Win32Exception
+                )
+            {
+                reporter.CouldNotReadSptVersion(ex.Message);
+            }
         }
 
         return null;

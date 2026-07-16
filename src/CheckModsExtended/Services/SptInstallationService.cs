@@ -27,26 +27,41 @@ public sealed class SptInstallationService(
     {
         logger.LogDebug("Validating SPT installation at: {SptPath}", sptPath);
 
-        var coreDllPath = Path.Combine(sptPath, "SPTarkov.Server.Core.dll");
+        var possiblePaths = new[]
+        {
+            Path.Combine(sptPath, "SPT.Server.exe"),
+            Path.Combine(sptPath, "SPTarkov.Server.Core.dll"),
+            Path.Combine(sptPath, "Aki.Server.exe")
+        };
+        string? foundCorePath = null;
         try
         {
-            if (!fileSystem.FileExists(coreDllPath))
+            foreach (var path in possiblePaths)
             {
-                logger.LogError("SPT core DLL not found: {CoreDllPath}", coreDllPath);
+                if (fileSystem.FileExists(path))
+                {
+                    foundCorePath = path;
+                    break;
+                }
+            }
+
+            if (foundCorePath == null)
+            {
+                logger.LogError("SPT core executable/DLL not found in {SptPath}", sptPath);
                 reporter.Error(
                     "Error: Could not find SPT installation. Run this file in your root SPT directory, or provide the SPT path as an argument."
                 );
                 return null;
             }
         }
-        catch (System.Exception ex) when (ex is System.IO.IOException || ex is System.UnauthorizedAccessException) { logger.LogError(ex, "Error"); reporter.Error("Could not access SPT core DLL"); return null; }
+        catch (System.Exception ex) when (ex is System.IO.IOException || ex is System.UnauthorizedAccessException) { logger.LogError(ex, "Error"); reporter.Error("Could not access SPT core files"); return null; }
 
         var localSptVersionStr = scannerService.GetSptVersion(sptPath);
 
         if (string.IsNullOrWhiteSpace(localSptVersionStr))
         {
-            logger.LogError("Could not extract SPT version from core DLL");
-            reporter.Error("Error: SPT version not found in SPTarkov.Server.Core.dll.");
+            logger.LogError("Could not extract SPT version from core files");
+            reporter.Error($"Error: SPT version not found in {Path.GetFileName(foundCorePath)}.");
             return null;
         }
 

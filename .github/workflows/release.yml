@@ -115,16 +115,6 @@ jobs:
           echo "No release notes found for ${VERSION_CLEAN} in CHANGELOG.md" > current_notes.md
         fi
 
-    - name: Package SPT Hub Release
-      run: |
-        mkdir -p ./publish/artifacts/SptHub
-        cp ./publish/artifacts/CheckModsExtended-win-x64.exe ./publish/artifacts/SptHub/
-        cp README.md ./publish/artifacts/SptHub/
-        cp LICENSE ./publish/artifacts/SptHub/
-        cp CHANGELOG.md ./publish/artifacts/SptHub/
-        cd ./publish/artifacts/SptHub
-        zip -r ../CheckModsExtended-${{ steps.version.outputs.version }}-SptHub.zip ./*
-
     - name: Create Release
       uses: softprops/action-gh-release@v3
       with:

@@ -86,7 +86,7 @@ public sealed class SptInstallationServiceTests : IDisposable
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
 
         Assert.Null(result);
-        Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core DLL"));
+        Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core files"));
     }
 
         [Fact]
@@ -98,7 +98,7 @@ public sealed class SptInstallationServiceTests : IDisposable
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
 
         Assert.Null(result);
-        Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core DLL"));
+        Assert.Contains(_reporter.Errors, e => e.Contains("Could not access SPT core files"));
     }
 
     public void Dispose()
