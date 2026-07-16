@@ -52,6 +52,7 @@ public static class WebManagerHost
         // Inject the identical services the CLI uses
         builder.Services.AddCheckModsExtendedServices(configuration, runtimeConfig);
         builder.Services.AddSingleton(runtimeConfig);
+        builder.Services.AddSingleton(new CheckModsExtended.Models.CommandLineArgs(args));
 
         configureTestServices?.Invoke(builder.Services);
 
@@ -79,7 +80,7 @@ public static class WebManagerHost
         app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = embeddedProvider });
         app.UseStaticFiles(new StaticFileOptions { FileProvider = embeddedProvider });
 
-        WebEndpoints.MapEndpoints(app, args);
+        WebEndpoints.MapEndpoints(app);
 
         return app;
     }

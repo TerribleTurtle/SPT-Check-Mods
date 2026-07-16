@@ -19,16 +19,16 @@ namespace CheckModsExtended.Services.Web;
 public static class WebEndpoints
 {
     private static readonly SemaphoreSlim _statusLock = new(1, 1);
-    private static string[] _args = Array.Empty<string>();
+    
 
     /// <summary>
     /// Maps the Web Manager endpoints to the provided application.
     /// </summary>
     /// <param name="app">The web application.</param>
     /// <param name="args">Command line arguments.</param>
-    public static void MapEndpoints(WebApplication app, string[] args)
+    public static void MapEndpoints(WebApplication app)
     {
-        _args = args;
+
         RouteGroupBuilder api = app.MapGroup("/api");
 
         api.MapGet("/status", GetStatusAsync);
@@ -63,12 +63,13 @@ public static class WebEndpoints
     private static async Task<IResult> GetStatusAsync(
         [FromServices] ISptInstallationService sptInstall,
         [FromServices] IUpdateCheckService updateCheck,
+        [FromServices] CommandLineArgs cmdArgs,
         CancellationToken token)
     {
         await _statusLock.WaitAsync(token);
         try
         {
-            string path = _args.Length > 0 ? _args[0] : Environment.CurrentDirectory;
+            string path = cmdArgs.Args.Length > 0 ? cmdArgs.Args[0] : Environment.CurrentDirectory;
             SemanticVersioning.Version? sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token);
 
             bool updateAvailable = false;
@@ -109,11 +110,11 @@ public static class WebEndpoints
         }
     }
 
-    private static async Task<IResult> GetLocalScanAsync([FromServices] IInitializationService initService, [FromServices] IModScannerService scannerService, [FromServices] IModReconciliationService reconciliationService, CancellationToken token)
+        private static async Task<IResult> GetLocalScanAsync([FromServices] IInitializationService initService, [FromServices] IModScannerService scannerService, [FromServices] IModReconciliationService reconciliationService, [FromServices] CommandLineArgs cmdArgs, CancellationToken token)
     {
         try
         {
-            string path = _args.Length > 0 ? _args[0] : Environment.CurrentDirectory;
+            string path = cmdArgs.Args.Length > 0 ? cmdArgs.Args[0] : Environment.CurrentDirectory;
             var sptPath = initService.GetValidatedSptPath(new[] { path });
             if (sptPath == null)
             {
@@ -133,6 +134,7 @@ public static class WebEndpoints
 
     private static async Task<IResult> PostScanAsync(
         [FromServices] IUpdateWorkflowOrchestrator orchestrator,
+        [FromServices] CommandLineArgs cmdArgs,
         [FromServices] IPluginScanCache pluginScanCache,
         [FromServices] ICacheManager cacheManager,
         CancellationToken token)
@@ -142,7 +144,7 @@ public static class WebEndpoints
             pluginScanCache.Clear();
             cacheManager.Clear();
 
-            UpdateWorkflowContext context = await orchestrator.RunPipelineAsync(_args, token);
+            UpdateWorkflowContext context = await orchestrator.RunPipelineAsync(cmdArgs.Args, token);
             ScanResponse response = ScanResponseMapper.Map(context);
             return Results.Ok(response);
         }
