@@ -61,13 +61,27 @@ jobs:
       shell: bash
       run: dotnet publish src/CheckModsExtended/CheckModsExtended.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -p:PublishTrimmed=true -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/${{ matrix.rid }}
       
+    - name: Zip Artifact (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd ./publish/${{ matrix.rid }}
+        Rename-Item CheckModsExtended.exe CheckModsExtended-${{ matrix.rid }}.exe
+        Compress-Archive -Path CheckModsExtended-${{ matrix.rid }}.exe -DestinationPath CheckModsExtended-${{ matrix.rid }}.zip
+
+    - name: Zip Artifact (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        cd ./publish/${{ matrix.rid }}
+        mv CheckModsExtended CheckModsExtended-${{ matrix.rid }}
+        zip CheckModsExtended-${{ matrix.rid }}.zip CheckModsExtended-${{ matrix.rid }}
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: CheckModsExtended-${{ matrix.rid }}
-        path: |
-          ./publish/${{ matrix.rid }}/CheckModsExtended-*
-          !./publish/${{ matrix.rid }}/*.pdb
+        path: ./publish/${{ matrix.rid }}/*.zip
         retention-days: 1
 
   release:
@@ -86,12 +100,12 @@ jobs:
     - name: Generate Checksums
       run: |
         cd ./publish/artifacts
-        sha256sum CheckModsExtended-* > checksums.txt
+        sha256sum *.zip > checksums.txt
         
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v2
       with:
-        subject-path: './publish/artifacts/CheckModsExtended-*'
+        subject-path: './publish/artifacts/*.zip'
 
     - name: Extract prerelease flag and version
       id: version
