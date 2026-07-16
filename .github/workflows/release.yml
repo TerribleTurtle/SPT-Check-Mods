@@ -54,9 +54,6 @@ jobs:
     - name: Build
       run: dotnet build CheckModsExtended.slnx --no-restore
 
-    - name: Install Playwright Browsers
-      run: pwsh Tests/CheckModsExtended.Tests/bin/Debug/net9.0/playwright.ps1 install --with-deps
-
     - name: Run Tests
       run: dotnet test CheckModsExtended.slnx --no-build --no-restore
       
