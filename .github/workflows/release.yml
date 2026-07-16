@@ -61,17 +61,7 @@ jobs:
       shell: bash
       run: dotnet publish src/CheckModsExtended/CheckModsExtended.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -p:PublishTrimmed=true -p:BuildVersion=${{ steps.version.outputs.version }} -o ./publish/${{ matrix.rid }}
       
-    - name: Zip Artifact
-      shell: bash
-      run: |
-        cd ./publish/${{ matrix.rid }}
-        if [ -f "CheckModsExtended.exe" ]; then
-          mv -f CheckModsExtended.exe CheckModsExtended-${{ matrix.rid }}.exe
-          zip -q CheckModsExtended-${{ matrix.rid }}.zip CheckModsExtended-${{ matrix.rid }}.exe
-        elif [ -f "CheckModsExtended" ]; then
-          mv -f CheckModsExtended CheckModsExtended-${{ matrix.rid }}
-          zip -q CheckModsExtended-${{ matrix.rid }}.zip CheckModsExtended-${{ matrix.rid }}
-        fi
+
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
@@ -125,16 +115,6 @@ jobs:
           echo "No release notes found for ${VERSION_CLEAN} in CHANGELOG.md" > current_notes.md
         fi
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v3
-      with:
-        files: |
-          ./publish/artifacts/*.zip
-          ./publish/artifacts/checksums.txt
-        generate_release_notes: true
-        body_path: current_notes.md
-        prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
-
     - name: VirusTotal Scan
       id: vt
       uses: crazy-max/ghaction-virustotal@v4
@@ -145,7 +125,7 @@ jobs:
           ./publish/artifacts/*.zip
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Append VirusTotal links to Release
+    - name: Append VirusTotal links to Release Notes
       run: |
         echo "### VirusTotal Security Scans" > vt_notes.md
         IFS=',' read -ra ADDR <<< "${{ steps.vt.outputs.analysis }}"
@@ -157,6 +137,13 @@ jobs:
         done
         echo "" >> current_notes.md
         cat vt_notes.md >> current_notes.md
-        gh release edit ${{ github.ref_name }} --notes-file current_notes.md
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v3
+      with:
+        files: |
+          ./publish/artifacts/*.zip
+          ./publish/artifacts/checksums.txt
+        generate_release_notes: true
+        body_path: current_notes.md
+        prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
