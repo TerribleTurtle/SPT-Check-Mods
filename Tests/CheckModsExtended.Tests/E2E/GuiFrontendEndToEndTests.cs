@@ -27,7 +27,7 @@ public sealed class GuiFrontendEndToEndTests
         // Usually `playwright install` must be run.
 
         // Arrange
-        var server = WireMockServer.Start();
+        var server = WireMockServer.Start(new WireMock.Settings.WireMockServerSettings { Urls = new[] { "http://127.0.0.1:0" } });
         var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         var sptRoot = Path.Combine(tempDir, "SPT");
 
