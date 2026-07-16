@@ -63,13 +63,14 @@ public static class WebEndpoints
     private static async Task<IResult> GetStatusAsync(
         [FromServices] ISptInstallationService sptInstall,
         [FromServices] IUpdateCheckService updateCheck,
+        [FromServices] IInitializationService initService,
         [FromServices] CommandLineArgs cmdArgs,
         CancellationToken token)
     {
         await _statusLock.WaitAsync(token);
         try
         {
-            string path = cmdArgs.Args.Length > 0 ? cmdArgs.Args[0] : Environment.CurrentDirectory;
+            string path = initService.GetValidatedSptPath(cmdArgs.Args) ?? (cmdArgs.Args.Length > 0 ? cmdArgs.Args[0] : Environment.CurrentDirectory);
             SemanticVersioning.Version? sptVer = await sptInstall.GetAndValidateSptVersionAsync(path, token);
 
             bool updateAvailable = false;
