@@ -38,7 +38,7 @@ public sealed class MisplacedModAnalyzerServiceTests
             MockPath("SPT", "BepInEx", "plugins", "ServerMod.dll"),
             isServerMod: true
         );
-        var clientInServer = Mod("ClientMod", MockPath("SPT", "SPT", "user", "mods", "ClientMod", "ClientMod.dll"));
+        var clientInServer = Mod("ClientMod", MockPath("SPT", "user", "mods", "ClientMod", "ClientMod.dll"));
 
         var report = new MisplacedModReport([serverInClient, clientInServer], []);
 

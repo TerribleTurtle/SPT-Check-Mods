@@ -40,7 +40,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     [Fact]
     public async Task Getandvalidatesptversionasync_withvalidversion_returnsparsedversion()
     {
-        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(_sptPath, "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
         await _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content");
 
@@ -64,7 +64,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     [Fact]
     public async Task Getandvalidatesptversionasync_invalidversion_returnsnull()
     {
-        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(_sptPath, "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
         await _fixture.FileSystem.WriteAllTextAsync(coreDllPath, "dummy content");
 
@@ -80,7 +80,7 @@ public sealed class SptInstallationServiceTests : IDisposable
     [Fact]
     public async Task GetAndValidateSptVersionAsync_FileExistsThrowsUnauthorizedAccess_ReturnsNullAndLogsError()
     {
-        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(_sptPath, "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.UnauthorizedPaths.Add(coreDllPath);
 
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);
@@ -92,7 +92,7 @@ public sealed class SptInstallationServiceTests : IDisposable
         [Fact]
     public async Task GetAndValidateSptVersionAsync_FileExistsThrowsIOException_ReturnsNullAndLogsError()
     {
-        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(_sptPath, "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.PathsToThrowIOException.Add(coreDllPath);
 
         var result = await _service.GetAndValidateSptVersionAsync(_sptPath);

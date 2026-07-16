@@ -45,7 +45,7 @@ public sealed class MisplacedModDetectorTests : IDisposable
     [Fact]
     public async Task Detectmisplacedmodsasync_identifiesmisplacedserverandclientmods()
     {
-        var misplacedClientPath = Path.Combine("SPT", "user", "mods", "wrong-client", "WrongClient.dll");
+        var misplacedClientPath = Path.Combine("user", "mods", "wrong-client", "WrongClient.dll");
         var clientCode =
             @"
 using System;

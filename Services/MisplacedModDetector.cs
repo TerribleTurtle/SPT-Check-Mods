@@ -29,7 +29,7 @@ public sealed class MisplacedModDetector(
     {
         List<MisplacedMod> wrongFolder = [];
 
-        var serverModsDir = Path.Combine(sptPath, "SPT", "user", "mods");
+        var serverModsDir = Path.Combine(sptPath, "user", "mods");
         if (fileSystem.DirectoryExists(serverModsDir))
         {
             foreach (var dllPath in fileSystem.GetFiles(serverModsDir, "*.dll", SearchOption.AllDirectories))

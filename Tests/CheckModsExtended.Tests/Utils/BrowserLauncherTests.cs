@@ -13,10 +13,17 @@ public sealed class BrowserLauncherTests
     {
         var launcher = new BrowserLauncher(
             NullLogger<BrowserLauncher>.Instance,
-            new CheckModsExtended.Utils.ProcessRunner()
+            new FakeProcessRunner()
         );
-        // Since there is no mock, this will actually try to run. ftp:// will fail and return error.
         var res = launcher.TryOpenUrl("|||invalid|||");
         Assert.True(res.IsT1);
+    }
+
+    private sealed class FakeProcessRunner : CheckModsExtended.Utils.IProcessRunner
+    {
+        public System.Diagnostics.Process? Start(System.Diagnostics.ProcessStartInfo startInfo)
+        {
+            throw new System.ComponentModel.Win32Exception("Fake exception");
+        }
     }
 }

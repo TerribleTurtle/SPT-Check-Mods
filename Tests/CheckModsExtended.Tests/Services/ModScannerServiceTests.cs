@@ -44,7 +44,7 @@ public sealed class ModScannerServiceTests : IDisposable
     [Fact]
     public async Task Scanservermodsasync_returnsvalidmods()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
+        var modPath = Path.Combine("user", "mods", "test-server-mod", "TestServerMod.dll");
         var serverCode =
             @"
             using System;
@@ -78,7 +78,7 @@ public sealed class ModScannerServiceTests : IDisposable
     [Fact]
     public async Task Scanservermodsasync_includes_package_only_server_mods()
     {
-        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
+        var modDir = Path.Combine(_sptPath, "user", "mods", "PackageOnlyMod");
         _fixture.FileSystem.CreateDirectory(modDir);
         await _fixture.FileSystem.WriteAllTextAsync(Path.Combine(modDir, "package.json"), "{}");
 
@@ -139,7 +139,7 @@ public sealed class ModScannerServiceTests : IDisposable
     [Fact]
     public async Task ScanServerModsAsync_ThrowsUnauthorizedAccess_LogsWarningAndContinues()
     {
-        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "TestMod");
+        var modDir = Path.Combine(_sptPath, "user", "mods", "TestMod");
         _fixture.FileSystem.CreateDirectory(modDir);
         var dllPath = Path.Combine(modDir, "TestMod.dll");
         await _fixture.FileSystem.WriteAllTextAsync(dllPath, "dummy");
@@ -155,7 +155,7 @@ public sealed class ModScannerServiceTests : IDisposable
         [Fact]
     public void GetSptVersion_ThrowsIOException_ReturnsNull()
     {
-        var coreDllPath = Path.Combine(_sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(_sptPath, "SPTarkov.Server.Core.dll");
         _fixture.FileSystem.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
         _fixture.FileSystem.Files[coreDllPath] = new byte[10];
 
@@ -220,7 +220,7 @@ namespace BepInEx {
         _fixture.CompileDummyDll(Path.Combine("BepInEx", "plugins", "TestClient.dll"), clientModCode);
 
         // Generate dummy server mod
-        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
+        var modPath = Path.Combine("user", "mods", "test-server-mod", "TestServerMod.dll");
         var serverCode =
             @"
             using System;

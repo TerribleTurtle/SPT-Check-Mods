@@ -28,7 +28,7 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task Extractservermodmetadataasync_returnsvalidmod()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "test-server-mod", "TestServerMod.dll");
+        var modPath = Path.Combine("user", "mods", "test-server-mod", "TestServerMod.dll");
 
         var code =
             @"
@@ -62,7 +62,7 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task ExtractServerModPackageMetadataAsync_returns_valid_mod()
     {
-        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "PackageOnlyMod");
+        var modDir = Path.Combine(_sptPath, "user", "mods", "PackageOnlyMod");
         _fixture.FileSystem.CreateDirectory(modDir);
         var packagePath = Path.Combine(modDir, "package.json");
         await _fixture.FileSystem.WriteAllTextAsync(
@@ -93,7 +93,7 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task ExtractServerModPackageMetadataAsync_returns_null_for_invalid_json()
     {
-        var modDir = Path.Combine(_sptPath, "SPT", "user", "mods", "InvalidJsonMod");
+        var modDir = Path.Combine(_sptPath, "user", "mods", "InvalidJsonMod");
         _fixture.FileSystem.CreateDirectory(modDir);
         var packagePath = Path.Combine(modDir, "package.json");
         await _fixture.FileSystem.WriteAllTextAsync(packagePath, "{ invalid json }");
@@ -106,7 +106,7 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task Extractservermodmetadataasync_returnsnull_formissingguid()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
+        var modPath = Path.Combine("user", "mods", "missing-props-mod", "MissingProps.dll");
 
         var code =
             @"
@@ -130,7 +130,7 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task Extractservermodmetadataasync_returnsmodwithwarnings_formissingproperties()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "missing-props-mod", "MissingProps.dll");
+        var modPath = Path.Combine("user", "mods", "missing-props-mod", "MissingProps.dll");
 
         var code =
             @"
@@ -157,7 +157,7 @@ public sealed class ServerModExtractorTests : IDisposable
     [Fact]
     public async Task Extractservermodmetadataasync_returnsnull_forunreadablefile()
     {
-        var modPath = Path.Combine("SPT", "user", "mods", "unreadable-mod");
+        var modPath = Path.Combine("user", "mods", "unreadable-mod");
         var dllPath = Path.Combine(modPath, "Unreadable.dll");
 
         _fixture.FileSystem.CreateDirectory(Path.Combine(_sptPath, modPath));

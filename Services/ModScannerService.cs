@@ -33,7 +33,7 @@ public sealed class ModScannerService(
     {
         logger.LogDebug("Scanning server mods at: {SptPath}", sptPath);
 
-        var modsDir = Path.Combine(sptPath, "SPT", "user", "mods");
+        var modsDir = Path.Combine(sptPath, "user", "mods");
         var concurrentMods = new ConcurrentBag<Mod>();
 
         if (!fileSystem.DirectoryExists(modsDir))
@@ -187,13 +187,13 @@ public sealed class ModScannerService(
     public string? GetSptVersion(string sptPath)
     {
         // Allow tests to mock the SPT version without needing a valid PE file
-        var testVersionFile = Path.Combine(sptPath, "SPT", ".spt_version_test");
+        var testVersionFile = Path.Combine(sptPath, ".spt_version_test");
         if (fileSystem.FileExists(testVersionFile))
         {
             return fileSystem.ReadAllTextAsync(testVersionFile).GetAwaiter().GetResult().Trim();
         }
 
-        var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(sptPath, "SPTarkov.Server.Core.dll");
 
         try
         {

@@ -17,7 +17,7 @@ public class CheckModsCommandTests
     private Task<int> RunExecuteAsync(CheckModsCommand command, CommandContext context, CheckModsCommand.Settings settings, CancellationToken cancellationToken)
     {
         var method = typeof(CheckModsCommand).GetMethod("ExecuteAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-        return (Task<int>)method.Invoke(command, new object[] { context, settings, cancellationToken })!;
+        return (Task<int>)method!.Invoke(command, new object[] { context, settings, cancellationToken })!;
     }
 
     [Fact]

@@ -27,7 +27,7 @@ public sealed class SptInstallationService(
     {
         logger.LogDebug("Validating SPT installation at: {SptPath}", sptPath);
 
-        var coreDllPath = Path.Combine(sptPath, "SPT", "SPTarkov.Server.Core.dll");
+        var coreDllPath = Path.Combine(sptPath, "SPTarkov.Server.Core.dll");
         try
         {
             if (!fileSystem.FileExists(coreDllPath))

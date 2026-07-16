@@ -32,7 +32,7 @@ public sealed class CliEndToEndTests
 
             Directory.CreateDirectory(sptRoot);
             // 1. Mock the Scanner Directory
-            var fakeModDir = Path.Combine(sptRoot, "SPT", "user", "mods", "FakeMod");
+            var fakeModDir = Path.Combine(sptRoot, "user", "mods", "FakeMod");
             Directory.CreateDirectory(fakeModDir);
 
             var packageJsonPath = Path.Combine(fakeModDir, "package.json");
@@ -60,12 +60,12 @@ public sealed class CliEndToEndTests
             );
 
             // Mock the SPT core DLL so the file exists
-            var coreDllPath = Path.Combine(sptRoot, "SPT", "SPTarkov.Server.Core.dll");
+            var coreDllPath = Path.Combine(sptRoot, "SPTarkov.Server.Core.dll");
             Directory.CreateDirectory(Path.GetDirectoryName(coreDllPath)!);
             File.WriteAllText(coreDllPath, "dummy");
 
             // Mock the SPT version using the test override file
-            var testVersionFile = Path.Combine(sptRoot, "SPT", ".spt_version_test");
+            var testVersionFile = Path.Combine(sptRoot, ".spt_version_test");
             File.WriteAllText(testVersionFile, "3.8.0");
 
             // 2. Mock Forge API Endpoints
