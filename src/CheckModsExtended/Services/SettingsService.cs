@@ -32,8 +32,17 @@ public sealed class SettingsService(IFileSystem fileSystem) : ISettingsService
         return await fileSystem.ReadAllTextAsync(path, token);
     }
 
-    private static readonly JsonSerializerOptions s_deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-    private static readonly JsonSerializerOptions s_serializeOptions = new JsonSerializerOptions { WriteIndented = true };
+    private static readonly JsonSerializerOptions s_deserializeOptions = new JsonSerializerOptions 
+    { 
+        PropertyNameCaseInsensitive = true,
+        TypeInfoResolver = CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default 
+    };
+    
+    private static readonly JsonSerializerOptions s_serializeOptions = new JsonSerializerOptions 
+    { 
+        WriteIndented = true,
+        TypeInfoResolver = CheckModsExtended.Configuration.CheckModsExtendedJsonSerializerContext.Default 
+    };
 
     /// <inheritdoc />
     public async Task<OneOf<MessageResponse, ApiError>> UpdateSettingsAsync(string jsonPayload, CancellationToken token = default)

@@ -41,5 +41,6 @@ namespace CheckModsExtended.Configuration;
 [JsonSerializable(typeof(CheckModsExtended.Services.GitHubReleaseClient.GitHubReleaseResponse))]
 [JsonSerializable(typeof(CheckModsExtended.Services.GitHubReleaseClient.GitHubAsset))]
 [JsonSerializable(typeof(CheckModsExtended.Services.UI.ScanProgress))]
+[JsonSerializable(typeof(CheckModsExtended.Configuration.IgnoredUpdateOptions))]
 internal sealed partial class CheckModsExtendedJsonSerializerContext : JsonSerializerContext { }
 
